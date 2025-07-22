@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparkline Vue - Comprehensive Examples</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="stylesheet" href="/docs/shared/shared.css">
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column; margin: 0;">
+    <div class="outer-container" style="flex: 1;">
+        <div class="container">
+            <div class="header">
+                <h1>🔥 Sparkline Vue</h1>
+                <p>Comprehensive Examples & Interactive Demos</p>
+                <div class="nav-links">
+                    <a href="../../">🏠 Home</a>
+                    <a href="../basic/">🚀 Basic</a>
+                    <a href="../advanced/">⚡ Advanced</a>
+                    <a href="../vue-app/">🔧 Vue SPA</a>
+                    <a href="../comprehensive/" class="current">🎯 Comprehensive</a>
+                    <a href="../interactive/">🎮 Interactive</a>
+                    <a href="../performance/">🚀 Performance</a>
+                    <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="section">
+                                    
+                    <div class="inline-examples">
+                        <div class="inline-example">
+                            <span>Stock Price:</span>
+                            <canvas id="stock-line" width="100" height="20"></canvas>
+                            <span>+2.4%</span>
+                        </div>
+                        <div class="inline-example">
+                            <span>Sales:</span>
+                            <canvas id="sales-bar" width="80" height="20"></canvas>
+                            <span>↗️ Trending Up</span>
+                        </div>
+                        <div class="inline-example">
+                            <span>Performance:</span>
+                            <canvas id="perf-pie" width="30" height="20"></canvas>
+                            <span>85% Good</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📊 Line Charts</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Basic Line Chart</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Simple line chart</div>
+                                <canvas id="line-basic" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2,2,4,6,7]" type="line" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Line with Fill Area</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Line chart with fill color</div>
+                                <canvas id="line-fill" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2,2,4,6,7]" type="line" 
+    :fillColor="'#c0d0f0'" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Line with Spots</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Line chart with min/max spots <em>(hover for enhanced tooltips)</em></div>
+                                <canvas id="line-spots" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2,2,4,6,7]" type="line" 
+    :spotColor="'#f08000'" :minSpotColor="'#f08000'" 
+    :maxSpotColor="'#f08000'" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Normal Range</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Line with normal range highlighting <em>(hover for range status tooltips)</em></div>
+                                <canvas id="line-normal" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2,2,4,6,7]" type="line" 
+    :normalRangeMin="4" :normalRangeMax="8" 
+    :normalRangeColor="'#c0c0c0'" /&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📊 Bar Charts</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Basic Bar Chart</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Simple bar chart</div>
+                                <canvas id="bar-basic" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2,2,4,6,7]" type="bar" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Bar Chart with Negative Values</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Bars with positive and negative values</div>
+                                <canvas id="bar-negative" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[2,-3,4,-1,3,-2,1,-4]" type="bar" 
+    :negBarColor="'#ff6b6b'" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Stacked Bar Chart</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Stacked bars <em>(hover for multi-value tooltips with colors)</em></div>
+                                <canvas id="bar-stacked" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[[2,3,4],[3,2,4],[4,3,2]]" type="bar" 
+    :stackedBarColor="['#667eea','#764ba2','#f093fb']" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Colored Bars</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Bars with custom colors</div>
+                                <canvas id="bar-colored" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2]" type="bar" 
+    :colorMap="{'5':'#ff9999','9':'#99ff99'}" /&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🥧 Pie Charts</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Basic Pie Chart</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Simple pie chart</div>
+                                <canvas id="pie-basic" width="80" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[1,1,2]" type="pie" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Custom Colors</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Pie with custom slice colors</div>
+                                <canvas id="pie-colors" width="80" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[1,1,2,3]" type="pie" 
+    :sliceColors="['#667eea','#764ba2','#f093fb','#ffeaa7']" /&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🎯 Other Chart Types</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Discrete Chart</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Discrete value chart</div>
+                                <canvas id="discrete-basic" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[4,6,7,7,4,3,2,1,4,5,7,9]" type="discrete" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Tristate Chart</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Win/Loss/Draw chart <em>(hover for summary with colors)</em></div>
+                                <canvas id="tristate-basic" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[1,1,-1,1,-1,0,1,-1]" type="tristate" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Bullet Chart</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Performance vs target</div>
+                                <canvas id="bullet-basic" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[10,12,12,9,7]" type="bullet" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Box Plot</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Statistical box plot <em>(hover for detailed stats with colors)</em></div>
+                                <canvas id="box-basic" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[4,27,34,52,54,59,61,68,78,82,85,87,91,93,100]" 
+    type="box" /&gt;</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createChart } from '../../renderers/chartFactory.js';
+
+        // Sample data sets
+        const sampleData = {
+            line: [5,6,7,9,9,5,3,2,2,4,6,7],
+            bar: [5,6,7,9,9,5,3,2,2,4,6,7],
+            barNegative: [2,-3,4,-1,3,-2,1,-4],
+            pie: [1,1,2],
+            pieColors: [1,1,2,3],
+            discrete: [4,6,7,7,4,3,2,1,4,5,7,9],
+            tristate: [1,1,-1,1,-1,0,1,-1],
+            bullet: [10,12,12,9,7],
+            box: [4,27,34,52,54,59,61,68,78,82,85,87,91,93,100],
+            stock: [8,7,9,10,9,8,7,9,11,10,12,13,11,9,8],
+            sales: [3,4,6,8,7,9,8,6,7,8],
+            perf: [85,15]
+        }
+
+        // Helper function to create a sparkline on canvas
+        function createSparkline(canvas, data, type, options = {}) {
+            if (!canvas || !data) return null;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const props = {
+                data: data,
+                type: type,
+                width: canvas.width,
+                height: canvas.height,
+                options: options
+            };
+            
+            const chart = createChart(type, ctx, props);
+            if (chart) {
+                chart.draw();
+                return chart; // Return the chart instance
+            }
+            return null;
+        }
+
+        // Create charts for all examples
+        const charts = [
+            // Inline examples
+            { id: 'stock-line', data: sampleData.stock, type: 'line', options: { lineColor: '#28a745', fillColor: 'rgba(40,167,69,0.1)' }},
+            { id: 'sales-bar', data: sampleData.sales, type: 'bar', options: { barColor: '#007bff' }},
+            { id: 'perf-pie', data: sampleData.perf, type: 'pie', options: { sliceColors: ['#28a745', '#dc3545'] }},
+
+            // Line charts
+            { id: 'line-basic', data: sampleData.line, type: 'line', options: {}},
+            { id: 'line-fill', data: sampleData.line, type: 'line', options: { fillColor: '#c0d0f0' }},
+            { id: 'line-spots', data: sampleData.line, type: 'line', options: { spotColor: '#f08000', minSpotColor: '#f08000', maxSpotColor: '#f08000' }},
+            { id: 'line-normal', data: sampleData.line, type: 'line', options: { 
+                normalRangeMin: 4, 
+                normalRangeMax: 8, 
+                normalRangeColor: '#c0c0c0',
+                tooltipFormatter: function(value) {
+                    const inRange = value >= 4 && value <= 8;
+                    return inRange 
+                        ? `Value: ${value} (Within normal range 4-8)`
+                        : `Value: ${value} (Outside normal range)`;
+                }
+            }},
+
+            // Bar charts
+            { id: 'bar-basic', data: sampleData.bar, type: 'bar', options: {}},
+            { id: 'bar-negative', data: sampleData.barNegative, type: 'bar', options: { negBarColor: '#ff6b6b' }},
+            { id: 'bar-stacked', data: [[2,3,4],[3,2,4],[4,3,2]], type: 'bar', options: { stackedBarColor: ['#667eea','#764ba2','#f093fb'] }},
+            { id: 'bar-colored', data: sampleData.bar, type: 'bar', options: { colorMap: {'5':'#ff9999','9':'#99ff99'} }},
+
+            // Pie charts
+            { id: 'pie-basic', data: sampleData.pie, type: 'pie', options: {}},
+            { id: 'pie-colors', data: sampleData.pieColors, type: 'pie', options: { sliceColors: ['#667eea','#764ba2','#f093fb','#ffeaa7'] }},
+
+            // Other types
+            { id: 'discrete-basic', data: sampleData.discrete, type: 'discrete', options: {}},
+            { id: 'tristate-basic', data: sampleData.tristate, type: 'tristate', options: {}},
+            { id: 'bullet-basic', data: sampleData.bullet, type: 'bullet', options: {}},
+            { id: 'box-basic', data: sampleData.box, type: 'box', options: {}}
+        ]
+
+        // Initialize all charts after DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            charts.forEach(chart => {
+                const canvas = document.getElementById(chart.id);
+                if (canvas) {
+                    createSparkline(canvas, chart.data, chart.type, chart.options);
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Basic line chart
+            createSparkline('chart1', [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7], {
+                type: 'line',
+                lineColor: '#007acc',
+                fillColor: false,
+                width: 'auto',
+                height: '30px'
+            });
+
+            // Line chart with fill
+            createSparkline('chart2', [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7], {
+                type: 'line',
+                lineColor: '#ff6b6b',
+                fillColor: '#ffe6e6',
+                width: 'auto',
+                height: '40px'
+            });
+
+            // Basic bar chart
+            createSparkline('chart3', [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7], {
+                type: 'bar',
+                barColor: '#4ecdc4',
+                width: 'auto',
+                height: '40px'
+            });
+
+            // Pie chart
+            createSparkline('chart4', [10, 8, 5, 3], {
+                type: 'pie',
+                sliceColors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'],
+                width: '60px',
+                height: '60px'
+            });
+
+            // Line chart with range
+            createSparkline('chart5', [1,4,6,6,8,5,3,5], {
+                type: 'line',
+                lineColor: '#ff9f43',
+                width: 'auto',
+                height: '30px',
+                chartRangeMin: 0,
+                chartRangeMax: 10
+            });
+
+            // Bar chart with negative values
+            createSparkline('chart6', [2, 4, -3, -1, 2, -2, 3], {
+                type: 'bar',
+                barColor: '#10ac84',
+                negBarColor: '#ee5253',
+                width: 'auto',
+                height: '40px'
+            });
+
+            // Discrete chart
+            createSparkline('chart7', [4, 6, 7, 7, 4, 3, 2, 1, 4, 4], {
+                type: 'discrete',
+                lineColor: '#5f27cd',
+                width: 'auto',
+                height: '30px'
+            });
+
+            // Tristate chart
+            createSparkline('chart8', [1, 1, 0, 1, -1, -1, 1, -1, 0, 0, 1, 1], {
+                type: 'tristate',
+                posBarColor: '#00d2d3',
+                negBarColor: '#ff9ff3',
+                zeroBarColor: '#54a0ff',
+                width: 'auto',
+                height: '30px'
+            });
+
+            // Bullet chart
+            createSparkline('chart9', [10, 12, 12, 9, 7], {
+                type: 'bullet',
+                targetWidth: 3,
+                targetColor: '#ff3838',
+                performanceColor: '#2ed573',
+                rangeColors: ['#eccc68', '#ffa502', '#ff6348'],
+                width: 'auto',
+                height: '30px'
+            });
+
+            // Box plot
+            createSparkline('chart10', [4, 27, 34, 52, 54, 59, 61, 68, 78, 82, 85, 87, 91, 93, 100], {
+                type: 'box',
+                width: 'auto',
+                height: '40px'
+            });
+
+            // Line with spots and highlights
+            createSparkline('chart11', [8, 4, 0, 0, 0, 0, 1, 4, 4, 10, 10, 10, 10, 0, 0, 0, 4, 6, 5, 9, 10], {
+                type: 'line',
+                lineColor: '#2d3436',
+                fillColor: '#ddd',
+                highlightSpotColor: '#e17055',
+                minSpotColor: '#00b894',
+                maxSpotColor: '#e84393',
+                spotRadius: 3,
+                width: 'auto',
+                height: '40px'
+            });
+
+            // Custom colored bars
+            createSparkline('chart12', [5, 6, 7, 2, 0, -4, -2, 4], {
+                type: 'bar',
+                barColor: '#fd79a8',
+                negBarColor: '#636e72',
+                zeroColor: '#74b9ff',
+                width: 'auto',
+                height: '40px'
+            });
+
+            // Multi-series line (composite)
+            createSparkline('chart13', [[5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7], [3, 4, 5, 7, 7, 3, 1, 0, 0, 2, 4, 5]], {
+                type: 'line',
+                lineColor: ['#6c5ce7', '#a29bfe'],
+                fillColor: [false, '#a29bfe33'],
+                composite: true,
+                width: 'auto',
+                height: '40px'
+            });
+
+            // Normalize line chart
+            createSparkline('chart14', [200, 400, 300, 600, 800, 300, 100], {
+                type: 'line',
+                lineColor: '#00b894',
+                normalRangeMin: 300,
+                normalRangeMax: 500,
+                normalRangeColor: '#00b89444',
+                width: 'auto',
+                height: '40px'
+            });
+        });
+    </script>
+    
+    <footer style="background: #2c3e50; color: #ecf0f1; padding: 30px 0; margin: 0; width: 100%; position: relative;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 40px; text-align: center;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 20px;">
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">📝 Credits</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        Based on the original <strong>jQuery Sparklines</strong> library by <strong>Gareth Watts</strong><br>
+                        Vue.js adaptation and enhanced tooltips implementation
+                    </p>
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">⚖️ License</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        Released under the <strong>New BSD License</strong><br>
+                        Free for commercial and non-commercial use
+                    </p>
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">🔗 Links</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" style="color: #3498db; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                            View on GitHub
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #34495e; padding-top: 20px; opacity: 0.6; font-size: 0.9em;">
+                <p style="margin: 0;">
+                    Original jQuery Sparklines © Gareth Watts | Vue.js Port by Ian Claxton © 2025
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

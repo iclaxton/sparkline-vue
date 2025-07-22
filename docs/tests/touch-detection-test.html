@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Touch Support Detection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .info-panel {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .chart-container {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .test-result {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .test-warning {
+            color: #ffc107;
+        }
+        .event-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 Touch Support Detection & Interaction Test</h1>
+    
+    <div class="info-panel">
+        <h3>Browser Touch Support Detection</h3>
+        <p><strong>ontouchstart in window:</strong> <span id="touch-test-1">...</span></p>
+        <p><strong>navigator.maxTouchPoints:</strong> <span id="touch-test-2">...</span></p>
+        <p><strong>navigator.msMaxTouchPoints:</strong> <span id="touch-test-3">...</span></p>
+        <p><strong>Touch Support Result:</strong> <span id="touch-support-result">...</span></p>
+        <p><strong>Expected Touch Events:</strong> <span id="touch-events-expected">...</span></p>
+    </div>
+
+    <div class="chart-container">
+        <h3>Test Chart - Try hovering, touching, or tapping</h3>
+        <canvas id="test-chart" width="400" height="120"></canvas>
+        <p><em>Events will be logged below</em></p>
+    </div>
+
+    <div class="info-panel">
+        <h3>Event Log</h3>
+        <div id="event-log" class="event-log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script type="module">
+        import { createChart } from '../renderers/chartFactory.js';
+
+        let eventLog = [];
+        const eventLogElement = document.getElementById('event-log');
+
+        function logEvent(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            eventLog.push(`[${timestamp}] ${message}`);
+            updateEventLog();
+        }
+
+        function updateEventLog() {
+            eventLogElement.innerHTML = eventLog.slice(-20).map(log => `<div>${log}</div>`).join('');
+            eventLogElement.scrollTop = eventLogElement.scrollHeight;
+        }
+
+        window.clearLog = function() {
+            eventLog = [];
+            updateEventLog();
+        };
+
+        // Test touch support detection
+        function testTouchSupport() {
+            const test1 = 'ontouchstart' in window;
+            const test2 = navigator.maxTouchPoints || 0;
+            const test3 = navigator.msMaxTouchPoints || 0;
+            
+            document.getElementById('touch-test-1').textContent = test1 ? 'YES' : 'NO';
+            document.getElementById('touch-test-2').textContent = test2 > 0 ? `YES (${test2})` : 'NO';
+            document.getElementById('touch-test-3').textContent = test3 > 0 ? `YES (${test3})` : 'NO';
+            
+            const touchSupported = test1 || test2 > 0 || test3 > 0;
+            const resultElement = document.getElementById('touch-support-result');
+            const eventsExpectedElement = document.getElementById('touch-events-expected');
+            
+            if (touchSupported) {
+                resultElement.textContent = '✅ TOUCH SUPPORTED';
+                resultElement.className = 'test-result';
+                eventsExpectedElement.textContent = 'Touch events should be registered on chart canvas';
+            } else {
+                resultElement.textContent = '❌ NO TOUCH SUPPORT';
+                resultElement.className = 'test-warning';
+                eventsExpectedElement.textContent = 'Touch events should NOT be registered (mouse only)';
+            }
+            
+            return touchSupported;
+        }
+
+        // Helper function to create a sparkline on canvas
+        function createSparkline(canvasId, data, type, options = {}) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || !data) return null;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const props = {
+                data: data,
+                type: type,
+                width: canvas.width,
+                height: canvas.height,
+                options: options
+            };
+            
+            const chart = createChart(type, ctx, props);
+            if (chart) {
+                chart.draw();
+                
+                // Add event listeners to log events
+                canvas.addEventListener('mousemove', () => logEvent('Mouse move detected'));
+                canvas.addEventListener('mouseleave', () => logEvent('Mouse leave detected'));
+                canvas.addEventListener('click', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = Math.round(e.clientX - rect.left);
+                    const y = Math.round(e.clientY - rect.top);
+                    logEvent(`Mouse click at (${x}, ${y})`);
+                });
+                
+                // Only add touch event logging if touch is supported
+                if ('ontouchstart' in window || navigator.maxTouchPoints || navigator.msMaxTouchPoints) {
+                    canvas.addEventListener('touchstart', (e) => {
+                        const touch = e.touches[0];
+                        const rect = canvas.getBoundingClientRect();
+                        const x = Math.round(touch.clientX - rect.left);
+                        const y = Math.round(touch.clientY - rect.top);
+                        logEvent(`Touch start at (${x}, ${y})`);
+                    });
+                    canvas.addEventListener('touchmove', (e) => {
+                        if (e.touches.length > 0) {
+                            const touch = e.touches[0];
+                            const rect = canvas.getBoundingClientRect();
+                            const x = Math.round(touch.clientX - rect.left);
+                            const y = Math.round(touch.clientY - rect.top);
+                            logEvent(`Touch move at (${x}, ${y})`);
+                        }
+                    });
+                    canvas.addEventListener('touchend', () => logEvent('Touch end detected'));
+                }
+                
+                return chart;
+            }
+            return null;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            const touchSupported = testTouchSupport();
+            
+            // Create test chart
+            const chart = createSparkline('test-chart', [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7], 'line', { 
+                lineColor: '#007acc',
+                tooltipPrefix: 'Value: ',
+                spotColor: '#ff4444',
+                minSpotColor: '#ff4444',
+                maxSpotColor: '#44ff44'
+            });
+            
+            // Listen for chart events
+            document.getElementById('test-chart').addEventListener('sparklineClick', (e) => {
+                logEvent(`Chart click event - Region: ${e.detail.region}, Value: ${e.detail.value}`);
+            });
+            
+            logEvent('Test initialized - Try interacting with the chart above');
+            if (touchSupported) {
+                logEvent('Touch support detected - Touch events should work');
+            } else {
+                logEvent('No touch support detected - Mouse events only');
+            }
+        });
+    </script>
+</body>
+</html>

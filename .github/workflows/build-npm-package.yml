@@ -1,0 +1,352 @@
+# Publish to NPM and Deploy Docs when a new release is created
+name: Publish to NPM and Deploy Docs
+
+on:
+  release:
+    types: [published]
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+      - 'hotfix/**'
+  workflow_dispatch:
+    inputs:
+      npm_tag:
+        description: 'NPM tag (latest, beta, alpha, etc.)'
+        required: false
+        default: 'latest'
+      force_version:
+        description: 'Force specific version (optional, overrides GitVersion)'
+        required: false
+        default: ''
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      npm_publish_success: ${{ steps.npm_publish.outputs.npm_publish_success }}
+      final_version: ${{ steps.set_version.outputs.final_version }}
+    
+    permissions:
+      contents: write  # Required for GitVersion to create tags
+      id-token: write  # Required for npm provenance
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for GitVersion to analyze history
+          token: ${{ secrets.GITHUB_TOKEN }}  # Required for pushing tags
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.10.2
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.10.2
+        with:
+          useConfigFile: true
+          configFilePath: GitVersion.yml
+
+      - name: Validate GitVersion Output
+        run: |
+          if [ -z "${{ steps.gitversion.outputs.semVer }}" ]; then
+            echo "❌ GitVersion failed to generate a version!"
+            echo "GitVersion outputs:"
+            echo "  semVer: '${{ steps.gitversion.outputs.semVer }}'"
+            echo "  branchName: '${{ steps.gitversion.outputs.branchName }}'"
+            exit 1
+          fi
+          echo "✅ GitVersion generated: ${{ steps.gitversion.outputs.semVer }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update package.json version
+        id: set_version
+        run: |
+          if [ -n "${{ github.event.inputs.force_version }}" ]; then
+            echo "Using forced version: ${{ github.event.inputs.force_version }}"
+            npm version "${{ github.event.inputs.force_version }}" --no-git-tag-version --allow-same-version
+            echo "FINAL_VERSION=${{ github.event.inputs.force_version }}" >> "$GITHUB_ENV"
+            echo "final_version=${{ github.event.inputs.force_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "Using GitVersion: ${{ steps.gitversion.outputs.semVer }}"
+            npm version "${{ steps.gitversion.outputs.semVer }}" --no-git-tag-version --allow-same-version
+            echo "FINAL_VERSION=${{ steps.gitversion.outputs.semVer }}" >> "$GITHUB_ENV"
+            echo "final_version=${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Display version info
+        run: |
+          echo "📦 Package Version Information:"
+          echo "GitVersion SemVer: ${{ steps.gitversion.outputs.semVer }}"
+          echo "GitVersion NuGet: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+          echo "GitVersion Full: ${{ steps.gitversion.outputs.fullSemVer }}"
+          echo "GitVersion Branch: ${{ steps.gitversion.outputs.branchName }}"
+          echo "GitVersion Commit: ${{ steps.gitversion.outputs.sha }}"
+          echo "Current Git Branch: ${{ github.ref_name }}"
+          echo "Is Pre-release: ${{ steps.gitversion.outputs.preReleaseTag != '' }}"
+          echo "Package.json version: $(node -p "require('./package.json').version")"
+          echo "Final version to publish: $FINAL_VERSION"
+
+      - name: Verify package contents
+        run: |
+          echo "Package contents that will be published:"
+          npm pack --dry-run
+          echo "Version to be published: $FINAL_VERSION"
+
+      - name: Publish to NPM
+        id: npm_publish
+        run: |
+          echo "Publishing version: $FINAL_VERSION"
+          
+          # Check if NPM_TOKEN is available
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "❌ NPM_TOKEN not found - cannot publish to NPM"
+            echo "To publish to NPM, add NPM_TOKEN secret in repository settings"
+            exit 1
+          fi
+          
+          # Check if version already exists on NPM
+          if npm view sparkline-vue@$FINAL_VERSION version 2>/dev/null; then
+            echo "❌ Version $FINAL_VERSION already exists on NPM!"
+            echo "This version was already published. Increment the version or use a different version."
+            exit 1
+          fi
+          
+          # Determine NPM tag based on version and branch
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.npm_tag }}" ]; then
+            NPM_TAG="${{ github.event.inputs.npm_tag }}"
+            echo "Using manual NPM tag: $NPM_TAG"
+          else
+            # Auto-determine tag based on version
+            if [[ "$FINAL_VERSION" == *"-alpha"* ]]; then
+              NPM_TAG="alpha"
+            elif [[ "$FINAL_VERSION" == *"-beta"* ]]; then
+              NPM_TAG="beta"
+            elif [[ "$FINAL_VERSION" == *"-"* ]]; then
+              NPM_TAG="next"
+            elif [ "${{ github.ref_name }}" = "main" ]; then
+              NPM_TAG="latest"
+            else
+              NPM_TAG="branch-${{ github.ref_name }}"
+            fi
+            echo "Auto-determined NPM tag: $NPM_TAG"
+          fi
+          
+          echo "Publishing sparkline-vue@$FINAL_VERSION with tag: $NPM_TAG"
+          
+          # Try to publish with provenance first, fallback without provenance if transparency log fails
+          if npm publish --tag "$NPM_TAG" --provenance --access public; then
+            echo "✅ Published with provenance attestation"
+          else
+            echo "⚠️ Provenance publish failed, trying without provenance..."
+            if npm publish --tag "$NPM_TAG" --access public; then
+              echo "✅ Published without provenance attestation"
+              echo "Note: Provenance attestation was skipped due to transparency log issues"
+            else
+              echo "❌ Both publish attempts failed"
+              exit 1
+            fi
+          fi
+          
+          # Verify the publish was successful
+          if ! npm view sparkline-vue@$FINAL_VERSION version >/dev/null 2>&1; then
+            echo "❌ Failed to verify npm publish - package not found on registry"
+            exit 1
+          fi
+          
+          echo "✅ Successfully published sparkline-vue@$FINAL_VERSION with tag $NPM_TAG"
+          echo "npm_publish_success=true" >> $GITHUB_OUTPUT
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create and push version tag
+        if: github.event_name != 'release' && steps.npm_publish.outputs.npm_publish_success == 'true'
+        run: |
+          echo "🏷️ Creating Git tag for version: $FINAL_VERSION"
+          echo "Event name: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Check if tag already exists
+          if git tag -l | grep -q "^v$FINAL_VERSION$"; then
+            echo "⚠️ Tag v$FINAL_VERSION already exists"
+          else
+            git tag -a "v$FINAL_VERSION" -m "Release v$FINAL_VERSION [skip ci]"
+            git push origin "v$FINAL_VERSION"
+            echo "✅ Created and pushed tag v$FINAL_VERSION"
+          fi
+
+      - name: Create GitHub Release
+        if: github.event_name != 'release' && steps.npm_publish.outputs.npm_publish_success == 'true'
+        run: |
+          echo "📋 Creating GitHub release for v$FINAL_VERSION"
+          
+          # Create release notes
+          cat << EOF > release_notes.md
+          ## 🚀 sparkline-vue v${FINAL_VERSION}
+          
+          ### 📦 Installation
+          ```bash
+          npm install sparkline-vue@${FINAL_VERSION}
+          ```
+          
+          ### 🔗 Links
+          - **NPM Package**: https://www.npmjs.com/package/sparkline-vue
+          - **Documentation**: https://iclaxton.github.io/sparkline-vue/
+          
+          ### ⚡ What's New
+          - Published via automated workflow
+          - GitVersion: ${{ steps.gitversion.outputs.semVer }}
+          - Branch: ${{ github.ref_name }}
+          
+          ---
+          *This release was automatically created by GitHub Actions*
+          EOF
+          
+          # Check if this is a prerelease
+          PRERELEASE_FLAG=""
+          if [[ "${{ steps.gitversion.outputs.preReleaseTag }}" != "" ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          
+          # Create the release using GitHub CLI
+          gh release create "v$FINAL_VERSION" \
+            --title "Release v$FINAL_VERSION" \
+            --notes-file release_notes.md \
+            $PRERELEASE_FLAG
+          
+          echo "✅ Created GitHub release v$FINAL_VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and upload release assets
+        if: github.event_name == 'release'
+        run: |
+          echo "📦 Creating release assets"
+          npm pack
+          ASSET_FILE="sparkline-vue-v$FINAL_VERSION.tgz"
+          mv *.tgz "$ASSET_FILE"
+          
+          # Upload the asset to the existing release
+          gh release upload "${{ github.event.release.tag_name }}" "$ASSET_FILE"
+          
+          echo "✅ Uploaded release asset: $ASSET_FILE"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        if: steps.npm_publish.outputs.npm_publish_success == 'true'
+        run: |
+          echo "🎉 Successfully published sparkline-vue@$FINAL_VERSION to NPM!"
+          echo "📦 Package: https://www.npmjs.com/package/sparkline-vue"
+          echo "🏷️ Version: $FINAL_VERSION"
+          echo "🌿 Branch: ${{ github.ref_name }}"
+          echo "🔖 NPM Tag: Check logs above for the tag used"
+          echo "🌟 Install: npm install sparkline-vue@$FINAL_VERSION"
+          echo "📋 NPM Info: npm info sparkline-vue@$FINAL_VERSION"
+          echo ""
+          echo "📖 Install by tag examples:"
+          echo "  npm install sparkline-vue@latest    # Stable release"
+          echo "  npm install sparkline-vue@beta     # Beta release"  
+          echo "  npm install sparkline-vue@alpha    # Alpha release"
+
+      - name: Notify on NPM publish failure
+        if: failure() && (steps.npm_publish.conclusion == 'failure' || (steps.npm_publish.conclusion == 'success' && steps.npm_publish.outputs.npm_publish_success != 'true'))
+        run: |
+          echo "❌ NPM Publishing failed!"
+          echo "The workflow has been stopped to prevent creating tags or releases"
+          echo "without a successful npm publish."
+          echo ""
+          echo "🔍 Check the 'Publish to NPM' step above for details."
+          echo ""
+          echo "Common issues:"
+          echo "  - NPM_TOKEN secret not set or invalid"
+          echo "  - Version $FINAL_VERSION already exists on NPM" 
+          echo "  - Network connectivity problems with NPM registry"
+          echo "  - Package configuration issues"
+          echo "  - Package verification failed after publish"
+          echo ""
+          echo "❗ No Git tags or GitHub releases were created due to this failure."
+
+      - name: Notify on general failure  
+        if: failure() && steps.npm_publish.conclusion == 'success' && steps.npm_publish.outputs.npm_publish_success == 'true'
+        run: |
+          echo "❌ Workflow failed!"
+          echo "NPM publish succeeded, but a later step failed."
+          echo "Check the logs above for details."
+          echo "Common issues:"
+          echo "  - GitVersion configuration issues"
+          echo "  - GitHub token permissions problems"
+          echo "  - Git tag creation failures"
+          echo "  - GitHub release creation issues"
+
+  # Deploy docs to GitHub Pages only after successful npm publish
+  deploy-docs:
+    needs: publish
+    runs-on: ubuntu-latest
+    if: needs.publish.outputs.npm_publish_success == 'true'
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+    # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build documentation
+        run: |
+          echo "📖 Building documentation..."
+          npm run build:docs
+          echo "✅ Documentation built successfully"
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload documentation artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist-docs'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Documentation deployment summary
+        run: |
+          echo "📚 Documentation deployed successfully!"
+          echo "🌐 Documentation URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "📦 NPM Package: https://www.npmjs.com/package/sparkline-vue"
+          echo "🎯 Deployment triggered by successful npm publish"

@@ -1,0 +1,73 @@
+{
+  "name": "sparkline-vue",
+  "version": "0.3.0",
+  "description": "Vue.js sparkline charts (ported from jquery.sparkline.js)",
+  "homepage": "https://iclaxton.github.io/sparkline-vue/",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "require": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./components/*": "./components/*",
+    "./renderers/*": "./renderers/*"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:docs": "vite build --mode=docs --outDir=dist-docs",
+    "preview": "vite preview",
+    "serve": "vite",
+    "clean": "rimraf dist dist-docs",
+    "prepublishOnly": "npm run clean",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "sparkline",
+    "charts",
+    "visualization",
+    "canvas",
+    "dashboard",
+    "component",
+    "ui",
+    "data-visualization"
+  ],
+  "author": "Ian Claxton",
+  "license": "BSD-3-Clause",  
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0",
+    "vue": "^3.4.0",
+    "rimraf": "^5.0.0"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "components/",
+    "renderers/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iclaxton/sparkline-vue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iclaxton/sparkline-vue/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/iclaxton"
+  }
+}

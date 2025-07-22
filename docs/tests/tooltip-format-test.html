@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Default Tooltip Format Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .test-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .chart-container {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .info-panel {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Default Tooltip Format Test</h1>
+    
+    <div class="info-panel">
+        <h3>Test Description</h3>
+        <p>This test verifies that the default tooltip format <code>{{value}}</code> is working correctly across different chart types.</p>
+        <p><strong>Expected Behavior:</strong> Hover over charts to see tooltips displaying formatted values.</p>
+        <ul>
+            <li><strong>Default format:</strong> <code>{{value}}</code> should show raw values</li>
+            <li><strong>Custom format:</strong> <code>{{value.2}}</code> should show 2 decimal places</li>
+            <li><strong>Prefix/Suffix:</strong> Should wrap the formatted value</li>
+        </ul>
+    </div>
+
+    <h3>Test Charts - Hover to see default tooltip formatting</h3>
+    <div class="test-container">
+        <div class="chart-container">
+            <h4>Line Chart (Default {{value}})</h4>
+            <canvas id="chart1" width="250" height="80"></canvas>
+            <p><em>Should show just the value, not coordinates</em></p>
+        </div>
+        
+        <div class="chart-container">
+            <h4>Line Chart (No Format - Coordinates)</h4>
+            <canvas id="chart5" width="250" height="80"></canvas>
+            <p><em>Should show (x, y) coordinates</em></p>
+        </div>
+        
+        <div class="chart-container">
+            <h4>Bar Chart ({{value.2}} format)</h4>
+            <canvas id="chart2" width="250" height="80"></canvas>
+            <p><em>2 decimal places with {{value.2}}</em></p>
+        </div>
+        
+        <div class="chart-container">
+            <h4>Discrete Chart (Prefix + Default)</h4>
+            <canvas id="chart3" width="250" height="80"></canvas>
+            <p><em>Prefixed values</em></p>
+        </div>
+        
+        <div class="chart-container">
+            <h4>Line Chart (Custom Format)</h4>
+            <canvas id="chart4" width="250" height="80"></canvas>
+            <p><em>Custom format with prefix and suffix</em></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createChart } from '../renderers/chartFactory.js';
+
+        // Sample data
+        const testData = [5.123, 6.789, 7.456, 9.234, 9.876, 5.432, 3.789, 2.345, 2.678, 4.123, 6.789, 7.234];
+
+        // Helper function to create a sparkline on canvas
+        function createSparkline(canvasId, data, type, options = {}) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || !data) return null;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const props = {
+                data: data,
+                type: type,
+                width: canvas.width,
+                height: canvas.height,
+                options: options
+            };
+            
+            const chart = createChart(type, ctx, props);
+            if (chart) {
+                chart.draw();
+                return chart;
+            }
+            return null;
+        }
+
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', () => {
+            // Chart 1: Default {{value}} format
+            createSparkline('chart1', testData, 'line', { 
+                lineColor: '#007acc',
+                // No tooltipFormat specified - should use default {{value}}
+            });
+            
+            // Chart 2: {{value.2}} format for 2 decimal places
+            createSparkline('chart2', testData, 'bar', { 
+                barColor: '#ff6b6b',
+                tooltipFormat: '{{value.2}}' // 2 decimal places
+            });
+            
+            // Chart 3: Default format with prefix
+            createSparkline('chart3', testData, 'discrete', { 
+                lineColor: '#28a745',
+                tooltipPrefix: 'Value: ',
+                // Uses default {{value}} format with prefix
+            });
+            
+            // Chart 4: Custom format with prefix and suffix
+            createSparkline('chart4', testData, 'line', { 
+                lineColor: '#6f42c1',
+                tooltipPrefix: '$',
+                tooltipSuffix: ' USD',
+                tooltipFormat: '{{value.2}}' // 2 decimal places with prefix/suffix
+            });
+        });
+    </script>
+</body>
+</html>

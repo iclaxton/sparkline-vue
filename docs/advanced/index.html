@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sparkline Vue - Advanced Examples</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../shared/shared.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        /* Advanced demo specific styles */
+        .chart-label {
+            font-weight: 600;
+        }
+        
+        /* Event Log Styles */
+        .event-log-container {
+            margin-top: 15px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .event-log-header {
+            background: #e9ecef;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .event-log-header h4 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .clear-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .clear-btn:hover {
+            background: #c82333;
+        }
+        
+        .event-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .event-entry {
+            padding: 6px 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: grid;
+            grid-template-columns: 80px 120px 1fr;
+            gap: 10px;
+            transition: background-color 0.1s;
+        }
+        
+        .event-entry:hover {
+            background: #f1f3f4;
+        }
+        
+        .event-entry.sparklineClick {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+        }
+        
+        .event-entry.sparklineRegionChange {
+            background: #d4edda;
+            border-left: 3px solid #28a745;
+        }
+        
+        .event-time {
+            color: #6c757d;
+            font-size: 11px;
+        }
+        
+        .event-type {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .event-type.sparklineClick {
+            color: #856404;
+        }
+        
+        .event-type.sparklineRegionChange {
+            color: #155724;
+        }
+        
+        .event-details {
+            color: #212529;
+        }
+        
+        .no-events {
+            padding: 20px 15px;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column; margin: 0;">
+    <div class="outer-container" style="flex: 1;">
+        <div class="container">
+            <div class="header">
+                <h1>⚡Advanced Examples</h1>
+                <p>Explore advanced interactive features, custom tooltips, and dynamic data updates</p>
+                <div class="nav-links">
+                    <a href="../../">🏠 Home</a>
+                    <a href="../basic/">🚀 Basic</a>
+                    <a href="../advanced/" class="current">⚡ Advanced</a>
+                    <a href="../vue-app/">🔧 Vue SPA</a>
+                    <a href="../comprehensive/">🎯 Comprehensive</a>
+                    <a href="../interactive/">🎮 Interactive</a>
+                    <a href="../performance/">🚀 Performance</a>
+                    <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div id="app" class="content">
+                <!-- Real-Time Data Updates -->
+                <div class="section">
+                    <h2>🔴 Real-Time Data Updates</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Live Data Stream</div>
+                            <div class="example-description">
+                                Watch data update in real-time with smooth animations. Control the stream with start, stop, and reset buttons.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Live Data Monitor</span>
+                                <Sparkline 
+                                    :data="liveData" 
+                                    type="line" 
+                                    :width="300" 
+                                    :height="100"
+                                    :options="liveOptions"
+                                />
+                            </div>
+                            <div class="controls">
+                                <h4>Stream Controls: <span style="float: right;margin-right: 5px;">{{ liveStatus === 'status-running' ? 'Streaming 🟢' : 'Stopped 🔴' }}</span></h4>
+                                <div class="control-group">
+                                    <button @click="startLiveData" class="btn-success" :disabled="liveStatus === 'status-running'">
+                                        ▶️ Start Stream
+                                    </button>
+                                    <button @click="stopLiveData" class="btn-danger" :disabled="liveStatus === 'status-stopped'">
+                                        ⏹️ Stop Stream
+                                    </button>
+                                    <button @click="resetLiveData" class="btn-warning">
+                                        🔄 Reset Data
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="info-display">Data Points: {{ liveData.length }} | Latest: {{ liveData[liveData.length - 1]?.toFixed(1) }}</div>
+                            <div class="code-block">
+    &lt;Sparkline :data="liveData" type="line" :options="liveOptions" /&gt;
+
+    &lt;!-- Vue methods --&gt;
+    startLiveData() {
+    this.interval = setInterval(() => {
+        this.liveData.push(Math.random() * 80 + 10);
+        if (this.liveData.length > 20) this.liveData.shift();
+    }, 500);
+    }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Click Events -->
+                <div class="section">
+                    <h2>👆 Interactive Click Events</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Clickable Data Points</div>
+                            <div class="example-description">
+                                Click on any data point to see detailed information and trigger custom events.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Click on any point below</span>
+                                <Sparkline 
+                                    :data="clickData" 
+                                    type="line" 
+                                    :width="300" 
+                                    :height="80"
+                                    :options="clickOptions"
+                                    @click="handleClick"
+                                />
+                            </div>
+                            <div class="info-display">{{ clickInfo }}</div>
+                            <div class="code-block">&lt;Sparkline :data="data" @click="handleClick" /&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Logging Demo -->
+                <div class="section">
+                    <h2>📋 Event Logging & Monitoring</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Complete Event Log</div>
+                            <div class="example-description">
+                                Monitor all chart events in real-time. Hover over data points and click to see detailed event information logged below.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Interactive Chart - Hover and Click to Generate Events</span>
+                                <Sparkline 
+                                    :data="eventLogData" 
+                                    type="line" 
+                                    :width="320" 
+                                    :height="80"
+                                    :options="eventLogOptions"
+                                    @sparkline-click="handleEventLogClick"
+                                    @sparkline-region-change="handleEventLogRegionChange"
+                                />
+                            </div>
+                            <div class="event-log-container">
+                                <div class="event-log-header">
+                                    <h4>Event Log</h4>
+                                    <button @click="clearEventLog" class="clear-btn">Clear Log</button>
+                                </div>
+                                <div class="event-log" ref="eventLog">
+                                    <div v-for="event in eventLogEntries" :key="event.id" class="event-entry" :class="event.type">
+                                        <span class="event-time">{{ event.time }}</span>
+                                        <span class="event-type">{{ event.type.replace('sparkline', '') }}</span>
+                                        <span class="event-details">{{ event.details }}</span>
+                                    </div>
+                                    <div v-if="eventLogEntries.length === 0" class="no-events">
+                                        No events logged yet. Hover or click on the chart above to see events.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="code-block">
+    &lt;Sparkline 
+        :data="data" 
+        @sparkline-click="handleClick"
+        @sparkline-region-change="handleRegionChange"
+    /&gt;
+
+    &lt;!-- Event handlers --&gt;
+    handleClick(event) {
+        console.log('Click:', event.detail);
+    }
+    
+    handleRegionChange(event) {
+        console.log('Region change:', event.detail);
+    }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-Series Data Comparison -->
+                <div class="section">
+                    <h2>📊 Multi-Series Data Comparison</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Revenue vs Costs Analysis</div>
+                            <div class="example-description">
+                                Compare multiple data series side by side with different chart types and colors.
+                            </div>
+                            <div class="chart-display">
+                                <div class="multi-chart">
+                                    <div class="chart-with-label">
+                                        <div class="chart-type-label">Revenue</div>
+                                        <Sparkline 
+                                            :data="revenueData" 
+                                            type="line" 
+                                            :width="150" 
+                                            :height="60"
+                                            :options="revenueOptions"
+                                        />
+                                    </div>
+                                    <div class="chart-with-label">
+                                        <div class="chart-type-label">Costs</div>
+                                        <Sparkline 
+                                            :data="costsData" 
+                                            type="line" 
+                                            :width="150" 
+                                            :height="60"
+                                            :options="costsOptions"
+                                        />
+                                    </div>
+                                    <div class="chart-with-label">
+                                        <div class="chart-type-label">Profit</div>
+                                        <Sparkline 
+                                            :data="profitData" 
+                                            type="bar" 
+                                            :width="150" 
+                                            :height="60"
+                                            :options="profitOptions"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="info-display">
+                                Revenue: [{{ revenueData.join(', ') }}]<br>
+                                Costs: [{{ costsData.join(', ') }}]<br>
+                                Profit: [{{ profitData.join(', ') }}]
+                            </div>
+                            <div class="code-block">
+    &lt;!-- Revenue Line Chart --&gt;
+    &lt;Sparkline :data="revenueData" type="line" :options="revenueOptions" /&gt;
+
+    &lt;!-- Costs Line Chart --&gt;
+    &lt;Sparkline :data="costsData" type="line" :options="costsOptions" /&gt;
+
+    &lt;!-- Profit Bar Chart --&gt;
+    &lt;Sparkline :data="profitData" type="bar" :options="profitOptions" /&gt;
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Switching -->
+                <div class="section">
+                    <h2>🎨 Dynamic Theming</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Theme Switcher</div>
+                            <div class="example-description">
+                                Switch between different color themes to see how charts adapt to different visual styles.
+                            </div>
+                            <div class="chart-display" :style="{ background: currentTheme.bg, color: currentTheme.textColor }">
+                                <span class="chart-label" :style="{ color: currentTheme.textColor }">{{ currentThemeName.toUpperCase() }} Theme</span>
+                                <Sparkline 
+                                    :data="themeData" 
+                                    type="line" 
+                                    :width="300" 
+                                    :height="80"
+                                    :options="currentThemeOptions"
+                                />
+                            </div>
+                            <div class="theme-selector">
+                                <button 
+                                    v-for="(theme, name) in themes" 
+                                    :key="name"
+                                    @click="switchTheme(name)"
+                                    class="theme-btn"
+                                    :class="{ active: currentThemeName === name }"
+                                    :style="{ 
+                                        borderColor: theme.line, 
+                                        color: currentThemeName === name ? (name === 'light' ? '#333' : name === 'dark' ? 'white' : theme.line) : (name === 'dark' ? '#2c3e50' : theme.line),
+                                        backgroundColor: currentThemeName === name ? theme.bg : 'white',
+                                        fontWeight: currentThemeName === name ? '600' : '400'
+                                    }"
+                                >
+                                    {{ name.toUpperCase() }}
+                                </button>
+                            </div>
+                            <div class="code-block">
+    &lt;Sparkline :data="data" :options="currentThemeOptions" /&gt;
+
+    &lt;!-- Theme object --&gt;
+    themes: {
+    light: { line: '#333', fill: 'rgba(51,51,51,0.1)', bg: '#fff' },
+    dark: { line: '#fff', fill: 'rgba(255,255,255,0.2)', bg: '#2c3e50' },
+    blue: { line: '#1976d2', fill: 'rgba(25,118,210,0.1)', bg: '#e3f2fd' }
+    }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Tooltip Formatting -->
+                <div class="section">
+                    <h2>💬 Custom Tooltip Formatting</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Financial Data Tooltips</div>
+                            <div class="example-description">
+                                Hover over data points to see custom formatted tooltips with percentage changes and trend indicators.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Stock Price ($) - Hover for details</span>
+                                <Sparkline 
+                                    :data="financialData" 
+                                    type="line" 
+                                    :width="350" 
+                                    :height="80"
+                                    :options="financialOptions"
+                                />
+                            </div>
+                            <div class="code-block">
+    options: {
+    tooltipFormatter: function(value, region, chart, context) {
+        const prev = region > 0 ? chart.values[region - 1] : value;
+        const change = value - prev;
+        const arrow = change > 0 ? '↗️' : change &lt; 0 ? '↘️' : '➡️';
+        const percent = prev ? (change/prev*100).toFixed(1) : '0.0';
+        const sign = change >= 0 ? '+' : '';
+        return '$' + value.toFixed(2) + ' ' + arrow + ' ' + sign + percent + '%';
+    }
+    }
+                            </div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Rating System Tooltips</div>
+                            <div class="example-description">
+                                Custom tooltips can display star ratings, contextual information, and formatted data.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Product Ratings - Hover for star display</span>
+                                <Sparkline 
+                                    :data="ratingData" 
+                                    type="line" 
+                                    :width="350" 
+                                    :height="80"
+                                    :options="ratingOptions"
+                                />
+                            </div>
+                            <div class="code-block">
+    tooltipFormatter: function(value, region, chart, context) {
+    const stars = '★'.repeat(Math.floor(value)) + '☆'.repeat(5 - Math.floor(value));
+    const total = chart.values.length;
+    return stars + ' ' + value.toFixed(1) + '/5.0 (Review ' + (region + 1) + '/' + total + ')';
+    }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { createChart } from '../../renderers/chartFactory.js';
+        
+        const { createApp, ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
+        
+        // Register the SparkLine component
+        const SparkLine = {
+            template: `<canvas ref="canvas" :width="width" :height="height" class="sparkline-canvas"></canvas>`,
+            props: {
+                type: { type: String, default: 'line' },
+                data: { type: Array, required: true },
+                width: { type: Number, default: 100 },
+                height: { type: Number, default: 30 },
+                options: { type: Object, default: () => ({}) }
+            },
+            setup(props, { emit }) {
+                const canvas = ref(null);
+                let chartInstance = null;
+
+                const draw = () => {
+                    if (!canvas.value) return;
+                    
+                    // Clean up previous chart instance
+                    if (chartInstance && chartInstance.destroy) {
+                        chartInstance.destroy();
+                    }
+                    
+                    const ctx = canvas.value.getContext('2d');
+                    ctx.clearRect(0, 0, props.width, props.height);
+                    chartInstance = createChart(props.type, ctx, props);
+                    
+                    if (chartInstance) {
+                        chartInstance.draw();
+                    }
+                };
+
+                const setupEventListeners = () => {
+                    if (!canvas.value) return;
+                    
+                    // Always remove existing listeners first to prevent duplicates
+                    canvas.value.removeEventListener('sparklineClick', handleSparklineClick);
+                    canvas.value.removeEventListener('sparklineRegionChange', handleSparklineRegionChange);
+                    
+                    // Add fresh listeners
+                    canvas.value.addEventListener('sparklineClick', handleSparklineClick);
+                    canvas.value.addEventListener('sparklineRegionChange', handleSparklineRegionChange);
+                };
+
+                const cleanupEventListeners = () => {
+                    if (canvas.value) {
+                        canvas.value.removeEventListener('sparklineClick', handleSparklineClick);
+                        canvas.value.removeEventListener('sparklineRegionChange', handleSparklineRegionChange);
+                    }
+                };
+
+                const handleSparklineClick = (event) => {
+                    emit('click', event.detail);
+                    emit('sparkline-click', event);
+                };
+
+                const handleSparklineRegionChange = (event) => {
+                    emit('sparkline-region-change', event);
+                };
+
+                onMounted(() => {
+                    draw();
+                    setupEventListeners();
+                });
+                
+                watch(() => [props.data, props.options, props.type, props.width, props.height], () => {
+                    cleanupEventListeners(); // Clean up first
+                    draw();
+                    setupEventListeners();
+                }, { deep: true });
+
+                onUnmounted(() => {
+                    cleanupEventListeners();
+                    if (chartInstance && chartInstance.destroy) {
+                        chartInstance.destroy();
+                    }
+                });
+
+                return { canvas };
+            }
+        };
+        
+        createApp({
+            components: {
+                Sparkline: SparkLine
+            },
+            setup() {
+                // Interactive click data
+                const clickData = ref([8, 4, 0, 0, 0, 0, 1, 4, 4, 10, 10, 10, 10, 0, 0, 0, 4, 6, 5, 9, 10]);
+                const clickInfo = ref('Click on a data point to see details');
+                const clickOptions = ref({
+                    lineColor: '#007bff',
+                    fillColor: 'rgba(0, 123, 255, 0.1)',
+                    spotColor: '#007bff'
+                });
+                
+                // Event logging data
+                const eventLogData = ref([12, 18, 15, 22, 28, 16, 19, 25, 14, 21, 17, 24, 20, 13, 16, 29, 22, 18, 26]);
+                const eventLogEntries = ref([]);
+                const eventLog = ref(null);
+                const eventLogOptions = ref({
+                    lineColor: '#6f42c1',
+                    fillColor: 'rgba(111, 66, 193, 0.1)',
+                    spotColor: '#6f42c1',
+                    minSpotColor: '#e83e8c',
+                    maxSpotColor: '#20c997',
+                    lineWidth: 2,
+                    spotRadius: 3
+                });
+                
+                // Multi-series data  
+                const revenueData = ref([50, 65, 45, 72, 68, 84, 76, 91, 58, 67]);
+                const costsData = ref([35, 42, 38, 45, 52, 48, 44, 39, 41, 36]);
+                const profitData = computed(() => 
+                    revenueData.value.map((r, i) => r - costsData.value[i])
+                );
+                
+                const revenueOptions = ref({
+                    lineColor: '#28a745',
+                    fillColor: 'rgba(40, 167, 69, 0.2)',
+                    spotColor: '#28a745',
+                    lineWidth: 2,
+                    spotRadius: 2,
+                    chartRangeMin: 0,
+                    chartRangeMax: 100
+                });
+                
+                const costsOptions = ref({
+                    lineColor: '#dc3545',
+                    fillColor: 'rgba(220, 53, 69, 0.2)',
+                    spotColor: '#dc3545',
+                    lineWidth: 2,
+                    spotRadius: 2,
+                    chartRangeMin: 0,
+                    chartRangeMax: 100
+                });
+                
+                const profitOptions = ref({
+                    barColor: '#17a2b8',
+                    negBarColor: '#ffc107',
+                    barWidth: 4,
+                    barSpacing: 6,
+                    chartRangeMin: 0,
+                    chartRangeMax: 100
+                });
+                
+                // Live data
+                const liveData = ref(Array.from({length: 15}, () => Math.random() * 80 + 10));
+                const liveStatus = ref('status-stopped');
+                let liveDataInterval = null;
+                const liveOptions = ref({
+                    lineColor: '#28a745',
+                    fillColor: 'rgba(40, 167, 69, 0.1)',
+                    spotColor: '#28a745',
+                    disableTooltips: true,
+                    disableInteraction: true
+                });
+                
+                // Theme data
+                const themeData = ref([3, 5, 4, 7, 6, 8, 5, 4, 6, 7, 5, 3, 4, 6, 8, 7, 5]);
+                const currentThemeName = ref('light');
+                const themes = ref({
+                    light: { 
+                        line: '#333', 
+                        fill: 'rgba(51, 51, 51, 0.1)', 
+                        bg: '#ffffff',
+                        textColor: '#6c757d'
+                    },
+                    dark: { 
+                        line: '#ffffff', 
+                        fill: 'rgba(255, 255, 255, 0.2)', 
+                        bg: '#2c3e50',
+                        textColor: '#ffffff'
+                    },
+                    blue: { 
+                        line: '#1976d2', 
+                        fill: 'rgba(25, 118, 210, 0.1)', 
+                        bg: '#e3f2fd',
+                        textColor: '#1976d2'
+                    }
+                });
+                
+                const currentTheme = computed(() => themes.value[currentThemeName.value]);
+                const currentThemeOptions = computed(() => ({
+                    lineColor: currentTheme.value.line,
+                    fillColor: currentTheme.value.fill,
+                    spotColor: currentTheme.value.line,
+                    lineWidth: 2,
+                    spotRadius: 2
+                }));
+                
+                // Custom tooltip data
+                const financialData = ref([45.67, 47.23, 46.89, 49.12, 48.45, 51.78, 50.34, 52.91, 54.67, 53.22]);
+                const financialOptions = ref({
+                    lineColor: '#1976d2',
+                    fillColor: 'rgba(25, 118, 210, 0.1)',
+                    spotColor: '#1976d2',
+                    tooltipFormatter: function(value, region, chart, context) {
+                        const prev = region > 0 ? chart.values[region - 1] : value;
+                        const change = value - prev;
+                        const arrow = change > 0 ? '↗️' : change < 0 ? '↘️' : '➡️';
+                        const percent = prev ? (change/prev*100).toFixed(1) : '0.0';
+                        const sign = change >= 0 ? '+' : '';
+                        
+                        let prefix = '';
+                        if (context && context.isMin) prefix = '[MIN] ';
+                        else if (context && context.isMax) prefix = '[MAX] ';
+                        
+                        return prefix + '$' + value.toFixed(2) + ' ' + arrow + ' ' + sign + percent + '%';
+                    }
+                });
+                
+                const ratingData = ref([4.2, 4.7, 3.8, 4.9, 4.1, 3.5, 4.6, 4.8, 3.9, 4.4]);
+                const ratingOptions = ref({
+                    lineColor: '#ff9800',
+                    fillColor: 'rgba(255, 152, 0, 0.1)',
+                    spotColor: '#ff9800',
+                    tooltipFormatter: function(value, region, chart, context) {
+                        const stars = '★'.repeat(Math.floor(value)) + '☆'.repeat(5 - Math.floor(value));
+                        const total = chart.values.length;
+                        
+                        let qualifier = '';
+                        if (context && context.isMin) qualifier = ' (Lowest Rating)';
+                        else if (context && context.isMax) qualifier = ' (Highest Rating)';
+                        
+                        return stars + ' ' + value.toFixed(1) + '/5.0 (Review ' + (region + 1) + '/' + total + ')' + qualifier;
+                    }
+                });
+                
+                // Methods
+                const handleClick = (event) => {
+                    if (event && event.region !== undefined) {
+                        const value = event.value || clickData.value[event.region];
+                        clickInfo.value = `Point ${event.region + 1}: Value = ${value}`;
+                    }
+                };
+                
+                // Event logging methods
+                const addEventLogEntry = (type, details) => {
+                    const now = new Date();
+                    const time = now.toTimeString().split(' ')[0];
+                    
+                    const newEntry = {
+                        time,
+                        type,
+                        details,
+                        id: Date.now() + Math.random() // Unique ID for tracking
+                    };
+                    
+                    eventLogEntries.value.unshift(newEntry);
+                    
+                    // Keep only the last 50 events to prevent memory buildup
+                    if (eventLogEntries.value.length > 50) {
+                        eventLogEntries.value.splice(50); // More efficient than slice
+                    }
+                    
+                    // Auto-scroll to top of log
+                    nextTick(() => {
+                        if (eventLog.value) {
+                            eventLog.value.scrollTop = 0;
+                        }
+                    });
+                };
+                
+                const handleEventLogClick = (event) => {
+                    try {
+                        if (event && event.detail && typeof event.detail.region === 'number') {
+                            const region = event.detail.region;
+                            const value = event.detail.value || eventLogData.value[region];
+                            if (value !== undefined) {
+                                addEventLogEntry('sparklineClick', `Region: ${region}, Value: ${value.toFixed(1)}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Error in handleEventLogClick:', error);
+                    }
+                };
+                
+                const handleEventLogRegionChange = (event) => {
+                    try {
+                        if (event && event.detail) {
+                            const region = event.detail.region;
+                            const prevRegion = event.detail.previousRegion;
+                            
+                            if (region !== null && region !== undefined && typeof region === 'number') {
+                                const value = eventLogData.value[region];
+                                addEventLogEntry('sparklineRegionChange', `Entered Region: ${region}, Value: ${value ? value.toFixed(1) : 'N/A'}`);
+                            } else if (prevRegion !== null && prevRegion !== undefined && typeof prevRegion === 'number') {
+                                addEventLogEntry('sparklineRegionChange', `Exited Region: ${prevRegion}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Error in handleEventLogRegionChange:', error);
+                    }
+                };
+                
+                const clearEventLog = () => {
+                    // Clear the array and trigger reactivity
+                    eventLogEntries.value.splice(0);
+                };
+                
+                const startLiveData = () => {
+                    liveStatus.value = 'status-running';
+                    
+                    liveDataInterval = setInterval(() => {
+                        liveData.value.push(Math.random() * 80 + 10);
+                        if (liveData.value.length > 20) liveData.value.shift();
+                    }, 500);
+                };
+                
+                const stopLiveData = () => {
+                    liveStatus.value = 'status-stopped';
+                    
+                    if (liveDataInterval) {
+                        clearInterval(liveDataInterval);
+                        liveDataInterval = null;
+                    }
+                };
+                
+                const resetLiveData = () => {
+                    stopLiveData();
+                    liveData.value = Array.from({length: 15}, () => Math.random() * 80 + 10);
+                };
+                
+                const switchTheme = (theme) => {
+                    currentThemeName.value = theme;
+                };
+                
+                onUnmounted(() => {
+                    if (liveDataInterval) {
+                        clearInterval(liveDataInterval);
+                    }
+                });
+                
+                return {
+                    // Click data
+                    clickData,
+                    clickInfo,
+                    clickOptions,
+                    handleClick,
+                    
+                    // Event logging data
+                    eventLogData,
+                    eventLogEntries,
+                    eventLog,
+                    eventLogOptions,
+                    handleEventLogClick,
+                    handleEventLogRegionChange,
+                    clearEventLog,
+                    
+                    // Multi-series data
+                    revenueData,
+                    costsData,
+                    profitData,
+                    revenueOptions,
+                    costsOptions,
+                    profitOptions,
+                    
+                    // Live data
+                    liveData,
+                    liveStatus,
+                    liveOptions,
+                    startLiveData,
+                    stopLiveData,
+                    resetLiveData,
+                    
+                    // Theme data
+                    themeData,
+                    currentTheme,
+                    currentThemeOptions,
+                    currentThemeName,
+                    themes,
+                    switchTheme,
+                    
+                    // Custom tooltip data
+                    financialData,
+                    financialOptions,
+                    ratingData,
+                    ratingOptions
+                };
+            }
+        }).mount('#app');
+    </script>
+    
+    <footer style="background: #2c3e50; color: #ecf0f1; padding: 30px 0; margin: 0; width: 100%; position: relative;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 40px; text-align: center;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 20px;">
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">📝 Credits</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        Based on the original <strong>jQuery Sparklines</strong> library by <strong>Gareth Watts</strong><br>
+                        Vue.js adaptation and enhanced tooltips implementation
+                    </p>
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">⚖️ License</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        Released under the <strong>New BSD License</strong><br>
+                        Free for commercial and non-commercial use
+                    </p>
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">🔗 Links</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" style="color: #3498db; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                            View on GitHub
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #34495e; padding-top: 20px; opacity: 0.6; font-size: 0.9em;">
+                <p style="margin: 0;">
+                    Original jQuery Sparklines © Gareth Watts | Vue.js Port by Ian Claxton © 2025
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

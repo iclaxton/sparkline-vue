@@ -1,0 +1,174 @@
+/* Base styles shared across all demo pages */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;    
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+.outer-container {
+    padding: 20px;
+}
+
+.container {
+    margin: 0;
+    margin: auto;
+    max-width: 1200px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.header {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    padding: 0px;
+    text-align: center;
+    position: relative;
+    padding: 20px 0;
+}
+
+.header h1 {
+    margin: 0 0 15px 0;
+    font-size: 3em;
+    font-weight: 700;
+    background: linear-gradient(45deg, #fff, #ecf0f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header p {
+    margin: 0 0 30px 0;
+    font-size: 1.2em;
+    opacity: 0.9;
+}
+
+.content {
+    padding: 20px;
+}
+
+.intro {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.intro h2 {
+    color: #2c3e50;
+    font-size: 2.2em;
+    margin-bottom: 15px;
+}
+
+.intro p {
+    font-size: 1.1em;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.section {
+    margin: 50px 0;
+}
+
+.section h2 {
+    color: #2c3e50;
+    font-size: 2.2em;
+    margin-bottom: 30px;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 10px;
+}
+
+/* Canvas styling - placeholder for future canvas-specific styles */
+/* canvas {
+    border: 1px solid #ddd;
+    border-radius: 3px;
+} */
+
+/* Utility classes */
+code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    color: #e83e8c;
+}
+
+.error-message {
+    color: #dc3545;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 15px 0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+
+    .outer-container {
+        padding: 10px;
+    }
+
+    .container {
+        margin: 0;
+        border-radius: 8px;
+    }
+    
+    .header {
+        padding: 30px 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.8em;
+    }
+    
+    .header p {
+        font-size: 1.1em;
+    }
+    
+    .content {
+        padding: 15px;
+    }
+    
+    .intro h2 {
+        font-size: 1.8em;
+    }
+    
+    .section h2 {
+        font-size: 1.8em;
+    }
+}
+
+@media (max-width: 480px) {
+    .outer-container {
+        padding: 5px;
+    }    
+
+    .container {
+        margin: 0;
+        border-radius: 6px;
+    }
+    
+    .header {
+        padding: 20px 10px;
+    }
+    
+    .header h1 {
+        font-size: 1.8em;
+    }
+    
+    .header p {
+        font-size: 1em;
+    }
+    
+    .content {
+        padding: 10px;
+    }
+}

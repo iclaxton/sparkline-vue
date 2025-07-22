@@ -1,0 +1,75 @@
+/* Multi-series chart layouts and specialized charts */
+.multi-chart {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.chart-with-label {
+    text-align: center;
+}
+
+.chart-with-label .chart-type-label {
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+/* Theme selector components */
+.theme-selector {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.theme-btn {
+    padding: 8px 16px;
+    border: 2px solid #dee2e6;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9em;
+}
+
+.theme-btn.active {
+    border-color: #007bff;
+    background: #007bff;
+    color: white;
+}
+
+/* Live data controls */
+.live-data-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+/* Demo sections for older examples compatibility */
+.demo-section {
+    margin: 30px 0;
+    padding: 25px;
+}
+
+.demo-section h2 {
+    margin: 0 0 20px 0;
+    font-size: 1.5em;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+/* Comprehensive demo specific grids */
+.comprehensive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+    margin: 30px 0;
+}
