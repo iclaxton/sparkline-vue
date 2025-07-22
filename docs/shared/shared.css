@@ -1,0 +1,9 @@
+/* Master shared CSS file for all sparkline-vue demos */
+/* Import all modular CSS files */
+@import url('./base.css');
+@import url('./navigation.css');
+@import url('./layouts.css');
+@import url('./components.css');
+@import url('./charts.css');
+
+/* Any additional shared styles can be added here */

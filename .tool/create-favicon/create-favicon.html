@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sparkline Favicon Generator</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        canvas { 
+            border: 1px solid #ccc; 
+            margin: 10px;
+            background: white;
+        }
+        .favicon-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        .favicon-preview img {
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a99;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sparkline Favicon Generator</h1>
+        
+        <h2>Design Options</h2>
+        <button onclick="generateDesign(1)">Simple Line</button>
+        <button onclick="generateDesign(2)">Multi-Line</button>
+        <button onclick="generateDesign(3)">Bar Chart</button>
+        <button onclick="generateDesign(4)">Area Chart</button>
+        
+        <h2>Preview (32x32)</h2>
+        <canvas id="canvas32" width="32" height="32"></canvas>
+        
+        <h2>Preview (16x16)</h2>
+        <canvas id="canvas16" width="16" height="16"></canvas>
+        
+        <h2>SVG Source</h2>
+        <textarea id="svgSource" style="width: 100%; height: 200px;"></textarea>
+        
+        <h2>Download</h2>
+        <button onclick="downloadSVG()">Download SVG</button>
+        <button onclick="downloadICO()">Download ICO</button>
+    </div>
+
+    <script>
+        let currentSVG = '';
+        
+        function generateDesign(type) {
+            const canvas32 = document.getElementById('canvas32');
+            const ctx32 = canvas32.getContext('2d');
+            const canvas16 = document.getElementById('canvas16');
+            const ctx16 = canvas16.getContext('2d');
+            
+            // Clear canvases
+            ctx32.clearRect(0, 0, 32, 32);
+            ctx16.clearRect(0, 0, 16, 16);
+            
+            let svg = '';
+            
+            switch(type) {
+                case 1: // Simple Line
+                    drawSimpleLine(ctx32, 32);
+                    drawSimpleLine(ctx16, 16);
+                    svg = generateSimpleLineSVG();
+                    break;
+                case 2: // Multi-Line
+                    drawMultiLine(ctx32, 32);
+                    drawMultiLine(ctx16, 16);
+                    svg = generateMultiLineSVG();
+                    break;
+                case 3: // Bar Chart
+                    drawBarChart(ctx32, 32);
+                    drawBarChart(ctx16, 16);
+                    svg = generateBarChartSVG();
+                    break;
+                case 4: // Area Chart
+                    drawAreaChart(ctx32, 32);
+                    drawAreaChart(ctx16, 16);
+                    svg = generateAreaChartSVG();
+                    break;
+            }
+            
+            currentSVG = svg;
+            document.getElementById('svgSource').value = svg;
+        }
+        
+        function drawSimpleLine(ctx, size) {
+            const data = [3, 8, 2, 12, 7, 15, 4, 9, 6, 14, 5, 11];
+            const padding = 2;
+            const width = size - padding * 2;
+            const height = size - padding * 2;
+            
+            ctx.strokeStyle = '#007acc';
+            ctx.lineWidth = size > 20 ? 2 : 1;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            const stepX = width / (data.length - 1);
+            const maxVal = Math.max(...data);
+            const minVal = Math.min(...data);
+            const range = maxVal - minVal;
+            
+            ctx.beginPath();
+            data.forEach((val, i) => {
+                const x = padding + i * stepX;
+                const y = padding + height - ((val - minVal) / range) * height;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+        
+        function drawMultiLine(ctx, size) {
+            const data1 = [3, 8, 2, 12, 7, 15, 4, 9];
+            const data2 = [6, 4, 10, 3, 11, 1, 8, 5];
+            const padding = 2;
+            
+            drawDataset(ctx, data1, '#007acc', size, padding);
+            drawDataset(ctx, data2, '#ff6b35', size, padding);
+        }
+        
+        function drawDataset(ctx, data, color, size, padding) {
+            const width = size - padding * 2;
+            const height = size - padding * 2;
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = size > 20 ? 2 : 1;
+            ctx.lineCap = 'round';
+            
+            const stepX = width / (data.length - 1);
+            const maxVal = 15;
+            const minVal = 0;
+            
+            ctx.beginPath();
+            data.forEach((val, i) => {
+                const x = padding + i * stepX;
+                const y = padding + height - (val / maxVal) * height;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+        
+        function drawBarChart(ctx, size) {
+            const data = [3, 8, 2, 12, 7, 15, 4, 9, 6];
+            const padding = 2;
+            const width = size - padding * 2;
+            const height = size - padding * 2;
+            
+            ctx.fillStyle = '#007acc';
+            
+            const barWidth = width / data.length;
+            const maxVal = Math.max(...data);
+            
+            data.forEach((val, i) => {
+                const x = padding + i * barWidth;
+                const barHeight = (val / maxVal) * height;
+                const y = padding + height - barHeight;
+                ctx.fillRect(x, y, barWidth - 1, barHeight);
+            });
+        }
+        
+        function drawAreaChart(ctx, size) {
+            const data = [3, 8, 2, 12, 7, 15, 4, 9, 6, 14];
+            const padding = 2;
+            const width = size - padding * 2;
+            const height = size - padding * 2;
+            
+            const stepX = width / (data.length - 1);
+            const maxVal = Math.max(...data);
+            const minVal = Math.min(...data);
+            const range = maxVal - minVal;
+            
+            // Fill area
+            const gradient = ctx.createLinearGradient(0, padding, 0, size - padding);
+            gradient.addColorStop(0, 'rgba(0, 122, 204, 0.8)');
+            gradient.addColorStop(1, 'rgba(0, 122, 204, 0.1)');
+            ctx.fillStyle = gradient;
+            
+            ctx.beginPath();
+            ctx.moveTo(padding, size - padding);
+            data.forEach((val, i) => {
+                const x = padding + i * stepX;
+                const y = padding + height - ((val - minVal) / range) * height;
+                ctx.lineTo(x, y);
+            });
+            ctx.lineTo(size - padding, size - padding);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw line
+            ctx.strokeStyle = '#007acc';
+            ctx.lineWidth = size > 20 ? 2 : 1;
+            ctx.lineCap = 'round';
+            
+            ctx.beginPath();
+            data.forEach((val, i) => {
+                const x = padding + i * stepX;
+                const y = padding + height - ((val - minVal) / range) * height;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+        
+        function generateSimpleLineSVG() {
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <path d="M2 26 L4.5 15 L7 24 L9.5 8 L12 18 L14.5 4 L17 22 L19.5 12 L22 20 L24.5 6 L27 16 L30 10" 
+        stroke="#007acc" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        fill="none"/>
+</svg>`;
+        }
+        
+        function generateMultiLineSVG() {
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <path d="M2 26 L6 15 L10 24 L14 8 L18 18 L22 4 L26 22 L30 12" 
+        stroke="#007acc" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        fill="none"/>
+  <path d="M2 20 L6 24 L10 12 L14 26 L18 10 L22 28 L26 16 L30 22" 
+        stroke="#ff6b35" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        fill="none"/>
+</svg>`;
+        }
+        
+        function generateBarChartSVG() {
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <rect x="2" y="24" width="3" height="6" fill="#007acc"/>
+  <rect x="6" y="14" width="3" height="16" fill="#007acc"/>
+  <rect x="10" y="26" width="3" height="4" fill="#007acc"/>
+  <rect x="14" y="6" width="3" height="24" fill="#007acc"/>
+  <rect x="18" y="18" width="3" height="12" fill="#007acc"/>
+  <rect x="22" y="2" width="3" height="28" fill="#007acc"/>
+  <rect x="26" y="22" width="3" height="8" fill="#007acc"/>
+</svg>`;
+        }
+        
+        function generateAreaChartSVG() {
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 30">
+  <defs>
+    <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(0,122,204,0.8)"/>
+      <stop offset="100%" style="stop-color:rgba(0,122,204,0.1)"/>
+    </linearGradient>
+  </defs>
+  <path d="M2 28 L2 24 L6 15 L10 26 L14 8 L18 18 L22 4 L26 22 L30 12 L30 28 Z" 
+        fill="url(#areaGradient)"/>
+  <path d="M2 24 L6 15 L10 26 L14 8 L18 18 L22 4 L26 22 L30 12" 
+        stroke="#007acc" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        fill="none"/>
+</svg>`;
+        }
+        
+        function downloadSVG() {
+            if (!currentSVG) {
+                alert('Please generate a design first');
+                return;
+            }
+            
+            const blob = new Blob([currentSVG], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sparkline-favicon.svg';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function downloadICO() {
+            const canvas = document.getElementById('canvas32');
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'favicon.ico';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        // Generate default design
+        generateDesign(1);
+    </script>
+</body>
+</html>

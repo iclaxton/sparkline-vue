@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparkline Vue - Test Suite</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .test-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f8f9fa;
+            transition: box-shadow 0.3s ease;
+        }
+        .test-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .test-card h3 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .test-card a {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+        .test-card a:hover {
+            background: #2980b9;
+        }
+        .back-link {
+            display: inline-block;
+            color: #7f8c8d;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover {
+            color: #34495e;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .feature-list {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .feature-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .feature-list li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="../" class="back-link">← Back to Documentation</a>
+    
+    <h1>🧪 Sparkline Vue Test Suite</h1>
+    
+    <div class="status">
+        <strong>Test Suite Overview:</strong> This collection of tests validates core functionality, performance optimizations, and mobile compatibility of the sparkline-vue library.
+    </div>
+
+    <h2>📱 Core Functionality Tests</h2>
+    <div class="test-grid">
+        <div class="test-card">
+            <h3>🔧 Vue Component Lifecycle</h3>
+            <p>Tests Vue component mounting, unmounting, and proper cleanup of event handlers to prevent memory leaks.</p>
+            <div class="feature-list">
+                <strong>Tests:</strong>
+                <ul>
+                    <li>Component creation and destruction</li>
+                    <li>Event handler attachment and cleanup</li>
+                    <li>Memory leak prevention</li>
+                    <li>DOM cleanup verification</li>
+                </ul>
+            </div>
+            <a href="vue-cleanup-test.html">Run Vue Lifecycle Test</a>
+        </div>
+
+        <div class="test-card">
+            <h3>📱 Touch Detection & Mobile Support</h3>
+            <p>Validates comprehensive touch support across different devices and browsers with proper event handling.</p>
+            <div class="feature-list">
+                <strong>Tests:</strong>
+                <ul>
+                    <li>Touch capability detection</li>
+                    <li>Touch event handling</li>
+                    <li>Tap-to-click conversion</li>
+                    <li>Cross-device compatibility</li>
+                </ul>
+            </div>
+            <a href="touch-detection-test.html">Run Touch Support Test</a>
+        </div>
+        
+        <div class="test-card">
+            <h3>💬 Tooltip Template System</h3>
+            <p>Tests the {{value}} template formatting system for tooltips with precision control and XSS prevention.</p>
+            <div class="feature-list">
+                <strong>Tests:</strong>
+                <ul>
+                    <li>Template string processing</li>
+                    <li>Precision formatting</li>
+                    <li>Custom data variables</li>
+                    <li>XSS prevention</li>
+                </ul>
+            </div>
+            <a href="tooltip-format-test.html">Run Tooltip Format Test</a>
+        </div>
+
+        <div class="test-card">
+            <h3>🎯 Shared Tooltip System</h3>
+            <p>Verifies that a single shared tooltip DOM element is used across all chart instances for performance.</p>
+            <div class="feature-list">
+                <strong>Tests:</strong>
+                <ul>
+                    <li>Single tooltip element creation</li>
+                    <li>Cross-chart tooltip sharing</li>
+                    <li>Performance optimization</li>
+                    <li>DOM efficiency</li>
+                </ul>
+            </div>
+            <a href="shared-tooltip-test.html">Run Shared Tooltip Test</a>
+        </div>
+    </div>
+
+    <h2>📋 Test Instructions</h2>
+    <div class="feature-list">
+        <h3>How to Run Tests:</h3>
+        <ol>
+            <li><strong>Click any test link above</strong> to open the test page</li>
+            <li><strong>Follow the on-screen instructions</strong> - most tests have interactive buttons</li>
+            <li><strong>Check the test log</strong> - each test provides detailed logging of what's happening</li>
+            <li><strong>Verify results</strong> - look for ✅ success indicators and ❌ failure messages</li>
+            <li><strong>Test on different devices</strong> - especially important for touch detection tests</li>
+        </ol>
+    </div>
+
+    <h2>🔍 What These Tests Validate</h2>
+    <div class="feature-list">
+        <h3>Key Features Tested:</h3>
+        <ul>
+            <li><strong>Memory Management:</strong> Proper cleanup prevents memory leaks</li>
+            <li><strong>Mobile Compatibility:</strong> Touch events work across devices</li>
+            <li><strong>Performance:</strong> Shared resources reduce DOM overhead</li>
+            <li><strong>User Experience:</strong> Tooltip formatting and interactions work smoothly</li>
+            <li><strong>Vue Integration:</strong> Component lifecycle matches Vue.js expectations</li>
+        </ul>
+    </div>
+
+    <div class="status">
+        <strong>Note:</strong> These tests simulate real-world usage scenarios and can be run in any modern browser. For automated testing in CI/CD pipelines, consider converting critical tests to Jest/Vitest unit tests.
+    </div>
+</body>
+</html>

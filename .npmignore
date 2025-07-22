@@ -1,0 +1,71 @@
+# Development files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build artifacts and dependencies
+node_modules/
+dist/
+dist-docs/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Development and demo files
+docs/
+src/
+vite.config.js
+.env*
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Demo HTML files (root level only)
+index.html
+demo*.html
+test*.html
+diagnostic.html
+direct-chart-test.html
+local-test.html
+simple-test.html
+single-value-color-test.html
+static-test.html
+tooltip-demo.html
+
+# Development markdown files
+PERFORMANCE.md
+INTERACTIVE_FEATURES.md
+
+# Git and GitHub files
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Internal documentation
+.help/
+.tool/
+
+# Configuration files
+GitVersion.yml

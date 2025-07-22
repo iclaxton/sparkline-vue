@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparkline Vue - Interactive Demo</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="stylesheet" href="/docs/shared/shared.css">
+    <style>
+        /* Interactive Demo Properties Panel - Visual Studio Style */
+        .interactive-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+            background: #f0f0f0;
+            border-radius: 6px;
+            padding: 30px;
+            border: 1px solid #c0c0c0;
+        }
+
+        .property-panel {
+            background: #ffffff;
+            border: 1px solid #a0a0a0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1em;
+        }
+
+        .property-group {
+            border-bottom: none;
+        }
+
+        .property-group:last-child {
+            border-bottom: none;
+        }
+
+        .property-header {
+            background: linear-gradient(to bottom, #f0f0f0 0%, #e8e8e8 100%);
+            padding: 4px 8px;
+            font-weight: normal;
+            font-size: 1.0em;
+            color: #333333;
+            cursor: pointer;
+            border-bottom: 1px solid #c0c0c0;
+            border-top: 1px solid #f8f8f8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            min-height: 18px;
+        }
+
+        .property-header:first-child {
+            border-top: none;
+        }
+
+        .property-header:hover {
+            background: linear-gradient(to bottom, #e8e8e8 0%, #d8d8d8 100%);
+        }
+
+        .property-header:active {
+            background: linear-gradient(to bottom, #d0d0d0 0%, #c8c8c8 100%);
+        }
+
+        .option-count {
+            background: transparent;
+            color: #666666;
+            padding: 0;
+            border-radius: 0;
+            font-size: 10px;
+            font-weight: normal;
+        }
+
+        .property-content {
+            padding: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease;
+            background: #ffffff;
+        }
+
+        .property-field {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            gap: 0;
+            align-items: center;
+            text-align: left;
+            padding: 0;
+            border-bottom: 1px solid #e8e8e8;
+            min-height: 18px;
+        }
+
+        .property-field:last-child {
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .property-field:hover {
+            background: #f5f5f5;
+        }
+
+        .property-field label {
+            font-size: 0.8em;
+            color: #333333;
+            font-weight: normal;
+            padding: 2px 6px;
+            background: #f8f8f8;
+            border-right: 1px solid #e8e8e8;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            min-height: 18px;
+            box-sizing: border-box;
+        }
+
+        .property-field input,
+        .property-field select {
+            padding: 1px 4px;
+            border: 1px solid #a0a0a0;
+            border-radius: 0;
+            font-size: 0.8em;
+            background: #ffffff;
+            margin: 1px 2px;
+            height: 20px;
+            box-sizing: border-box;
+        }
+
+        .property-field input:focus,
+        .property-field select:focus {
+            border-color: #0078d4;
+            outline: none;
+            box-shadow: 0 0 0 1px #0078d4;
+        }
+
+        .property-field input[type="color"] {
+            width: 40px;
+            height: 20px;
+            padding: 0;
+            cursor: pointer;
+            border: 1px solid #a0a0a0;
+        }
+
+        .property-field input[type="checkbox"] {
+            width: 13px;
+            height: 15px;
+            margin: 2px 4px;
+            justify-self: start;
+        }
+
+        .property-field input[type="number"] {
+            text-align: left;
+        }
+
+        .property-field select {
+            height: 18px;
+            padding: 0 16px 0 2px;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 2px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            appearance: none;
+        }
+
+        .demo-result {
+            background: #ffffff;
+            border: 1px solid #a0a0a0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chart-label {
+            font-weight: normal;
+            color: #333333;
+            margin-bottom: 15px;
+            font-size: 0.8em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .try-it-section {
+            margin: 40px 0;
+        }
+
+        .try-it-section h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .try-it-section p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .examples-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .interactive-demo {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 10px;
+            }
+            
+            .property-field {
+                grid-template-columns: 150px 1fr;
+                gap: 0;
+                padding: 0;
+                min-height: 40px; /* Increased for better touch targets */
+            }
+            
+            .property-field label {
+                font-size: 12px;
+                padding: 8px 6px;
+            }
+
+            .property-field input,
+            .property-field select {
+                font-size: 14px;
+                height: 32px; /* Larger touch targets */
+                margin: 4px 2px;
+                padding: 4px 8px;
+            }
+
+            .property-field input[type="color"] {
+                width: 50px;
+                height: 32px;
+            }
+
+            .property-field input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                margin: 6px 8px;
+            }
+
+            .property-header {
+                padding: 8px 12px;
+                font-size: 14px;
+                min-height: 32px;
+            }
+
+            .demo-result {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+
+            .chart-label {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+
+            /* Better spacing for mobile */
+            .property-panel {
+                font-size: 14px;
+            }
+        }
+
+        /* Improved touch targets for very small screens */
+        @media (max-width: 480px) {
+            .examples-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .interactive-demo {
+                grid-template-columns: 1fr;
+                gap: 5px;
+                padding: 5px;
+            }
+            
+            .property-field {
+                grid-template-columns: 1fr;
+                gap: 2px;
+                padding: 4px 4px;
+                min-height: 60px;
+            }
+            
+            .property-field label {
+                font-size: 14px;
+                padding: 4px 0;
+                background: transparent;
+                border: none;
+            }
+
+            .property-field input,
+            .property-field select {
+                height: 40px;
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 8px 12px;
+            }
+
+            .property-field input[type="color"] {
+                width: 60px;
+                height: 40px;
+            }
+
+            .property-field input[type="checkbox"] {
+                width: 24px;
+                height: 24px;
+                margin: 8px 0;
+            }
+        }
+    </style>    
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column; margin: 0;">
+    <div class="outer-container" style="flex: 1;">
+        <div class="container">
+            <div class="header">
+                <h1>🔥 Sparkline Vue</h1>
+                <p>Interactive Demo & Property Customization</p>
+                <div class="nav-links">
+                    <a href="../../">🏠 Home</a>
+                    <a href="../basic/">🚀 Basic</a>
+                    <a href="../advanced/">⚡ Advanced</a>
+                    <a href="../vue-app/">🔧 Vue SPA</a>
+                    <a href="../comprehensive/">🎯 Comprehensive</a>
+                    <a href="../interactive/" class="current">🎮 Interactive</a>
+                    <a href="../performance/">🚀 Performance</a>
+                    <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="section">
+                    <h2>🎮 Interactive Chart Demo</h2>
+                    <p>Customize any sparkline chart in real-time using the Visual Studio-style properties panel below. Change chart types, colors, dimensions, and various options to see how they affect the chart appearance and behavior.</p>
+                    
+                    <div class="try-it-section">
+                        <h3>🎮 Try It Out - Interactive Demo</h3>
+                        <p>Customize the chart below by changing the options. The chart updates automatically as you make changes!</p>
+                        
+                        <div class="interactive-demo">
+
+                            <div class="demo-result">
+                                <div class="chart-label">Interactive Chart Result</div>
+                                <canvas id="interactive-chart" width="300" height="100"></canvas>
+                            </div>
+
+                            <div class="property-panel" id="controls-container">
+                                
+                                <!-- Standard Properties -->
+                                <div class="property-group">
+                                    <div class="property-header">Standard <span class="option-count">(4)</span></div>
+                                    <div class="property-content" style="max-height: 1000px;">
+                                        <div class="property-field chart-type-group">
+                                            <label for="chart-type">Chart Type:</label>
+                                            <select id="chart-type">
+                                                <option value="line">Line</option>
+                                                <option value="bar">Bar</option>
+                                                <option value="pie">Pie</option>
+                                                <option value="discrete">Discrete</option>
+                                                <option value="tristate">Tristate</option>
+                                                <option value="bullet">Bullet</option>
+                                                <option value="box">Box</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="property-field chart-type-group">
+                                            <label for="chart-values">Values:</label>
+                                            <input type="text" id="chart-values" value="5,6,7,9,9,5,3,2,2,4,6,7" title="Comma-separated numbers">
+                                        </div>
+                                        
+                                        <div class="property-field dimensions-group">
+                                            <label for="chart-width">Width:</label>
+                                            <input type="number" id="chart-width" value="300" min="50" max="600">
+                                        </div>
+                                        
+                                        <div class="property-field dimensions-group">
+                                            <label for="chart-height">Height:</label>
+                                            <input type="number" id="chart-height" value="100" min="20" max="600">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Appearance Properties -->
+                                <div class="property-group">
+                                    <div class="property-header">Appearance <span class="option-count" id="appearance-count">(8)</span></div>
+                                    <div class="property-content" style="max-height: 1000px;">
+                                        <div class="property-field">
+                                            <label for="line-color">Line Color:</label>
+                                            <input type="color" id="line-color" value="#0000f0">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="fill-color">Fill Color:</label>
+                                            <input type="color" id="fill-color" value="#c0d0f0">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="spot-color">Spot Color:</label>
+                                            <input type="color" id="spot-color" value="#f80000">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="min-spot-color">Min Spot Color:</label>
+                                            <input type="color" id="min-spot-color" value="#f44444">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="max-spot-color">Max Spot Color:</label>
+                                            <input type="color" id="max-spot-color" value="#44f444">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="line-width">Line Width:</label>
+                                            <input type="number" id="line-width" value="1" min="0.5" max="5" step="0.5">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="spot-radius">Spot Radius:</label>
+                                            <input type="number" id="spot-radius" value="1.5" min="0" max="10" step="0.5">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="highlight-lighten">Highlight Lighten:</label>
+                                            <input type="number" id="highlight-lighten" value="1.4" min="1.0" max="3.0" step="0.1">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Layout Properties -->
+                                <div class="property-group">
+                                    <div class="property-header">Layout <span class="option-count" id="layout-count">(11)</span></div>
+                                    <div class="property-content" style="max-height: 1000px;">
+                                        <div class="property-field">
+                                            <label for="chart-range-min">Range Min:</label>
+                                            <input type="number" id="chart-range-min" placeholder="Auto">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="chart-range-max">Range Max:</label>
+                                            <input type="number" id="chart-range-max" placeholder="Auto">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="normal-range-min">Normal Range Min:</label>
+                                            <input type="number" id="normal-range-min" placeholder="Optional">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="normal-range-max">Normal Range Max:</label>
+                                            <input type="number" id="normal-range-max" placeholder="Optional">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="normal-range-color">Normal Range Color:</label>
+                                            <input type="color" id="normal-range-color" value="#c0c0c0">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="top-padding">Top Padding:</label>
+                                            <input type="number" id="top-padding" value="3" min="0" max="20">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="bottom-padding">Bottom Padding:</label>
+                                            <input type="number" id="bottom-padding" value="3" min="0" max="20">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="disable-tooltips">Disable Tooltips:</label>
+                                            <input type="checkbox" id="disable-tooltips">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="tooltip-prefix">Tooltip Prefix:</label>
+                                            <input type="text" id="tooltip-prefix" placeholder="e.g., 'Value: '" value="">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="tooltip-suffix">Tooltip Suffix:</label>
+                                            <input type="text" id="tooltip-suffix" placeholder="e.g., ' units'" value="">
+                                        </div>
+                                        
+                                        <div class="property-field">
+                                            <label for="tooltip-format">Tooltip Format:</label>
+                                            <input type="text" id="tooltip-format" placeholder="e.g., '{{value}}' or '{{value.2}}'" value="{{value}}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Extended Properties - Hidden by default -->
+                                <div class="property-group" id="extended-options-group" style="display: none;">
+                                    <div class="property-header">Extended Options <span class="option-count" id="extended-count">(0)</span></div>
+                                    <div class="property-content" style="max-height: 1000px;">
+                                        
+                                        <!-- Bar Chart Options -->
+                                        <div class="property-field bar-options" style="display: none;">
+                                            <label for="bar-color">Bar Color:</label>
+                                            <input type="color" id="bar-color" value="#4285f4">
+                                        </div>
+                                        
+                                        <div class="property-field bar-options" style="display: none;">
+                                            <label for="neg-bar-color">Negative Color:</label>
+                                            <input type="color" id="neg-bar-color" value="#db4437">
+                                        </div>
+                                        
+                                        <div class="property-field bar-options" style="display: none;">
+                                            <label for="zero-color">Zero Color:</label>
+                                            <input type="color" id="zero-color" value="#909090">
+                                        </div>
+                                        
+                                        <div class="property-field bar-options" style="display: none;">
+                                            <label for="null-color">Null Color:</label>
+                                            <input type="color" id="null-color" value="#cccccc">
+                                        </div>
+                                        
+                                        <div class="property-field bar-options" style="display: none;">
+                                            <label for="zero-axis">Zero Axis:</label>
+                                            <input type="checkbox" id="zero-axis" checked>
+                                        </div>
+                                        
+                                        <div class="property-field bar-options" style="display: none;">
+                                            <label for="chart-range-clip">Range Clipping:</label>
+                                            <input type="checkbox" id="chart-range-clip">
+                                        </div>
+                                        
+                                        <div class="property-field bar-options" style="display: none;">
+                                            <label for="bar-width">Bar Width:</label>
+                                            <select id="bar-width">
+                                                <option value="auto" selected>Auto (Default)</option>
+                                                <option value="fill">Fill Canvas</option>
+                                                <option value="2">2px</option>
+                                                <option value="4">4px</option>
+                                                <option value="6">6px</option>
+                                                <option value="8">8px</option>
+                                                <option value="10">10px</option>
+                                                <option value="15">15px</option>
+                                                <option value="20">20px</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="property-field bar-options" style="display: none;">
+                                            <label for="bar-spacing">Bar Spacing:</label>
+                                            <input type="number" id="bar-spacing" value="1" min="0" max="10">
+                                        </div>
+                                        
+                                        <!-- Pie Chart Options -->
+                                        <div class="property-field pie-options" style="display: none;">
+                                            <label for="pie-offset">Offset Angle:</label>
+                                            <input type="number" id="pie-offset" value="0" min="-180" max="180">
+                                        </div>
+                                        
+                                        <div class="property-field pie-options" style="display: none;">
+                                            <label for="pie-border-width">Border Width:</label>
+                                            <input type="number" id="pie-border-width" value="0" min="0" max="10">
+                                        </div>
+                                        
+                                        <div class="property-field pie-options" style="display: none;">
+                                            <label for="pie-border-color">Border Color:</label>
+                                            <input type="color" id="pie-border-color" value="#000000">
+                                        </div>
+                                        
+                                        <!-- Discrete Chart Options -->
+                                        <div class="property-field discrete-options" style="display: none;">
+                                            <label for="discrete-line-height">Line Height:</label>
+                                            <input type="number" id="discrete-line-height" value="30" min="10" max="100">
+                                        </div>
+                                        
+                                        <div class="property-field discrete-options" style="display: none;">
+                                            <label for="discrete-threshold-value">Threshold Value:</label>
+                                            <input type="number" id="discrete-threshold-value" placeholder="Optional">
+                                        </div>
+                                        
+                                        <div class="property-field discrete-options" style="display: none;">
+                                            <label for="discrete-threshold-color">Threshold Color:</label>
+                                            <input type="color" id="discrete-threshold-color" value="#ff0000">
+                                        </div>
+                                        
+                                        <div class="property-field discrete-options" style="display: none;">
+                                            <label for="discrete-line-width">Line Width:</label>
+                                            <select id="discrete-line-width">
+                                                <option value="auto" selected>Auto (Default)</option>
+                                                <option value="fill">Fill Canvas</option>
+                                                <option value="2">2px</option>
+                                                <option value="4">4px</option>
+                                                <option value="6">6px</option>
+                                                <option value="8">8px</option>
+                                                <option value="10">10px</option>
+                                                <option value="15">15px</option>
+                                                <option value="20">20px</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="property-field discrete-options" style="display: none;">
+                                            <label for="discrete-line-spacing">Line Spacing:</label>
+                                            <input type="number" id="discrete-line-spacing" value="1" min="0" max="10">
+                                        </div>
+                                        
+                                        <!-- Tristate Chart Options -->
+                                        <div class="property-field tristate-options" style="display: none;">
+                                            <label for="tristate-pos-color">Positive Color:</label>
+                                            <input type="color" id="tristate-pos-color" value="#00ff00">
+                                        </div>
+                                        
+                                        <div class="property-field tristate-options" style="display: none;">
+                                            <label for="tristate-neg-color">Negative Color:</label>
+                                            <input type="color" id="tristate-neg-color" value="#ff0000">
+                                        </div>
+                                        
+                                        <div class="property-field tristate-options" style="display: none;">
+                                            <label for="tristate-zero-color">Zero Color:</label>
+                                            <input type="color" id="tristate-zero-color" value="#999999">
+                                        </div>
+                                        
+                                        <div class="property-field tristate-options" style="display: none;">
+                                            <label for="tristate-bar-width">Bar Width:</label>
+                                            <select id="tristate-bar-width">
+                                                <option value="auto" selected>Auto (Default)</option>
+                                                <option value="fill">Fill Canvas</option>
+                                                <option value="2">2px</option>
+                                                <option value="4">4px</option>
+                                                <option value="6">6px</option>
+                                                <option value="8">8px</option>
+                                                <option value="10">10px</option>
+                                                <option value="15">15px</option>
+                                                <option value="20">20px</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="property-field tristate-options" style="display: none;">
+                                            <label for="tristate-bar-spacing">Bar Spacing:</label>
+                                            <input type="number" id="tristate-bar-spacing" value="1" min="0" max="10">
+                                        </div>
+                                        
+                                        <!-- Bullet Chart Options -->
+                                        <div class="property-field bullet-options" style="display: none;">
+                                            <label for="bullet-target-color">Target Color:</label>
+                                            <input type="color" id="bullet-target-color" value="#ff0000">
+                                        </div>
+                                        
+                                        <div class="property-field bullet-options" style="display: none;">
+                                            <label for="bullet-target-width">Target Width:</label>
+                                            <input type="number" id="bullet-target-width" value="3" min="1" max="10">
+                                        </div>
+                                        
+                                        <div class="property-field bullet-options" style="display: none;">
+                                            <label for="bullet-performance-color">Performance Color:</label>
+                                            <input type="color" id="bullet-performance-color" value="#3333ff">
+                                        </div>
+                                        
+                                        <!-- Box Chart Options -->
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-line-color">Box Line Color:</label>
+                                            <input type="color" id="box-line-color" value="#000000">
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-fill-color">Box Fill Color:</label>
+                                            <input type="color" id="box-fill-color" value="#ccddff">
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-median-color">Median Color:</label>
+                                            <input type="color" id="box-median-color" value="#ff0000">
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-whisker-color">Whisker Color:</label>
+                                            <input type="color" id="box-whisker-color" value="#000000">
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-outlier-line-color">Outlier Line:</label>
+                                            <input type="color" id="box-outlier-line-color" value="#333333">
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-outlier-fill-color">Outlier Fill:</label>
+                                            <input type="color" id="box-outlier-fill-color" value="#ffffff">
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-target-color">Target Color:</label>
+                                            <input type="color" id="box-target-color" value="#44aa22">
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-show-outliers">Show Outliers:</label>
+                                            <input type="checkbox" id="box-show-outliers" checked>
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-outlier-iqr">IQR Multiplier:</label>
+                                            <input type="number" id="box-outlier-iqr" value="1.5" min="0.5" max="5" step="0.1">
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-spot-radius">Spot Radius:</label>
+                                            <input type="number" id="box-spot-radius" value="1.5" min="0.5" max="10" step="0.1">
+                                        </div>
+                                        
+                                        <div class="property-field box-options" style="display: none;">
+                                            <label for="box-target">Target Value:</label>
+                                            <input type="number" id="box-target" placeholder="Optional">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                        
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createChart } from '../../renderers/chartFactory.js';
+
+        // Sample data sets for different chart types
+        const sampleData = {
+            line: [5,6,7,9,9,5,3,2,2,4,6,7],
+            bar: [5,6,7,9,9,5,3,2,2,4,6,7],
+            pie: [1,1,2],
+            discrete: [4,6,7,7,4,3,2,1,4,5,7,9],
+            tristate: [1,1,-1,1,-1,0,1,-1],
+            bullet: [10,12,12,9,7],
+            box: [4,27,34,52,54,59,61,68,78,82,85,87,91,93,100]
+        };
+
+        // Helper function to create a sparkline on canvas
+        function createSparkline(canvas, data, type, options = {}) {
+            if (!canvas || !data) return null;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const props = {
+                data: data,
+                type: type,
+                width: canvas.width,
+                height: canvas.height,
+                options: options
+            };
+            
+            const chart = createChart(type, ctx, props);
+            if (chart) {
+                chart.draw();
+                return chart;
+            }
+            return null;
+        }
+
+        // Interactive demo functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            let interactiveChart = null;
+            
+            // Get all control elements
+            const controls = {
+                type: document.getElementById('chart-type'),
+                values: document.getElementById('chart-values'),
+                width: document.getElementById('chart-width'),
+                height: document.getElementById('chart-height'),
+                lineColor: document.getElementById('line-color'),
+                fillColor: document.getElementById('fill-color'),
+                spotColor: document.getElementById('spot-color'),
+                minSpotColor: document.getElementById('min-spot-color'),
+                maxSpotColor: document.getElementById('max-spot-color'),
+                lineWidth: document.getElementById('line-width'),
+                spotRadius: document.getElementById('spot-radius'),
+                highlightLighten: document.getElementById('highlight-lighten'),
+                chartRangeMin: document.getElementById('chart-range-min'),
+                chartRangeMax: document.getElementById('chart-range-max'),
+                normalRangeMin: document.getElementById('normal-range-min'),
+                normalRangeMax: document.getElementById('normal-range-max'),
+                normalRangeColor: document.getElementById('normal-range-color'),
+                topPadding: document.getElementById('top-padding'),
+                bottomPadding: document.getElementById('bottom-padding'),
+                disableTooltips: document.getElementById('disable-tooltips'),
+                tooltipPrefix: document.getElementById('tooltip-prefix'),
+                tooltipSuffix: document.getElementById('tooltip-suffix'),
+                tooltipFormat: document.getElementById('tooltip-format'),
+                
+                // Bar chart options
+                barColor: document.getElementById('bar-color'),
+                negBarColor: document.getElementById('neg-bar-color'),
+                zeroColor: document.getElementById('zero-color'),
+                nullColor: document.getElementById('null-color'),
+                zeroAxis: document.getElementById('zero-axis'),
+                chartRangeClip: document.getElementById('chart-range-clip'),
+                barWidth: document.getElementById('bar-width'),
+                barSpacing: document.getElementById('bar-spacing'),
+                
+                // Pie chart options
+                pieOffset: document.getElementById('pie-offset'),
+                pieBorderWidth: document.getElementById('pie-border-width'),
+                pieBorderColor: document.getElementById('pie-border-color'),
+                
+                // Discrete chart options
+                discreteLineHeight: document.getElementById('discrete-line-height'),
+                discreteThresholdValue: document.getElementById('discrete-threshold-value'),
+                discreteThresholdColor: document.getElementById('discrete-threshold-color'),
+                discreteLineWidth: document.getElementById('discrete-line-width'),
+                discreteLineSpacing: document.getElementById('discrete-line-spacing'),
+                
+                // Tristate chart options
+                tristatePos: document.getElementById('tristate-pos-color'),
+                tristateNeg: document.getElementById('tristate-neg-color'),
+                tristateZero: document.getElementById('tristate-zero-color'),
+                tristateBarWidth: document.getElementById('tristate-bar-width'),
+                tristateBarSpacing: document.getElementById('tristate-bar-spacing'),
+                
+                // Bullet chart options
+                bulletTargetColor: document.getElementById('bullet-target-color'),
+                bulletTargetWidth: document.getElementById('bullet-target-width'),
+                bulletPerformanceColor: document.getElementById('bullet-performance-color'),
+                
+                // Box chart options
+                boxLineColor: document.getElementById('box-line-color'),
+                boxFillColor: document.getElementById('box-fill-color'),
+                boxMedianColor: document.getElementById('box-median-color'),
+                boxWhiskerColor: document.getElementById('box-whisker-color'),
+                boxOutlierLineColor: document.getElementById('box-outlier-line-color'),
+                boxOutlierFillColor: document.getElementById('box-outlier-fill-color'),
+                boxTargetColor: document.getElementById('box-target-color'),
+                boxShowOutliers: document.getElementById('box-show-outliers'),
+                boxOutlierIqr: document.getElementById('box-outlier-iqr'),
+                boxSpotRadius: document.getElementById('box-spot-radius'),
+                boxTarget: document.getElementById('box-target')
+            };
+
+            // Function to show/hide options based on chart type
+            function updateOptionVisibility(chartType) {
+                const chartOptions = {
+                    'line': {
+                        appearance: ['line-color', 'fill-color', 'spot-color', 'min-spot-color', 'max-spot-color', 'line-width', 'spot-radius', 'highlight-lighten'],
+                        layout: ['chart-range-min', 'chart-range-max', 'normal-range-min', 'normal-range-max', 'normal-range-color', 'top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
+                        specific: []
+                    },
+                    'bar': {
+                        appearance: ['highlight-lighten'],
+                        layout: ['chart-range-min', 'chart-range-max', 'top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
+                        specific: ['.bar-options']
+                    },
+                    'pie': {
+                        appearance: ['highlight-lighten'],
+                        layout: ['disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
+                        specific: ['.pie-options']
+                    },
+                    'discrete': {
+                        appearance: ['line-color', 'highlight-lighten'],
+                        layout: ['chart-range-min', 'chart-range-max', 'top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
+                        specific: ['.discrete-options']
+                    },
+                    'tristate': {
+                        appearance: ['highlight-lighten'],
+                        layout: ['top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
+                        specific: ['.tristate-options'],                        
+                    },
+                    'bullet': {
+                        appearance: ['highlight-lighten'],
+                        layout: ['chart-range-min', 'chart-range-max', 'top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
+                        specific: ['.bullet-options']
+                    },
+                    'box': {
+                        appearance: ['highlight-lighten'],
+                        layout: ['top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
+                        specific: ['.box-options']
+                    }
+                };
+
+                // Hide all options first
+                document.querySelectorAll('.property-field').forEach(el => {
+                    if (!el.classList.contains('chart-type-group') && !el.classList.contains('dimensions-group')) {
+                        el.style.display = 'none';
+                    }
+                });
+
+                // Hide all specific option groups
+                document.querySelectorAll('.bar-options, .pie-options, .discrete-options, .tristate-options, .bullet-options, .box-options').forEach(el => {
+                    el.style.display = 'none';
+                });
+
+                const currentOptions = chartOptions[chartType] || { appearance: [], layout: [], specific: [] };
+                
+                // Show relevant appearance options
+                let appearanceCount = 0;
+                currentOptions.appearance.forEach(optionId => {
+                    const element = document.getElementById(optionId);
+                    if (element) {
+                        const propertyField = element.closest('.property-field');
+                        if (propertyField) {
+                            propertyField.style.display = 'grid';
+                            appearanceCount++;
+                        }
+                    }
+                });
+                
+                // Show relevant layout options
+                let layoutCount = 0;
+                currentOptions.layout.forEach(optionId => {
+                    const element = document.getElementById(optionId);
+                    if (element) {
+                        const propertyField = element.closest('.property-field');
+                        if (propertyField) {
+                            propertyField.style.display = 'grid';
+                            layoutCount++;
+                        }
+                    }
+                });
+                
+                // Show chart-specific options
+                let specificCount = 0;
+                currentOptions.specific.forEach(selector => {
+                    document.querySelectorAll(selector).forEach(el => {
+                        el.style.display = 'grid';
+                        specificCount++;
+                    });
+                });
+
+                // Update option counts in headers
+                const appearanceCount_el = document.getElementById('appearance-count');
+                const layoutCount_el = document.getElementById('layout-count');
+                const extendedCount_el = document.getElementById('extended-count');
+                const extendedGroup = document.getElementById('extended-options-group');
+                
+                if (appearanceCount_el) appearanceCount_el.textContent = `(${appearanceCount})`;
+                if (layoutCount_el) layoutCount_el.textContent = `(${layoutCount})`;
+                
+                if (specificCount > 0) {
+                    extendedGroup.style.display = 'block';
+                    if (extendedCount_el) extendedCount_el.textContent = `(${specificCount})`;
+                } else {
+                    extendedGroup.style.display = 'none';
+                    if (extendedCount_el) extendedCount_el.textContent = '(0)';
+                }
+            }
+
+            // Function to get chart options from controls
+            function getChartOptions() {
+                const type = controls.type?.value || 'line';
+                const options = {
+                    lineColor: controls.lineColor?.value || '#0000f0',
+                    fillColor: controls.fillColor?.value || '#c0d0f0',
+                    spotColor: controls.spotColor?.value || '#f80000',
+                    minSpotColor: controls.minSpotColor?.value || '#f44444',
+                    maxSpotColor: controls.maxSpotColor?.value || '#44f444',
+                    lineWidth: parseFloat(controls.lineWidth?.value || '1'),
+                    spotRadius: parseFloat(controls.spotRadius?.value || '1.5'),
+                    highlightLighten: parseFloat(controls.highlightLighten?.value || '1.4'),
+                    topPadding: parseInt(controls.topPadding?.value || '3'),
+                    bottomPadding: parseInt(controls.bottomPadding?.value || '3'),
+                    disableTooltips: controls.disableTooltips?.checked || false,
+                    tooltipPrefix: controls.tooltipPrefix?.value || '',
+                    tooltipSuffix: controls.tooltipSuffix?.value || '',
+                    tooltipFormat: controls.tooltipFormat?.value || '{{value}}'
+                };
+
+                // Add range options
+                if (controls.chartRangeMin?.value) options.chartRangeMin = parseFloat(controls.chartRangeMin.value);
+                if (controls.chartRangeMax?.value) options.chartRangeMax = parseFloat(controls.chartRangeMax.value);
+                if (controls.normalRangeMin?.value) options.normalRangeMin = parseFloat(controls.normalRangeMin.value);
+                if (controls.normalRangeMax?.value) options.normalRangeMax = parseFloat(controls.normalRangeMax.value);
+                options.normalRangeColor = controls.normalRangeColor?.value || '#c0c0c0';
+                
+                // Add type-specific options
+                switch (type) {
+                    case 'bar':
+                        options.barColor = controls.barColor?.value || '#4285f4';
+                        options.negBarColor = controls.negBarColor?.value || '#db4437';
+                        options.zeroColor = controls.zeroColor?.value || '#909090';
+                        options.nullColor = controls.nullColor?.value || '#cccccc';
+                        options.zeroAxis = controls.zeroAxis?.checked ?? true;
+                        options.chartRangeClip = controls.chartRangeClip?.checked || false;
+                        const barWidthValue = controls.barWidth?.value || 'auto';
+                        if (barWidthValue === 'auto' || barWidthValue === 'fill') {
+                            options.barWidth = barWidthValue;
+                        } else {
+                            options.barWidth = parseInt(barWidthValue);
+                        }
+                        options.barSpacing = parseInt(controls.barSpacing?.value || '1');
+                        break;
+                    case 'pie':
+                        options.offset = parseInt(controls.pieOffset?.value || '0');
+                        options.borderWidth = parseInt(controls.pieBorderWidth?.value || '0');
+                        options.borderColor = controls.pieBorderColor?.value || '#000000';
+                        break;
+                    case 'discrete':
+                        if (controls.discreteLineHeight?.value) {
+                            options.lineHeight = parseInt(controls.discreteLineHeight.value);
+                        }
+                        if (controls.discreteThresholdValue?.value) {
+                            options.thresholdValue = parseFloat(controls.discreteThresholdValue.value);
+                        }
+                        options.thresholdColor = controls.discreteThresholdColor?.value || '#ff0000';
+                        
+                        const discreteLineWidthValue = controls.discreteLineWidth?.value || 'auto';
+                        if (discreteLineWidthValue === 'auto' || discreteLineWidthValue === 'fill') {
+                            options.lineWidth = discreteLineWidthValue;
+                        } else {
+                            options.lineWidth = parseInt(discreteLineWidthValue);
+                        }
+                        options.lineSpacing = parseInt(controls.discreteLineSpacing?.value || '1');
+                        break;
+                    case 'tristate':
+                        options.posBarColor = controls.tristatePos?.value || '#00ff00';
+                        options.negBarColor = controls.tristateNeg?.value || '#ff0000';
+                        options.zeroBarColor = controls.tristateZero?.value || '#999999';
+                        
+                        const tristateBarWidthValue = controls.tristateBarWidth?.value || 'auto';
+                        if (tristateBarWidthValue === 'auto' || tristateBarWidthValue === 'fill') {
+                            options.barWidth = tristateBarWidthValue;
+                        } else {
+                            options.barWidth = parseInt(tristateBarWidthValue);
+                        }
+                        options.barSpacing = parseInt(controls.tristateBarSpacing?.value || '1');
+                        break;
+                    case 'bullet':
+                        options.targetColor = controls.bulletTargetColor?.value || '#ff0000';
+                        options.targetWidth = parseInt(controls.bulletTargetWidth?.value || '3');
+                        options.performanceColor = controls.bulletPerformanceColor?.value || '#3333ff';
+                        break;
+                    case 'box':
+                        options.boxLineColor = controls.boxLineColor?.value || '#000000';
+                        options.boxFillColor = controls.boxFillColor?.value || '#ccddff';
+                        options.medianColor = controls.boxMedianColor?.value || '#ff0000';
+                        options.whiskerColor = controls.boxWhiskerColor?.value || '#000000';
+                        options.outlierLineColor = controls.boxOutlierLineColor?.value || '#333333';
+                        options.outlierFillColor = controls.boxOutlierFillColor?.value || '#ffffff';
+                        options.targetColor = controls.boxTargetColor?.value || '#44aa22';
+                        options.showOutliers = controls.boxShowOutliers?.checked ?? true;
+                        options.outlierIQR = parseFloat(controls.boxOutlierIqr?.value || '1.5');
+                        options.spotRadius = parseFloat(controls.boxSpotRadius?.value || '1.5');
+                        if (controls.boxTarget?.value && controls.boxTarget.value.trim() !== '') {
+                            options.target = parseFloat(controls.boxTarget.value);
+                        }
+                        break;
+                }
+                
+                return options;
+            }
+
+            // Function to update the chart
+            function updateChart() {
+                try {
+                    // Clean up existing chart and touch handlers
+                    const canvas = document.getElementById('interactive-chart');
+                    if (canvas && canvas.touchCleanup) {
+                        canvas.touchCleanup();
+                    }
+                    
+                    if (interactiveChart && typeof interactiveChart.destroy === 'function') {
+                        interactiveChart.destroy();
+                    }
+                    
+                    const type = controls.type?.value || 'line';
+                    const valuesStr = controls.values?.value || '5,6,7,9,9,5,3,2,2,4,6,7';
+                    const width = parseInt(controls.width?.value || '300');
+                    const height = parseInt(controls.height?.value || '100');
+                    
+                    // Parse values
+                    let values;
+                    if (type === 'bullet') {
+                        values = valuesStr.split(',').map(v => parseFloat(v.trim()));
+                    } else if (type === 'tristate') {
+                        values = valuesStr.split(',').map(v => {
+                            const num = parseFloat(v.trim());
+                            return num > 0 ? 1 : (num < 0 ? -1 : 0);
+                        });
+                    } else {
+                        values = valuesStr.split(',').map(v => parseFloat(v.trim()));
+                    }
+                    
+                    // Update canvas dimensions
+                    if (canvas) {
+                        canvas.width = width;
+                        canvas.height = height;
+                    }
+                    
+                    const options = getChartOptions();
+                    interactiveChart = createSparkline(canvas, values, type, options);
+                    
+                    // Add touch support for tooltips
+                    if (canvas && interactiveChart && !options.disableTooltips) {
+                        setupTouchSupport(canvas, interactiveChart);
+                    }
+                } catch (error) {
+                    console.log('Error updating chart:', error);
+                }
+            }
+
+            // Touch support for tooltips - Use chart's built-in tooltip system
+            function setupTouchSupport(canvas, chart) {
+                let isTouch = false;
+
+                // Touch event handlers using chart's built-in tooltip system
+                function handleTouchStart(event) {
+                    event.preventDefault();
+                    isTouch = true;
+                    
+                    const touch = event.touches[0];
+                    
+                    // Create synthetic mouse event for the chart's mouse handlers
+                    const syntheticEvent = {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        pageX: touch.pageX || (touch.clientX + window.pageXOffset),
+                        pageY: touch.pageY || (touch.clientY + window.pageYOffset),
+                        target: canvas
+                    };
+                    
+                    // Use the chart's built-in mouse move handler
+                    if (chart && typeof chart.handleMouseMove === 'function') {
+                        chart.handleMouseMove(syntheticEvent);
+                    }
+                }
+
+                function handleTouchMove(event) {
+                    event.preventDefault();
+                    if (isTouch && event.touches.length === 1) {
+                        const touch = event.touches[0];
+                        const rect = canvas.getBoundingClientRect();
+                        
+                        // Check if touch is still within canvas bounds
+                        if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                            touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                            
+                            // Create synthetic mouse event
+                            const syntheticEvent = {
+                                clientX: touch.clientX,
+                                clientY: touch.clientY,
+                                pageX: touch.pageX || (touch.clientX + window.pageXOffset),
+                                pageY: touch.pageY || (touch.clientY + window.pageYOffset),
+                                target: canvas
+                            };
+                            
+                            // Use the chart's built-in mouse move handler
+                            if (chart && typeof chart.handleMouseMove === 'function') {
+                                chart.handleMouseMove(syntheticEvent);
+                            }
+                        } else {
+                            // Touch moved outside canvas - hide tooltip
+                            if (chart && typeof chart.handleMouseLeave === 'function') {
+                                chart.handleMouseLeave();
+                            }
+                        }
+                    }
+                }
+
+                function handleTouchEnd(event) {
+                    event.preventDefault();
+                    isTouch = false;
+                    
+                    // Use the chart's built-in mouse leave handler to clean up
+                    if (chart && typeof chart.handleMouseLeave === 'function') {
+                        chart.handleMouseLeave();
+                    }
+                }
+
+                // Add touch event listeners
+                canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+                canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+                canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+                canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+
+                // Store cleanup function on canvas for later removal
+                canvas.touchCleanup = function() {
+                    canvas.removeEventListener('touchstart', handleTouchStart);
+                    canvas.removeEventListener('touchmove', handleTouchMove);
+                    canvas.removeEventListener('touchend', handleTouchEnd);
+                    canvas.removeEventListener('touchcancel', handleTouchEnd);
+                    
+                    // Clean up any tooltips using the chart's cleanup
+                    if (chart && typeof chart.hideTooltip === 'function') {
+                        chart.hideTooltip();
+                    }
+                };
+            }
+
+            // Array to store observers for cleanup
+            const mutationObservers = [];
+
+            // Set up auto-update listeners
+            Object.values(controls).forEach(control => {
+                if (control) {
+                    const handleUpdate = () => {
+                        if (control === controls.type) {
+                            updateOptionVisibility(control.value);
+                            
+                            // Set appropriate default values for different chart types
+                            if (control.value === 'bullet') {
+                                controls.values.value = '10,12,12,9,7';
+                            } else if (control.value === 'tristate') {
+                                controls.values.value = '1,1,0,1,-1,-1,1,-1,0,0,1,1';
+                            } else if (control.value === 'pie') {
+                                controls.values.value = '1,1,2,3';
+                            } else if (control.value === 'box') {
+                                controls.values.value = '-50,1,4,27,34,52,54,59,61,68,78,82,85,87,91,93,100,200';
+                            } else if (control.value === 'discrete') {
+                                controls.values.value = '4,6,7,7,4,3,2,1,4,5,7,9';
+                            } else {
+                                controls.values.value = '5,6,7,9,9,5,3,2,2,4,6,7';
+                            }
+                        }
+                        updateChart();
+                    };
+
+                    if (control.tagName.toLowerCase() === 'select') {
+                        // For select elements, use multiple events to ensure mobile compatibility
+                        control.addEventListener('change', handleUpdate);
+                        control.addEventListener('input', handleUpdate);
+                        
+                        // Add touchend for mobile devices with longer delay
+                        control.addEventListener('touchend', () => {
+                            setTimeout(() => {
+                                requestAnimationFrame(handleUpdate);
+                            }, 100);
+                        });
+                        
+                        // Add click handler as fallback
+                        control.addEventListener('click', () => {
+                            setTimeout(() => {
+                                requestAnimationFrame(handleUpdate);
+                            }, 150);
+                        });
+                        
+                        // Use MutationObserver to watch for value changes on mobile
+                        if (window.MutationObserver) {
+                            const observer = new MutationObserver(() => {
+                                requestAnimationFrame(handleUpdate);
+                            });
+                            observer.observe(control, { 
+                                attributes: true, 
+                                attributeFilter: ['value'] 
+                            });
+                            mutationObservers.push(observer); // Store for cleanup
+                        }
+                        
+                    } else if (control.type === 'checkbox') {
+                        control.addEventListener('change', handleUpdate);
+                    } else {
+                        control.addEventListener('input', handleUpdate);
+                    }
+                }
+            });
+
+            // Initialize the demo
+            updateOptionVisibility(controls.type.value);
+            updateChart();
+
+            // Mobile polling fallback - check for select value changes every 500ms
+            let lastSelectValue = controls.type.value;
+            const mobilePollingInterval = setInterval(() => {
+                if (controls.type.value !== lastSelectValue) {
+                    lastSelectValue = controls.type.value;
+                    updateOptionVisibility(controls.type.value);
+                    updateChart();
+                }
+            }, 500);
+            
+            // Cleanup interval when page is unloaded to prevent memory leaks
+            window.addEventListener('beforeunload', () => {
+                if (mobilePollingInterval) {
+                    clearInterval(mobilePollingInterval);
+                }
+                // Clean up MutationObservers
+                mutationObservers.forEach(observer => {
+                    observer.disconnect();
+                });
+            });
+            
+            // Also cleanup if user navigates away from the page
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && mobilePollingInterval) {
+                    clearInterval(mobilePollingInterval);
+                    // Clean up MutationObservers
+                    mutationObservers.forEach(observer => {
+                        observer.disconnect();
+                    });
+                }
+            });
+        });
+    </script>
+    
+    <footer style="background: #2c3e50; color: #ecf0f1; padding: 30px 0; margin: 0; width: 100%; position: relative;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 40px; text-align: center;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 20px;">
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">📝 Credits</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        Based on the original <strong>jQuery Sparklines</strong> library by <strong>Gareth Watts</strong><br>
+                        Vue.js adaptation and enhanced tooltips implementation
+                    </p>
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">⚖️ License</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        Released under the <strong>New BSD License</strong><br>
+                        Free for commercial and non-commercial use
+                    </p>
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">🔗 Links</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" style="color: #3498db; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                            View on GitHub
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #34495e; padding-top: 20px; opacity: 0.6; font-size: 0.9em;">
+                <p style="margin: 0;">
+                    Original jQuery Sparklines © Gareth Watts | Vue.js Port by Ian Claxton © 2025
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

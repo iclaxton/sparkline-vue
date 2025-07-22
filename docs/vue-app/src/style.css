@@ -1,0 +1,12 @@
+/* Global styles for Vue SPA */
+
+@import url('/docs/shared/shared.css');
+
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+* {
+  box-sizing: border-box;
+}

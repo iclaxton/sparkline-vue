@@ -1,0 +1,221 @@
+/* Interactive components and controls */
+.controls {
+    background: #f8f9fa;
+    margin: 0;
+    border: 1px solid #e9ecef;
+    overflow-x: auto;
+}
+
+.controls h4 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+/* Button styles */
+.btn-success {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+    min-width: 0;
+}
+
+.btn-success:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+    min-width: 0;
+}
+
+.btn-danger:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+    min-width: 0;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: #218838;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #c82333;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+}
+
+.control-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.control-button:hover {
+    background: #0056b3;
+}
+
+/* Control group for button layouts */
+.control-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.control-group button {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* Information displays */
+.info-display {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 15px;
+    border-radius: 6px;
+    margin: 15px 0;
+    font-family: monospace;
+    font-size: 0.9em;
+    border-left: 4px solid #28a745;
+}
+
+.click-info {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+/* Legacy click info for compatibility */
+.interactive-demo {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    overflow-x: auto;
+}
+
+.click-info {
+    margin-top: 10px;
+    padding: 8px;
+    background: #e7f3ff;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #0056b3;
+    word-wrap: break-word;
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-running {
+    background-color: #28a745;
+    animation: pulse 2s infinite;
+}
+
+.status-stopped {
+    background-color: #dc3545;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Mobile responsiveness for components */
+@media (max-width: 768px) {
+    .controls {
+        padding: 12px;
+        margin: 10px 0;
+    }
+    
+    .control-group {
+        gap: 8px;
+        justify-content: flex-start;
+    }
+    
+    .btn-success, 
+    .btn-danger {
+        padding: 6px 12px;
+        font-size: 0.85em;
+    }
+    
+    .interactive-demo {
+        padding: 12px;
+        margin: 12px 0;
+    }
+    
+    .click-info {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .controls {
+        padding: 10px;
+    }
+    
+    .controls h4 {
+        font-size: 1em;
+    }
+    
+    .control-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+    
+    .btn-success, 
+    .btn-danger {
+        width: 100%;
+        padding: 8px;
+        font-size: 0.8em;
+    }
+    
+    .interactive-demo {
+        padding: 10px;
+    }
+}

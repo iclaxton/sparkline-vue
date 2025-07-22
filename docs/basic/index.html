@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">    
+    <title>Sparkline Vue - Basic Examples</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../shared/shared.css">
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column; margin: 0;">
+    <div class="outer-container" style="flex: 1;">
+        <div class="container">
+            <div class="header">
+                <h1>🚀 Basic Examples</h1>
+                <p>Simple, easy-to-understand examples to get you started with Sparkline Vue</p>
+                <div class="nav-links">
+                    <a href="../../">🏠 Home</a>
+                    <a href="../basic/" class="current">🚀 Basic</a>
+                    <a href="../advanced/">⚡ Advanced</a>
+                    <a href="../vue-app/">🔧 Vue SPA</a>
+                    <a href="../comprehensive/">🎯 Comprehensive</a>
+                    <a href="../interactive/">🎮 Interactive</a>
+                    <a href="../performance/">🚀 Performance</a>
+                    <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        
+            <div class="content">
+                <div class="intro">
+                    <h2>Getting Started</h2>
+                    <p>These basic examples show you the fundamental usage patterns for Sparkline Vue. Perfect for beginners who want to understand the core concepts and get up and running quickly.</p>
+                </div>
+
+                <div class="section">
+                    <h2>📈 Line Charts</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Simple Line Chart</div>
+                            <div class="example-description">
+                                The most basic line chart with default styling. Perfect for showing trends in your data.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Stock Prices Over Time</span>
+                                <canvas id="line-basic" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2,2,4,6,7]" type="line" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Line Chart with Fill</div>
+                            <div class="example-description">
+                                Add a fill color underneath the line to create an area chart effect.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Revenue Growth</span>
+                                <canvas id="line-fill" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2,2,4,6,7]" type="line" 
+    :fillColor="'rgba(102,126,234,0.2)'" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Line with Spots</div>
+                            <div class="example-description">
+                                Highlight specific data points with colored spots for better visibility.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Daily Temperature</span>
+                                <canvas id="line-spots" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2,2,4,6,7]" type="line" 
+    :spotColor="'#f39c12'" :lineColor="'#e74c3c'" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Multi-color Line</div>
+                            <div class="example-description">
+                                Customize colors for different elements: line, fill, and spot colors.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Performance Metrics</span>
+                                <canvas id="line-multicolor" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,6,7,9,9,5,3,2,2,4,6,7]" type="line" 
+    :lineColor="'#9b59b6'" :fillColor="'rgba(155,89,182,0.1)'" 
+    :spotColor="'#e67e22'" /&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📊 Bar Charts</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Simple Bar Chart</div>
+                            <div class="example-description">
+                                Basic bar chart perfect for comparing discrete values across categories.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Monthly Sales</span>
+                                <canvas id="bar-basic" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[10,15,8,20,12,25,18,22]" type="bar" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Positive/Negative Bars</div>
+                            <div class="example-description">
+                                Show gains and losses with different colors for positive and negative values.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Profit/Loss by Quarter</span>
+                                <canvas id="bar-posneg" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[5,-3,8,-2,10,-5,7]" type="bar" 
+    :barColor="'#27ae60'" :negBarColor="'#e74c3c'" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Custom Bar Colors</div>
+                            <div class="example-description">
+                                Apply different colors to individual bars based on their values or conditions.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Status Indicators</span>
+                                <canvas id="bar-custom" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[10,15,8,20,12,25]" type="bar" 
+    :barColor="'#3498db'" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Zero Line Reference</div>
+                            <div class="example-description">
+                                Display a zero line to provide context for positive and negative values.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Budget Variance</span>
+                                <canvas id="bar-zero" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[2,-1,3,0,4,-2,1]" type="bar" 
+    :zeroAxis="true" :barColor="'#16a085'" :negBarColor="'#c0392b'" /&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🎯 Other Chart Types</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Pie Chart</div>
+                            <div class="example-description">
+                                Show proportional data with a simple pie chart representation.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Market Share</span>
+                                <canvas id="pie-basic" width="80" height="80"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[20,35,40,10]" type="pie" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Discrete Chart</div>
+                            <div class="example-description">
+                                Display categorical data as vertical lines of varying heights.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Activity Levels</span>
+                                <canvas id="discrete-basic" width="200" height="30"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[4,6,7,7,4,3,2,1,4,5,6,7]" type="discrete" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Tristate Chart</div>
+                            <div class="example-description">
+                                Perfect for showing win/loss/draw scenarios or up/down/unchanged states.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Game Results</span>
+                                <canvas id="tristate-basic" width="200" height="30"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[1,1,-1,1,-1,0,1,-1]" type="tristate" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Bullet Chart</div>
+                            <div class="example-description">
+                                Compare performance against targets with this compact bullet chart format.
+                            </div>
+                            <div class="chart-display">
+                                <span class="chart-label">Sales Target Progress</span>
+                                <canvas id="bullet-basic" width="150" height="20"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[35,25,18,40,50]" type="bullet" /&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-section">
+                    <h3>✨ Why Choose Sparkline Vue?</h3>
+                    <p>Sparkline Vue makes it incredibly easy to add beautiful, interactive charts to your Vue.js applications with minimal configuration.</p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature">
+                            <span class="feature-icon">⚡</span>
+                            <strong>Lightweight</strong>
+                            <p>Minimal bundle size with maximum impact</p>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">🎨</span>
+                            <strong>Customizable</strong>
+                            <p>Extensive styling options and themes</p>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">📱</span>
+                            <strong>Responsive</strong>
+                            <p>Works perfectly on all device sizes</p>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">🚀</span>
+                            <strong>Easy to Use</strong>
+                            <p>Simple API with Vue.js integration</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createChart } from '../../renderers/chartFactory.js';
+
+        // Sample data sets
+        const sampleData = {
+            line: [5,6,7,9,9,5,3,2,2,4,6,7],
+            bars: [10,15,8,20,12,25,18,22],
+            barsPosNeg: [5,-3,8,-2,10,-5,7],
+            barsZero: [2,-1,3,0,4,-2,1],
+            pie: [20,35,40,10],
+            discrete: [4,6,7,7,4,3,2,1,4,5,6,7],
+            tristate: [1,1,-1,1,-1,0,1,-1],
+            bullet: [35,25,18,40,50]
+        };
+
+        // Helper function to create a sparkline on canvas
+        function createSparkline(canvas, data, type, options = {}) {
+            if (!canvas || !data) return null;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const props = {
+                data: data,
+                type: type,
+                width: canvas.width,
+                height: canvas.height,
+                options: options
+            };
+            
+            const chart = createChart(type, ctx, props);
+            if (chart) {
+                chart.draw();
+                return chart;
+            }
+            return null;
+        }
+
+        // Create charts for all examples
+        const charts = [
+            // Line charts
+            { id: 'line-basic', data: sampleData.line, type: 'line', options: {} },
+            { id: 'line-fill', data: sampleData.line, type: 'line', options: { fillColor: 'rgba(102,126,234,0.2)' } },
+            { id: 'line-spots', data: sampleData.line, type: 'line', options: { spotColor: '#f39c12', lineColor: '#e74c3c' } },
+            { id: 'line-multicolor', data: sampleData.line, type: 'line', options: { lineColor: '#9b59b6', fillColor: 'rgba(155,89,182,0.1)', spotColor: '#e67e22' } },
+
+            // Bar charts
+            { id: 'bar-basic', data: sampleData.bars, type: 'bar', options: {} },
+            { id: 'bar-posneg', data: sampleData.barsPosNeg, type: 'bar', options: { barColor: '#27ae60', negBarColor: '#e74c3c' } },
+            { id: 'bar-custom', data: sampleData.bars, type: 'bar', options: { barColor: '#3498db' } },
+            { id: 'bar-zero', data: sampleData.barsZero, type: 'bar', options: { zeroAxis: true, barColor: '#16a085', negBarColor: '#c0392b' } },
+
+            // Other types
+            { id: 'pie-basic', data: sampleData.pie, type: 'pie', options: {} },
+            { id: 'discrete-basic', data: sampleData.discrete, type: 'discrete', options: {} },
+            { id: 'tristate-basic', data: sampleData.tristate, type: 'tristate', options: {} },
+            { id: 'bullet-basic', data: sampleData.bullet, type: 'bullet', options: {} }
+        ];
+
+        // Initialize all charts after DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            charts.forEach(chart => {
+                const canvas = document.getElementById(chart.id);
+                if (canvas) {
+                    createSparkline(canvas, chart.data, chart.type, chart.options);
+                }
+            });
+        });
+    </script>
+    
+    <footer style="background: #2c3e50; color: #ecf0f1; padding: 30px 0; margin: 0; width: 100%; position: relative;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 40px; text-align: center;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 20px;">
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">📝 Credits</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        Based on the original <strong>jQuery Sparklines</strong> library by <strong>Gareth Watts</strong><br>
+                        Vue.js adaptation and enhanced tooltips implementation
+                    </p>
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">⚖️ License</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        Released under the <strong>New BSD License</strong><br>
+                        Free for commercial and non-commercial use
+                    </p>
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #fff;">🔗 Links</h4>
+                    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                        <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" style="color: #3498db; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                            View on GitHub
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #34495e; padding-top: 20px; opacity: 0.6; font-size: 0.9em;">
+                <p style="margin: 0;">
+                    Original jQuery Sparklines © Gareth Watts | Vue.js Port by Ian Claxton © 2025
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
