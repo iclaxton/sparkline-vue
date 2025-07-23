@@ -163,14 +163,30 @@ jobs:
             exit 1
           fi
           
-          # Verify that the package was successfully published to the registry
+          # Verify that the package was successfully published to the registry (with retry)
           echo "🔍 Verifying published package on NPM registry..."
-          if ! npm view sparkline-vue@$FINAL_VERSION version 2>/dev/null; then
-            echo "❌ Verification failed: sparkline-vue@$FINAL_VERSION is not available on NPM registry"
-            echo "Please check the NPM registry or retry the publish operation"
+          RETRY_COUNT=0
+          MAX_RETRIES=5
+          SLEEP_SECONDS=2
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if npm view sparkline-vue@$FINAL_VERSION version >/dev/null 2>&1; then
+              echo "✅ Verified: sparkline-vue@$FINAL_VERSION is available on NPM registry"
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "⏳ Attempt $RETRY_COUNT/$MAX_RETRIES: Package not yet visible, waiting ${SLEEP_SECONDS}s..."
+                sleep $SLEEP_SECONDS
+              fi
+            fi
+          done
+          
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "❌ Verification failed after $MAX_RETRIES attempts: sparkline-vue@$FINAL_VERSION is not available on NPM registry"
+            echo "The package was likely published successfully but npm registry propagation is slow"
+            echo "Please check https://www.npmjs.com/package/sparkline-vue manually"
             exit 1
-          else
-            echo "✅ Verified: sparkline-vue@$FINAL_VERSION is available on NPM registry"
           fi
           
           echo "✅ Successfully published sparkline-vue@$FINAL_VERSION with tag $NPM_TAG"
