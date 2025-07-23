@@ -163,9 +163,15 @@ jobs:
             exit 1
           fi
           
-          # Note: Verification removed as npm publish success is sufficient
-          # The npm CLI will return non-zero exit code if publish fails
-          echo "✅ NPM publish command completed successfully"
+          # Verify that the package was successfully published to the registry
+          echo "🔍 Verifying published package on NPM registry..."
+          if npm view sparkline-vue@$FINAL_VERSION version 2>/dev/null; then
+            echo "✅ Verified: sparkline-vue@$FINAL_VERSION is available on NPM registry"
+          else
+            echo "❌ Verification failed: sparkline-vue@$FINAL_VERSION is not available on NPM registry"
+            echo "Please check the NPM registry or retry the publish operation"
+            exit 1
+          fi
           
           echo "✅ Successfully published sparkline-vue@$FINAL_VERSION with tag $NPM_TAG"
           echo "npm_publish_success=true" >> $GITHUB_OUTPUT
