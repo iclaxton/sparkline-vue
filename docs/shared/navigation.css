@@ -93,7 +93,7 @@
         background: rgba(44, 62, 80, 0.95);
         backdrop-filter: blur(10px);
         flex-direction: column;
-        justify-content: start;
+        justify-content: center;
         align-items: center;
         text-align: center;
         gap: 20px;
