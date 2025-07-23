@@ -2,6 +2,14 @@
 
 A Vue.js component library for creating sparkline charts, rewritten from the popular jQuery Sparkline library v2.1.2. This library provides lightweight, inline charts perfect for dashboards and data visualization.
 
+
+<div>
+  <img src="https://iclaxton.github.io/sparkline-vue/docs/sparkline-vue-demo.gif" alt="Sparkline Vue Demo" style="display: block; max-width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+</div>
+
+## Interactive Demos
+<a href="https://iclaxton.github.io/sparkline-vue/" target="_blank">https://iclaxton.github.io/sparkline-vue/</a>     
+
 ## Features
 
 - 🎯 **7 Chart Types**: Line, Bar, Tristate, Discrete, Bullet, Pie, and Box plots
@@ -56,9 +64,6 @@ export default {
 }
 </script>
 ```
-
-## Interactive Demo
-<a href="https://iclaxton.github.io/sparkline-vue/docs/interactive/" target="_blank">https://iclaxton.github.io/sparkline-vue/docs/interactive/</a>   
 
 ## Component Usage Notes
 
