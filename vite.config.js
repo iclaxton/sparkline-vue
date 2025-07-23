@@ -57,6 +57,7 @@ export default defineConfig(({ command, mode }) => {
           '@docs': resolve(__dirname, 'docs'),
           '@components': resolve(__dirname, 'components'),
           '@renderers': resolve(__dirname, 'renderers'),
+          '@shared': resolve(__dirname, 'shared'),
           '../renderers/': resolve(__dirname, 'renderers') + '/',
           '../components/': resolve(__dirname, 'components') + '/',
           '/renderers/': resolve(__dirname, 'renderers') + '/',
