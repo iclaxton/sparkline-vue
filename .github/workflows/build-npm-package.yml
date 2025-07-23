@@ -165,12 +165,12 @@ jobs:
           
           # Verify that the package was successfully published to the registry
           echo "🔍 Verifying published package on NPM registry..."
-          if npm view sparkline-vue@$FINAL_VERSION version 2>/dev/null; then
-            echo "✅ Verified: sparkline-vue@$FINAL_VERSION is available on NPM registry"
-          else
+          if ! npm view sparkline-vue@$FINAL_VERSION version 2>/dev/null; then
             echo "❌ Verification failed: sparkline-vue@$FINAL_VERSION is not available on NPM registry"
             echo "Please check the NPM registry or retry the publish operation"
             exit 1
+          else
+            echo "✅ Verified: sparkline-vue@$FINAL_VERSION is available on NPM registry"
           fi
           
           echo "✅ Successfully published sparkline-vue@$FINAL_VERSION with tag $NPM_TAG"
