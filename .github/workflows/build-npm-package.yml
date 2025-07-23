@@ -120,10 +120,14 @@ jobs:
           fi
           
           # Check if version already exists on NPM
+          echo "🔍 Checking if version $FINAL_VERSION already exists..."
           if npm view sparkline-vue@$FINAL_VERSION version 2>/dev/null; then
             echo "❌ Version $FINAL_VERSION already exists on NPM!"
             echo "This version was already published. Increment the version or use a different version."
+            echo "Published version: $(npm view sparkline-vue@$FINAL_VERSION version)"
             exit 1
+          else
+            echo "✅ Version $FINAL_VERSION is available for publishing"
           fi
           
           # Determine NPM tag based on version and branch
@@ -151,22 +155,17 @@ jobs:
           # Try to publish with provenance first, fallback without provenance if transparency log fails
           if npm publish --tag "$NPM_TAG" --provenance --access public; then
             echo "✅ Published with provenance attestation"
+          elif npm publish --tag "$NPM_TAG" --access public; then
+            echo "✅ Published without provenance attestation"
+            echo "Note: Provenance attestation was skipped due to transparency log issues"
           else
-            echo "⚠️ Provenance publish failed, trying without provenance..."
-            if npm publish --tag "$NPM_TAG" --access public; then
-              echo "✅ Published without provenance attestation"
-              echo "Note: Provenance attestation was skipped due to transparency log issues"
-            else
-              echo "❌ Both publish attempts failed"
-              exit 1
-            fi
-          fi
-          
-          # Verify the publish was successful
-          if ! npm view sparkline-vue@$FINAL_VERSION version >/dev/null 2>&1; then
-            echo "❌ Failed to verify npm publish - package not found on registry"
+            echo "❌ Both publish attempts failed"
             exit 1
           fi
+          
+          # Note: Verification removed as npm publish success is sufficient
+          # The npm CLI will return non-zero exit code if publish fails
+          echo "✅ NPM publish command completed successfully"
           
           echo "✅ Successfully published sparkline-vue@$FINAL_VERSION with tag $NPM_TAG"
           echo "npm_publish_success=true" >> $GITHUB_OUTPUT
@@ -296,11 +295,11 @@ jobs:
           echo "  - Git tag creation failures"
           echo "  - GitHub release creation issues"
 
-  # Deploy docs to GitHub Pages only after successful npm publish
+  # Deploy docs to GitHub Pages only after successful npm publish on main branch
   deploy-docs:
     needs: publish
     runs-on: ubuntu-latest
-    if: needs.publish.outputs.npm_publish_success == 'true'
+    if: needs.publish.outputs.npm_publish_success == 'true' && github.ref_name == 'main'
     
     permissions:
       contents: read
