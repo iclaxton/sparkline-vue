@@ -152,7 +152,7 @@ jobs:
           
           echo "Publishing sparkline-vue@$FINAL_VERSION with tag: $NPM_TAG"
           
-          # Try to publish with provenance first, fallback without provenance if transparency log fails
+          # Attempt to publish with provenance first; if it fails, immediately fallback to publishing without provenance
           if npm publish --tag "$NPM_TAG" --provenance --access public; then
             echo "✅ Published with provenance attestation"
           elif npm publish --tag "$NPM_TAG" --access public; then
