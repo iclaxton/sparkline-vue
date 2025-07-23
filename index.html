@@ -125,7 +125,13 @@
             <div class="header">
           <h1>🔥 Sparkline Vue</h1>
           <p>Interactive Vue.js sparkline charts with enhanced tooltips</p>
-          <div class="nav-links">
+          
+          <!-- Mobile menu toggle button -->
+          <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle mobile menu">
+            <span id="menuIcon">☰</span>
+          </button>
+          
+          <div class="nav-links" id="navLinks">
               <a href="" class="current">🏠 Home</a>
               <a href="docs/basic/">🚀 Basic</a>
               <a href="docs/advanced/">⚡ Advanced</a>
@@ -306,5 +312,8 @@ import Sparkline from 'sparkline-vue'
       </div>
     </div>
   </footer>
+  
+  <script src="docs/shared/mobile-menu.js"></script>
+  <script src="docs/shared/back-to-top.js"></script>
 </body>
 </html>
