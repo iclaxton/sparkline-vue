@@ -166,8 +166,8 @@ jobs:
           # Verify that the package was successfully published to the registry (with retry)
           echo "🔍 Verifying published package on NPM registry..."
           RETRY_COUNT=0
-          MAX_RETRIES=5
-          SLEEP_SECONDS=2
+          MAX_RETRIES=10
+          SLEEP_SECONDS=3
           
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
             if npm view sparkline-vue@$FINAL_VERSION version >/dev/null 2>&1; then
