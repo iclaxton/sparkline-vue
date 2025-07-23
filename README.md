@@ -4,7 +4,7 @@ A Vue.js component library for creating sparkline charts, rewritten from the pop
 
 
 <div>
-  <img src="https://iclaxton.github.io/sparkline-vue/docs/sparkline-vue-demo.gif" alt="Sparkline Vue Demo" style="display: block; max-width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <img src="https://github.com/iclaxton/sparkline-vue/blob/main/docs/sparkline-vue-demo.gif?raw=true)" alt="Sparkline Vue Demo" style="display: block; max-width: 100%; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
 </div>
 
 ## Interactive Demos
