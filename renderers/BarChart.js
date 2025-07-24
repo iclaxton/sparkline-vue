@@ -25,6 +25,10 @@ export class BarChart extends BaseChart {
     if (this.values.length === 0) return;
 
     const ctx = this.ctx;
+    
+    // Clear the canvas before drawing
+    ctx.clearRect(0, 0, this.width, this.height);
+    
     const { width, height, topOffset, bottomOffset } = this.getDrawingDimensions();
     
     const { 
@@ -487,138 +491,6 @@ export class BarChart extends BaseChart {
       }
     }
     return null; // Stacked bars handle colors in their own getTooltipContent
-  }
-
-  // Override getTooltipContent for stacked bars
-  getTooltipContent(region) {
-    // Check if this is a numeric region (which could be a stack index for stacked bars)
-    if (typeof region === 'number') {
-      // Check if we have stacked data
-      const isStacked = this.regions.length > 0 && this.regions[0].stackIndex !== undefined;
-      
-      if (isStacked) {
-        // This is a stack index - get the stack data
-        const stackData = this.values[region];
-        
-        if (Array.isArray(stackData)) {
-          const items = [];
-          let total = 0;
-          
-          // Show segments in visual stacking order (top to bottom = reverse array order)
-          const reversedData = [...stackData].reverse();
-          const reversedIndices = stackData.map((_, i) => stackData.length - 1 - i);
-          
-          reversedData.forEach((segmentValue, reverseIndex) => {
-            const originalIndex = reversedIndices[reverseIndex];
-            
-            if (segmentValue !== null && segmentValue !== undefined && segmentValue > 0) {
-              let color = this.options.barColor;
-              if (this.options.stackedBarColor && Array.isArray(this.options.stackedBarColor)) {
-                color = this.options.stackedBarColor[originalIndex % this.options.stackedBarColor.length];
-              }
-              
-              items.push({
-                label: `${segmentValue}`,
-                color: color
-              });
-              total += segmentValue;
-            }
-          });
-          
-          // Add total line
-          if (items.length > 1) {
-            items.push({
-              label: `Total: ${total}`,
-              color: null // No color spot for total
-            });
-          }
-          
-          return items.length > 0 ? { items } : null;
-        }
-      } else {
-        // Regular bar - check if the data at this index is an array (shouldn't happen but handle it)
-        const value = this.values[region];
-        if (Array.isArray(value)) {
-          const items = [];
-          let total = 0;
-          
-          // Show segments in visual stacking order (top to bottom = reverse array order)
-          const reversedData = [...value].reverse();
-          const reversedIndices = value.map((_, i) => value.length - 1 - i);
-          
-          reversedData.forEach((segmentValue, reverseIndex) => {
-            const originalIndex = reversedIndices[reverseIndex];
-            
-            if (segmentValue !== null && segmentValue !== undefined && segmentValue > 0) {
-              let color = this.options.barColor;
-              if (this.options.stackedBarColor && Array.isArray(this.options.stackedBarColor)) {
-                color = this.options.stackedBarColor[originalIndex % this.options.stackedBarColor.length];
-              }
-              
-              items.push({
-                label: `${segmentValue}`,
-                color: color
-              });
-              total += segmentValue;
-            }
-          });
-          
-          // Add total line
-          if (items.length > 1) {
-            items.push({
-              label: `Total: ${total}`,
-              color: null // No color spot for total
-            });
-          }
-          
-          return items.length > 0 ? { items } : null;
-        }
-      }
-    }
-    
-    // Handle legacy stacked bar region objects (for backward compatibility)
-    if (typeof region === 'object' && region !== null && region.stackIndex !== undefined) {
-      const stackIndex = region.stackIndex;
-      const stackData = this.values[stackIndex];
-      
-      if (Array.isArray(stackData)) {
-        const items = [];
-        let total = 0;
-        
-        // Show segments in visual stacking order (top to bottom = reverse array order)
-        const reversedData = [...stackData].reverse();
-        const reversedIndices = stackData.map((_, i) => stackData.length - 1 - i);
-        
-        reversedData.forEach((segmentValue, reverseIndex) => {
-          const originalIndex = reversedIndices[reverseIndex];
-          
-          if (segmentValue !== null && segmentValue !== undefined && segmentValue > 0) {
-            let color = this.options.barColor;
-            if (this.options.stackedBarColor && Array.isArray(this.options.stackedBarColor)) {
-              color = this.options.stackedBarColor[originalIndex % this.options.stackedBarColor.length];
-            }
-            
-            items.push({
-              label: `${segmentValue}`,
-              color: color
-            });
-            total += segmentValue;
-          }
-        });
-        
-        // Add total line
-        if (items.length > 1) {
-          items.push({
-            label: `Total: ${total}`,
-            color: null // No color spot for total
-          });
-        }
-        
-        return items.length > 0 ? { items } : null;
-      }
-    }
-    
-    return null; // Use default single-value tooltip
   }
 
   // Format tooltip value for bar charts

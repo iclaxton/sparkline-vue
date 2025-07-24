@@ -13,7 +13,18 @@ export class BaseChart {
     this.currentRegion = null;
     this.tooltip = null;
     this.regions = [];
-    this.setupInteractions();
+    this.lastMouseEvent = null; // Store last mouse event for tooltip refresh
+    
+  // State preservation for data updates
+  this.preservedState = {
+    wasTooltipVisible: false,
+    lastRegion: null,
+    lastMousePosition: null,
+    lastRelativePosition: null // Store position relative to chart
+  };
+  
+  // Unique ID for this chart instance to track tooltip ownership
+  this.chartId = 'chart_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);    this.setupInteractions();
   }
 
   getDefaults() {
@@ -115,6 +126,9 @@ export class BaseChart {
     this.canvas.addEventListener('mouseleave', this.boundHandleMouseLeave);
     this.canvas.addEventListener('click', this.boundHandleClick);
     this.canvas.style.cursor = 'pointer';
+
+    // Register for shared scroll handling (performance optimization)
+    BaseChart.registerScrollHandler(this);
 
     // Touch events for mobile support
     this.setupTouchSupport();
@@ -231,6 +245,9 @@ export class BaseChart {
   handleMouseMove(event) {
     if (this.options.disableInteraction) return;
 
+    // Store last mouse event for tooltip refresh capability
+    this.lastMouseEvent = event;
+
     const rect = this.canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -260,11 +277,256 @@ export class BaseChart {
 
   // Handle mouse leave events
   handleMouseLeave() {
+    this.lastMouseEvent = null; // Clear stored mouse event
     if (this.currentRegion !== null) {
       this.currentRegion = null;
       this.hideTooltip();
       this.redrawWithHighlight();
+      // Clear preserved state when user intentionally moves mouse away
+      this.clearPreservedState();
     }
+  }
+
+  // Preserve current tooltip state before data updates
+  preserveTooltipState() {
+    // Debug logging (remove in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[preserveTooltipState] Current region:', this.currentRegion);
+      console.log('[preserveTooltipState] Last mouse event:', !!this.lastMouseEvent);
+      console.log('[preserveTooltipState] Canvas:', !!this.canvas);
+    }
+    
+    this.preservedState.wasTooltipVisible = this.currentRegion !== null;
+    this.preservedState.lastRegion = this.currentRegion;
+    
+    if (this.lastMouseEvent && this.canvas) {
+      const rect = this.canvas.getBoundingClientRect();
+      
+      // Validate canvas has valid dimensions
+      if (rect.width <= 0 || rect.height <= 0) {
+        return;
+      }
+      
+      this.preservedState.lastMousePosition = {
+        clientX: this.lastMouseEvent.clientX,
+        clientY: this.lastMouseEvent.clientY,
+        pageX: this.lastMouseEvent.pageX,
+        pageY: this.lastMouseEvent.pageY
+      };
+      
+      // Calculate relative position within the chart
+      const relativeX = this.lastMouseEvent.clientX - rect.left;
+      const relativeY = this.lastMouseEvent.clientY - rect.top;
+      
+      // Store relative position with bounds checking
+      this.preservedState.lastRelativePosition = {
+        x: relativeX,
+        y: relativeY,
+        ratioX: Math.max(0, Math.min(1, relativeX / rect.width)),
+        ratioY: Math.max(0, Math.min(1, relativeY / rect.height))
+      };
+    }
+  }
+
+  // Restore tooltip state after data updates
+  restoreTooltipState() {
+    if (!this.preservedState.wasTooltipVisible || 
+        !this.preservedState.lastRelativePosition || 
+        !this.canvas) {
+      return false;
+    }
+
+    try {
+      // Get current canvas position
+      const rect = this.canvas.getBoundingClientRect();
+      
+      // Validate canvas has valid dimensions
+      if (rect.width <= 0 || rect.height <= 0) {
+        return false;
+      }
+      
+      // Recreate mouse position from preserved ratios
+      const x = this.preservedState.lastRelativePosition.ratioX * rect.width;
+      const y = this.preservedState.lastRelativePosition.ratioY * rect.height;
+      
+      // Validate coordinates are within bounds
+      if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+        return false;
+      }
+      
+      // Find the region at the preserved relative position
+      const region = this.getNearestRegion(x, y);
+      
+      if (region !== null) {
+        // Calculate page coordinates with scroll offset
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        
+        // Reconstruct mouse event for tooltip positioning
+        const syntheticEvent = {
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+          pageX: rect.left + x + scrollX,
+          pageY: rect.top + y + scrollY,
+          target: this.canvas
+        };
+        
+        this.lastMouseEvent = syntheticEvent;
+        this.currentRegion = region;
+        this.updateTooltip(syntheticEvent, region);
+        this.redrawWithHighlight();
+        
+        return true;
+      }
+    } catch (error) {
+      console.warn('Error restoring tooltip state:', error);
+    }
+    
+    return false;
+  }
+
+  // Refresh tooltip after Vue updates (maintains state)
+  refreshTooltip() {
+    if (this.currentRegion !== null && this.lastMouseEvent) {
+      // Re-trigger tooltip display with stored mouse event
+      this.updateTooltip(this.lastMouseEvent, this.currentRegion);
+      return true;
+    } else {
+      // Try to restore from preserved state
+      return this.restoreTooltipState();
+    }
+  }
+
+  // Smart tooltip restoration for charts with new data
+  restoreTooltipForStreaming() {
+    return this.restoreTooltipSmart();
+  }
+
+  // Smart tooltip restoration - finds closest data point after chart updates
+  restoreTooltipSmart() {
+    // Debug logging (remove in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[restoreTooltipSmart] Preserved state:', this.preservedState);
+      console.log('[restoreTooltipSmart] Canvas:', !!this.canvas);
+    }
+    
+    if (!this.preservedState.wasTooltipVisible) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[restoreTooltipSmart] No tooltip was visible to restore');
+      }
+      return false;
+    }
+    
+    if (!this.preservedState.lastRelativePosition) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[restoreTooltipSmart] No relative position saved');
+      }
+      return false;
+    }
+    
+    if (!this.canvas) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[restoreTooltipSmart] No canvas available');
+      }
+      return false;
+    }
+
+    try {
+      // Get current canvas position
+      const rect = this.canvas.getBoundingClientRect();
+      
+      // Validate canvas has valid dimensions
+      if (rect.width <= 0 || rect.height <= 0) {
+        return false;
+      }
+      
+      // Recreate mouse position from preserved ratios
+      const x = this.preservedState.lastRelativePosition.ratioX * rect.width;
+      const y = this.preservedState.lastRelativePosition.ratioY * rect.height;
+      
+      // Validate coordinates are within bounds
+      if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+        return false;
+      }
+      
+      // For streaming charts, find the closest available region (more forgiving)
+      let region = this.getNearestRegion(x, y);
+      
+      // If no exact region found, try to find the closest region by x-coordinate
+      if (region === null && this.values && this.values.length > 0) {
+        // Calculate which data point index the x-coordinate corresponds to
+        const dataPointWidth = rect.width / this.values.length;
+        const estimatedIndex = Math.round(x / dataPointWidth);
+        
+        // Clamp to valid range
+        region = Math.max(0, Math.min(this.values.length - 1, estimatedIndex));
+        
+        // Verify this region actually has data
+        if (this.values[region] === null || this.values[region] === undefined) {
+          // Find nearest valid data point
+          for (let offset = 1; offset < this.values.length; offset++) {
+            const leftIndex = region - offset;
+            const rightIndex = region + offset;
+            
+            if (leftIndex >= 0 && this.values[leftIndex] !== null && this.values[leftIndex] !== undefined) {
+              region = leftIndex;
+              break;
+            }
+            
+            if (rightIndex < this.values.length && this.values[rightIndex] !== null && this.values[rightIndex] !== undefined) {
+              region = rightIndex;
+              break;
+            }
+          }
+        }
+      }
+      
+      if (region !== null && region >= 0 && region < this.values.length) {
+        // Calculate page coordinates with scroll offset
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        
+        // Reconstruct mouse event for tooltip positioning
+        const syntheticEvent = {
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+          pageX: rect.left + x + scrollX,
+          pageY: rect.top + y + scrollY,
+          target: this.canvas
+        };
+        
+        this.lastMouseEvent = syntheticEvent;
+        this.currentRegion = region;
+        
+        // Claim tooltip ownership immediately before updating
+        const tooltip = BaseChart.getSharedTooltip();
+        if (tooltip) {
+          tooltip._owner = this.chartId;
+        }
+        
+        this.updateTooltip(syntheticEvent, region);
+        
+        // Just draw the highlight without redrawing the chart
+        // The chart should have been freshly drawn before this restoration
+        if (!this.options.disableHighlight) {
+          this.drawHighlight(region);
+        }
+        
+        return true;
+      }
+    } catch (error) {
+      console.warn('Error restoring tooltip state:', error);
+    }
+    
+    return false;
+  }
+
+  // Clear preserved tooltip state (call when tooltip is intentionally hidden)
+  clearPreservedState() {
+    this.preservedState.wasTooltipVisible = false;
+    this.preservedState.lastRegion = null;
+    this.preservedState.lastMousePosition = null;
+    this.preservedState.lastRelativePosition = null;
   }
 
   // Handle click events
@@ -327,137 +589,11 @@ export class BaseChart {
     return null;
   }
 
-  // Update just tooltip position without changing content
-  updateTooltipPosition(event) {
-    if (this.tooltip && this.tooltip.style.display === 'block') {
-      // Check if this is a touch event or if we're on a touch device
-      const isTouch = this.isTouch || 
-                     (event.sourceCapabilities && event.sourceCapabilities.firesTouchEvents) ||
-                     ('ontouchstart' in window);
-      
-      let left, top;
-      
-      if (isTouch) {
-        // Get tooltip dimensions for better positioning
-        const tooltipRect = this.tooltip.getBoundingClientRect();
-        const tooltipWidth = tooltipRect.width || 120; // fallback width
-        const tooltipHeight = tooltipRect.height || 40; // fallback height
-        
-        // For touch devices: position tooltip to top-left with offset based on tooltip size
-        // Use tooltip width + 20px buffer for left offset, tooltip height + 20px buffer for top offset
-        left = event.pageX - (tooltipWidth + 20);
-        top = event.pageY - (tooltipHeight + 20);
-        
-        // Prevent tooltip from going off the left edge
-        if (left < 10) {
-          left = event.pageX + 15;  // Fallback to right side
-        }
-        
-        // Prevent tooltip from going above viewport
-        if (top < 10) {
-          top = event.pageY + 30;   // Fallback to below finger
-        }
-      } else {
-        // For mouse: keep original positioning
-        left = event.pageX + 10;
-        top = event.pageY - 25;
-      }
-      
-      this.tooltip.style.left = left + 'px';
-      this.tooltip.style.top = top + 'px';
-    }
-  }
 
-  // Update tooltip
-  updateTooltip(event, region) {
-    if (this.options.disableTooltips || region === null) {
-      this.hideTooltip();
-      return;
-    }
 
-    if (!this.tooltip) {
-      this.createTooltip();
-    }
-
-    const tooltipContent = this.getTooltipContent(region);
-    
-    // Clear existing content
-    this.tooltip.innerHTML = '';
-    
-    // Check if we have multi-value content with colors
-    if (tooltipContent && typeof tooltipContent === 'object' && tooltipContent.items) {
-      // Multi-value tooltip with color indicators
-      const container = document.createElement('div');
-      
-      tooltipContent.items.forEach(item => {
-        const line = document.createElement('div');
-        line.style.cssText = 'display: flex; align-items: center; margin: 2px 0; gap: 6px;';
-        
-        if (item.color) {
-          const colorSpot = document.createElement('div');
-          colorSpot.style.cssText = `
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: ${item.color};
-            flex-shrink: 0;
-          `;
-          line.appendChild(colorSpot);
-        }
-        
-        const label = document.createElement('span');
-        label.textContent = item.label;
-        line.appendChild(label);
-        
-        container.appendChild(line);
-      });
-      
-      this.tooltip.appendChild(container);
-    } else {
-      // Single value tooltip - try to add color if available
-      const value = this.values[region];
-      const formattedValue = this.formatTooltipValue(value, region);
-      const fullLabel = `${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
-      
-      // Try to get color for this region
-      const color = this.getRegionColor(region);
-      
-      if (color) {
-        // Show single value with color spot
-        const container = document.createElement('div');
-        const line = document.createElement('div');
-        line.style.cssText = 'display: flex; align-items: center; gap: 6px;';
-        
-        const colorSpot = document.createElement('div');
-        colorSpot.style.cssText = `
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background-color: ${color};
-          flex-shrink: 0;
-        `;
-        line.appendChild(colorSpot);
-        
-        const label = document.createElement('span');
-        label.textContent = fullLabel;
-        line.appendChild(label);
-        
-        container.appendChild(line);
-        this.tooltip.appendChild(container);
-      } else {
-        // Fallback to plain text tooltip
-        this.tooltip.textContent = fullLabel;
-      }
-    }
-    
-    // Use the centralized positioning logic
-    this.updateTooltipPosition(event);
-    this.tooltip.style.display = 'block';
-  }
-
-  // Get or create shared tooltip element (prevents creating hundreds of DOM elements)
+  // Get or create shared tooltip element (Vue-safe version)
   static getSharedTooltip() {
-    if (!BaseChart.sharedTooltip) {
+    if (!BaseChart.sharedTooltip || !document.body.contains(BaseChart.sharedTooltip)) {
       BaseChart.sharedTooltip = document.createElement('div');
       BaseChart.sharedTooltip.className = 'sparkline-tooltip';
       BaseChart.sharedTooltip.style.cssText = `
@@ -476,20 +612,137 @@ export class BaseChart {
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         max-width: 200px;
       `;
+      
+      // Add to document.body (outside Vue's control) instead of any container
       document.body.appendChild(BaseChart.sharedTooltip);
+      
+      // Initialize tooltip ownership tracking
+      BaseChart.sharedTooltip._owner = null;
     }
     return BaseChart.sharedTooltip;
   }
 
-  // Create tooltip element (now uses shared tooltip)
-  createTooltip() {
-    this.tooltip = BaseChart.getSharedTooltip();
+  // Shared scroll handler system (performance optimization)
+  static scrollCharts = new Set();
+  static scrollHandlerAttached = false;
+
+  static registerScrollHandler(chart) {
+    BaseChart.scrollCharts.add(chart);
+    
+    if (!BaseChart.scrollHandlerAttached) {
+      window.addEventListener('scroll', BaseChart.handleGlobalScroll, { passive: true });
+      BaseChart.scrollHandlerAttached = true;
+    }
   }
 
-  // Hide tooltip
+  static unregisterScrollHandler(chart) {
+    BaseChart.scrollCharts.delete(chart);
+    
+    if (BaseChart.scrollCharts.size === 0 && BaseChart.scrollHandlerAttached) {
+      window.removeEventListener('scroll', BaseChart.handleGlobalScroll);
+      BaseChart.scrollHandlerAttached = false;
+    }
+  }
+
+  static handleGlobalScroll() {
+    // Only update charts that have active tooltips
+    BaseChart.scrollCharts.forEach(chart => {
+      // Safety check: ensure chart still has valid canvas and state
+      if (chart && chart.canvas && chart.currentRegion !== null && chart.lastMouseEvent) {
+        try {
+          chart.updateTooltipPosition(chart.lastMouseEvent);
+        } catch (error) {
+          // If chart is in invalid state, remove it from scroll tracking
+          console.warn('Removing invalid chart from scroll tracking:', error);
+          BaseChart.scrollCharts.delete(chart);
+        }
+      }
+    });
+  }
+
+  // Create tooltip element (simple version)
+  createTooltip() {
+    this.tooltip = BaseChart.getSharedTooltip();
+    return this.tooltip;
+  }
+
+  // Update tooltip (simple version)
+  updateTooltip(event, region) {
+    if (this.options.disableTooltips || region === null) {
+      this.hideTooltip();
+      return;
+    }
+
+    const tooltip = BaseChart.getSharedTooltip();
+    if (!tooltip) return;
+
+    // Claim ownership of the tooltip
+    tooltip._owner = this.chartId;
+
+    // Get tooltip content
+    const tooltipContent = this.getTooltipContent(region);
+    
+    if (tooltipContent && typeof tooltipContent === 'object' && tooltipContent.items) {
+      // Multi-value tooltip with color spots - use innerHTML for better performance
+      let html = '';
+      tooltipContent.items.forEach(item => {
+        html += `<div style="display: flex; align-items: center; margin: 2px 0; gap: 6px;">`;
+        
+        if (item.color) {
+          html += `<div style="width: 8px; height: 8px; background: ${item.color}; border-radius: 50%; flex-shrink: 0;"></div>`;
+        }
+        
+        html += `<span>${this.escapeHtml(item.label || '')}</span>`;
+        html += `</div>`;
+      });
+      tooltip.innerHTML = html;
+    } else {
+      // Single value tooltip
+      const value = this.values[region];
+      const formattedValue = this.formatTooltipValue(value, region);
+      const content = `${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
+      tooltip.textContent = content;
+    }
+
+    // Show tooltip
+    tooltip.style.display = 'block';
+    
+    // Use the improved positioning method
+    this.updateTooltipPosition(event);
+  }
+
+  // Update tooltip position
+  updateTooltipPosition(event) {
+    const tooltip = BaseChart.getSharedTooltip();
+    if (!tooltip || tooltip.style.display === 'none' || !event) return;
+    
+    try {
+      // Use pageX/pageY or calculate from clientX/clientY + scroll offset
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      
+      const x = (event.pageX || event.clientX + scrollX) + 10;
+      const y = (event.pageY || event.clientY + scrollY) - 10;
+      
+      // Ensure coordinates are valid numbers
+      if (isNaN(x) || isNaN(y)) return;
+      
+      tooltip.style.left = Math.max(0, x) + 'px';
+      tooltip.style.top = Math.max(0, y) + 'px';
+    } catch (error) {
+      console.warn('Error updating tooltip position:', error);
+    }
+  }
+
+  // Hide tooltip (simple version)
   hideTooltip() {
-    if (this.tooltip) {
-      this.tooltip.style.display = 'none';
+    const tooltip = BaseChart.getSharedTooltip();
+    if (!tooltip) return;
+    
+    // Only hide the tooltip if this chart owns it or if no one owns it
+    if (!tooltip._owner || tooltip._owner === this.chartId) {
+      tooltip.style.display = 'none';
+      tooltip._owner = null;
     }
   }
 
@@ -569,13 +822,28 @@ export class BaseChart {
       .substring(0, 500); // Limit length to prevent excessive tooltips
   }
 
+  // Escape HTML for safe innerHTML usage
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // Redraw with highlight
   redrawWithHighlight() {
+    // Ensure we have a clean canvas
+    this.ctx.save();
     this.ctx.clearRect(0, 0, this.width, this.height);
+    
+    // Redraw the chart completely
     this.draw();
+    
+    // Add highlight if needed
     if (this.currentRegion !== null && !this.options.disableHighlight) {
       this.drawHighlight(this.currentRegion);
     }
+    
+    this.ctx.restore();
   }
 
   // Draw highlight - to be implemented by subclasses
@@ -633,6 +901,21 @@ export class BaseChart {
     // Add defensive null check for canvas
     if (!this.canvas) return;
     
+    // For streaming charts, preserve tooltip state and transfer ownership temporarily
+    const tooltip = BaseChart.getSharedTooltip();
+    let shouldPreserveForStreaming = false;
+    
+    if (tooltip && tooltip._owner === this.chartId && this.preservedState.wasTooltipVisible) {
+      this.preserveTooltipState();
+      shouldPreserveForStreaming = true;
+      
+      // Clear ownership temporarily to prevent hiding during destruction
+      tooltip._owner = null;
+    }
+    
+    // Hide any active tooltip (but only if we own it)
+    this.hideTooltip();
+    
     // Remove mouse event listeners to prevent memory leaks
     if (this.boundHandleMouseMove) {
       this.canvas.removeEventListener('mousemove', this.boundHandleMouseMove);
@@ -643,6 +926,9 @@ export class BaseChart {
     if (this.boundHandleClick) {
       this.canvas.removeEventListener('click', this.boundHandleClick);
     }
+    
+    // Unregister from shared scroll handler
+    BaseChart.unregisterScrollHandler(this);
     
     // Remove touch event listeners (only if they were added)
     if (this.boundHandleTouchStart) {
@@ -662,10 +948,9 @@ export class BaseChart {
     // Reset touch state for consistency
     this.isTouch = false;
     
-    // Hide tooltip but don't remove it since it's shared
-    if (this.tooltip) {
-      this.tooltip.style.display = 'none';
-    }
+    // Clear stored mouse event and preserved state
+    this.lastMouseEvent = null;
+    this.clearPreservedState();
   }
 
   // Reinitialize for object pooling (performance optimization)
@@ -738,7 +1023,23 @@ export class BaseChart {
       BaseChart.sharedTooltip = null;
     }
   }
+
+  // Static method to refresh all active tooltips (useful after Vue updates)
+  static refreshAllTooltips() {
+    BaseChart.scrollCharts.forEach(chart => {
+      if (chart && chart.currentRegion !== null && chart.refreshTooltip) {
+        chart.refreshTooltip();
+      }
+    });
+  }
 }
 
 // Initialize shared tooltip property
 BaseChart.sharedTooltip = null;
+
+// Auto-cleanup shared tooltip on page unload
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    BaseChart.cleanupSharedTooltip();
+  });
+}

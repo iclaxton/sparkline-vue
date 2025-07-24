@@ -23,6 +23,14 @@ export default {
     const draw = () => {
       if (!canvas.value) return;
       
+      // Preserve tooltip state if the current chart owns the tooltip
+      if (chartInstance) {
+        const tooltip = chartInstance.constructor.getSharedTooltip ? chartInstance.constructor.getSharedTooltip() : null;
+        if (tooltip && tooltip._owner === chartInstance.chartId) {
+          chartInstance.preserveTooltipState();
+        }
+      }
+      
       // Clean up previous chart instance using optimized destroy
       if (chartInstance) {
         destroyChart(chartInstance, props.type); // Returns to pool instead of destroying
@@ -52,6 +60,18 @@ export default {
           };
           canvas.value.addEventListener('sparklineClick', clickHandler);
         }
+        
+        // Schedule tooltip refresh after Vue's DOM updates complete
+        setTimeout(() => {
+          if (chartInstance) {
+            // Always use smart restoration for all charts
+            if (chartInstance.restoreTooltipSmart) {
+              chartInstance.restoreTooltipSmart();
+            } else if (chartInstance.refreshTooltip) {
+              chartInstance.refreshTooltip();
+            }
+          }
+        }, 0);
       }
     };
 

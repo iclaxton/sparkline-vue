@@ -16,7 +16,9 @@ export default {
     height: { type: Number, default: 30 },
     options: { type: Object, default: () => ({}) },
     // Performance optimization mode
-    optimized: { type: Boolean, default: false }
+    optimized: { type: Boolean, default: false },
+    // Streaming mode - enables smart tooltip restoration
+    streaming: { type: Boolean, default: false }
   },
   setup(props, { emit }) {
     const canvas = ref(null);
@@ -25,6 +27,14 @@ export default {
 
     const draw = () => {
       if (!canvas.value) return;
+      
+      // Preserve tooltip state if the current chart owns the tooltip
+      if (chartInstance) {
+        const tooltip = chartInstance.constructor.getSharedTooltip ? chartInstance.constructor.getSharedTooltip() : null;
+        if (tooltip && tooltip._owner === chartInstance.chartId) {
+          chartInstance.preserveTooltipState();
+        }
+      }
       
       // Clean up previous chart instance
       if (chartInstance) {
@@ -63,6 +73,18 @@ export default {
           };
           canvas.value.addEventListener('sparklineClick', clickHandler);
         }
+        
+        // Schedule tooltip refresh after Vue's DOM updates complete
+        setTimeout(() => {
+          if (chartInstance) {
+            // Always use smart restoration for all charts
+            if (chartInstance.restoreTooltipSmart) {
+              chartInstance.restoreTooltipSmart();
+            } else if (chartInstance.refreshTooltip) {
+              chartInstance.refreshTooltip();
+            }
+          }
+        }, 0);
       }
     };
 
