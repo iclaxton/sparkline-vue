@@ -156,6 +156,7 @@
                                     :width="300" 
                                     :height="100"
                                     :options="liveOptions"
+                                    :streaming="true"
                                 />
                             </div>
                             <div class="controls">
@@ -457,7 +458,8 @@
                 data: { type: Array, required: true },
                 width: { type: Number, default: 100 },
                 height: { type: Number, default: 30 },
-                options: { type: Object, default: () => ({}) }
+                options: { type: Object, default: () => ({}) },
+                streaming: { type: Boolean, default: false }
             },
             setup(props, { emit }) {
                 const canvas = ref(null);
@@ -465,6 +467,14 @@
 
                 const draw = () => {
                     if (!canvas.value) return;
+                    
+                    // Preserve tooltip state if the current chart owns the tooltip
+                    if (chartInstance) {
+                        const tooltip = chartInstance.constructor.getSharedTooltip ? chartInstance.constructor.getSharedTooltip() : null;
+                        if (tooltip && tooltip._owner === chartInstance.chartId) {
+                            chartInstance.preserveTooltipState();
+                        }
+                    }
                     
                     // Clean up previous chart instance
                     if (chartInstance && chartInstance.destroy) {
@@ -477,6 +487,18 @@
                     
                     if (chartInstance) {
                         chartInstance.draw();
+                        
+                        // Restore tooltip state after chart is redrawn
+                        setTimeout(() => {
+                            if (chartInstance) {
+                                // Use streaming prop to determine restoration method
+                                if (props.streaming && chartInstance.restoreTooltipForStreaming) {
+                                    chartInstance.restoreTooltipForStreaming();
+                                } else if (chartInstance.refreshTooltip) {
+                                    chartInstance.refreshTooltip();
+                                }
+                            }
+                        }, 0);
                     }
                 };
 

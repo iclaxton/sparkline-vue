@@ -20,6 +20,10 @@ export class BulletChart extends BaseChart {
     if (this.values.length === 0) return;
 
     const ctx = this.ctx;
+    
+    // Clear the canvas before drawing
+    ctx.clearRect(0, 0, this.width, this.height);
+    
     const { width, height, topOffset, bottomOffset } = this.getDrawingDimensions();
     const { 
       targetColor, targetWidth, performanceColor, 

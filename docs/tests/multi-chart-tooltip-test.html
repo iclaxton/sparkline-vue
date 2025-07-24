@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Multi-Chart Tooltip Persistence Test</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .chart-card {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .chart-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        
+        .chart-info {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        
+        button:hover {
+            background: #1565c0;
+        }
+        
+        button.danger {
+            background: #dc3545;
+        }
+        
+        button.danger:hover {
+            background: #c82333;
+        }
+        
+        button.success {
+            background: #28a745;
+        }
+        
+        button.success:hover {
+            background: #218838;
+        }
+        
+        .status-panel {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.85em;
+            max-height: 250px;
+            overflow-y: auto;
+            margin: 20px 0;
+            white-space: pre-line;
+        }
+        
+        .streaming-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+        
+        .streaming-indicator.active {
+            background: #28a745;
+            animation: pulse 1s infinite;
+        }
+        
+        .streaming-indicator.inactive {
+            background: #dc3545;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="test-container">
+            <h1>🔄 Multi-Chart Tooltip Persistence Test</h1>
+            <p>Test tooltip persistence when one chart updates while another chart has an active tooltip.</p>
+            
+            <div class="controls">
+                <button @click="startStream" :disabled="isStreaming" class="success">
+                    ▶️ Start Streaming
+                </button>
+                <button @click="stopStream" :disabled="!isStreaming" class="danger">
+                    ⏹️ Stop Streaming
+                </button>
+                <button @click="clearLog">🧹 Clear Log</button>
+            </div>
+            
+            <div class="charts-grid">
+                <!-- Static Chart 1 -->
+                <div class="chart-card">
+                    <div class="chart-title">📈 Static Chart 1 (Revenue)</div>
+                    <canvas ref="chart1" width="280" height="100"></canvas>
+                    <div class="chart-info">
+                        This chart never updates. Hover to see tooltips persist during streaming.
+                    </div>
+                </div>
+                
+                <!-- Static Chart 2 -->
+                <div class="chart-card">
+                    <div class="chart-title">📊 Static Chart 2 (Users)</div>
+                    <canvas ref="chart2" width="280" height="100"></canvas>
+                    <div class="chart-info">
+                        Another static chart. Test tooltips while streaming chart updates.
+                    </div>
+                </div>
+                
+                <!-- Streaming Chart -->
+                <div class="chart-card">
+                    <div class="chart-title">
+                        🔴 Live Streaming Chart 
+                        <span class="streaming-indicator" :class="{ active: isStreaming, inactive: !isStreaming }"></span>
+                    </div>
+                    <canvas ref="streamChart" width="280" height="100"></canvas>
+                    <div class="chart-info">
+                        Updates every 500ms when streaming. Should NOT affect tooltips on other charts.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-panel">{{ logMessages }}</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createChart } from '../../renderers/chartFactory.js';
+        import { BaseChart } from '../../renderers/BaseChart.js';
+        
+        const { createApp, ref, onMounted, onUnmounted } = Vue;
+
+        const app = createApp({
+            setup() {
+                const chart1 = ref(null);
+                const chart2 = ref(null);
+                const streamChart = ref(null);
+                const isStreaming = ref(false);
+                const logMessages = ref('');
+                
+                let chart1Instance = null;
+                let chart2Instance = null;
+                let streamChartInstance = null;
+                let streamInterval = null;
+                
+                // Static data
+                const revenueData = [45, 52, 48, 61, 58, 67, 54, 71, 63, 58, 65, 72, 68, 59, 61];
+                const usersData = [120, 135, 128, 145, 142, 151, 138, 156, 149, 144, 153, 158, 162, 147, 139];
+                
+                // Streaming data (changes over time)
+                const streamingData = ref([30, 25, 35, 28, 40, 32, 38, 45, 35, 42, 38, 47, 44, 39, 36]);
+                
+                function log(message) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    logMessages.value += `[${timestamp}] ${message}\n`;
+                    console.log(`[Multi-Chart Test] ${message}`);
+                }
+
+                function createChartWithLogging(canvasRef, data, title, color) {
+                    if (!canvasRef.value) return null;
+
+                    const ctx = canvasRef.value.getContext('2d');
+                    const options = {
+                        lineColor: color,
+                        fillColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                        spotColor: color,
+                        highlightSpotColor: '#4caf50',
+                        highlightLineColor: '#4caf50',
+                        lineWidth: 2,
+                        spotRadius: 3,
+                        disableTooltips: false,
+                        tooltipPrefix: `${title}: `,
+                        tooltipSuffix: ''
+                    };
+
+                    const chartInstance = createChart('line', ctx, {
+                        data: data,
+                        width: 280,
+                        height: 100,
+                        options: options
+                    });
+
+                    if (chartInstance) {
+                        // Add logging to mouse events
+                        const originalMouseMove = chartInstance.handleMouseMove.bind(chartInstance);
+                        const originalMouseLeave = chartInstance.handleMouseLeave.bind(chartInstance);
+
+                        chartInstance.handleMouseMove = function(event) {
+                            const wasVisible = this.currentRegion !== null;
+                            const oldRegion = this.currentRegion;
+                            
+                            originalMouseMove(event);
+                            
+                            const isVisible = this.currentRegion !== null;
+                            const newRegion = this.currentRegion;
+
+                            if (!wasVisible && isVisible) {
+                                log(`✅ ${title} tooltip shown - Region: ${newRegion} (Chart ID: ${this.chartId})`);
+                            } else if (wasVisible && !isVisible) {
+                                log(`❌ ${title} tooltip hidden - was showing region: ${oldRegion} (Chart ID: ${this.chartId})`);
+                            }
+                        };
+
+                        chartInstance.handleMouseLeave = function() {
+                            const wasVisible = this.currentRegion !== null;
+                            const oldRegion = this.currentRegion;
+                            
+                            originalMouseLeave();
+                            
+                            if (wasVisible) {
+                                log(`👋 ${title} mouse left - tooltip hidden (was region: ${oldRegion})`);
+                            }
+                        };
+
+                        chartInstance.draw();
+                        log(`📊 ${title} chart initialized (Chart ID: ${chartInstance.chartId})`);
+                    }
+
+                    return chartInstance;
+                }
+
+                function updateStreamingChart() {
+                    if (!streamChart.value || !streamChartInstance) return;
+
+                    // Check tooltip ownership before updating
+                    const tooltip = BaseChart.getSharedTooltip();
+                    const tooltipOwner = tooltip ? tooltip._owner : null;
+                    
+                    if (tooltipOwner && tooltipOwner !== streamChartInstance.chartId) {
+                        log(`🔒 Streaming update: tooltip owned by another chart (${tooltipOwner}), preserving...`);
+                    }
+
+                    // Add new data point and remove old one
+                    streamingData.value.push(Math.floor(Math.random() * 50) + 20);
+                    if (streamingData.value.length > 15) {
+                        streamingData.value.shift();
+                    }
+
+                    // Store the preserved state before destroying the chart
+                    let preservedTooltipState = null;
+                    if (streamChartInstance) {
+                        if (tooltip && tooltip._owner === streamChartInstance.chartId) {
+                            streamChartInstance.preserveTooltipState();
+                            preservedTooltipState = {...streamChartInstance.preservedState};
+                            log(`💾 Streaming chart preserving its own tooltip state`);
+                        }
+                    }
+
+                    // Recreate the streaming chart
+                    if (streamChartInstance && streamChartInstance.destroy) {
+                        streamChartInstance.destroy();
+                    }
+
+                    streamChartInstance = createChartWithLogging(
+                        streamChart, 
+                        streamingData.value, 
+                        'Streaming', 
+                        '#dc3545'
+                    );
+
+                    // Transfer preserved state to new chart instance if we had one
+                    if (preservedTooltipState && streamChartInstance) {
+                        streamChartInstance.preservedState = preservedTooltipState;
+                        log(`🔄 Transferred preserved state to new chart instance`);
+                    }
+
+                    // Try to restore tooltip state
+                    setTimeout(() => {
+                        if (streamChartInstance) {
+                            let restored = false;
+                            
+                            // Use universal smart restoration
+                            if (streamChartInstance.restoreTooltipSmart) {
+                                restored = streamChartInstance.restoreTooltipSmart();
+                                if (restored) {
+                                    log(`🔄 Streaming chart restored tooltip with smart positioning`);
+                                }
+                            }
+                            // Backward compatibility fallback
+                            else if (streamChartInstance.restoreTooltipForStreaming) {
+                                restored = streamChartInstance.restoreTooltipForStreaming();
+                                if (restored) {
+                                    log(`🔄 Streaming chart restored tooltip with legacy method`);
+                                }
+                            }
+                            
+                            // Final fallback to regular refresh
+                            if (!restored && streamChartInstance.refreshTooltip) {
+                                restored = streamChartInstance.refreshTooltip();
+                                if (restored) {
+                                    log(`🔄 Streaming chart restored tooltip with regular refresh`);
+                                }
+                            }
+                            
+                            if (!restored) {
+                                log(`❌ Streaming chart failed to restore tooltip`);
+                            }
+                        }
+                    }, 0);
+
+                    log(`🔄 Streaming chart updated (new data: ${streamingData.value[streamingData.value.length - 1]})`);
+                }
+
+                function startStream() {
+                    if (isStreaming.value) return;
+                    
+                    isStreaming.value = true;
+                    log(`▶️ Started streaming updates every 500ms`);
+                    
+                    streamInterval = setInterval(updateStreamingChart, 500);
+                }
+
+                function stopStream() {
+                    if (!isStreaming.value) return;
+                    
+                    isStreaming.value = false;
+                    log(`⏹️ Stopped streaming updates`);
+                    
+                    if (streamInterval) {
+                        clearInterval(streamInterval);
+                        streamInterval = null;
+                    }
+                }
+
+                function clearLog() {
+                    logMessages.value = '';
+                    log(`🧹 Log cleared - ready for testing`);
+                }
+
+                onMounted(() => {
+                    log(`🚀 Multi-chart test initialized`);
+                    
+                    // Create static charts
+                    chart1Instance = createChartWithLogging(chart1, revenueData, 'Revenue', '#1976d2');
+                    chart2Instance = createChartWithLogging(chart2, usersData, 'Users', '#28a745');
+                    streamChartInstance = createChartWithLogging(streamChart, streamingData.value, 'Streaming', '#dc3545');
+                    
+                    log(`✅ All charts ready. Hover over any chart and then start streaming to test tooltip persistence.`);
+                });
+
+                onUnmounted(() => {
+                    stopStream();
+                    
+                    if (chart1Instance && chart1Instance.destroy) chart1Instance.destroy();
+                    if (chart2Instance && chart2Instance.destroy) chart2Instance.destroy();
+                    if (streamChartInstance && streamChartInstance.destroy) streamChartInstance.destroy();
+                });
+
+                return {
+                    chart1,
+                    chart2,
+                    streamChart,
+                    isStreaming,
+                    logMessages,
+                    startStream,
+                    stopStream,
+                    clearLog
+                };
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>

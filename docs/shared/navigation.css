@@ -103,7 +103,6 @@
     
     /* Show nav links when menu is open */
     .nav-links.mobile-menu-open {
-        padding-top: 200px;
         display: flex;
     }
     

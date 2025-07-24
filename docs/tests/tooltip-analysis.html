@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tooltip Persistence Analysis</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .chart-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .price-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1976d2;
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        
+        button:hover {
+            background: #1565c0;
+        }
+        
+        .log-panel {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.85em;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+            white-space: pre-line;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .status.success { background: #d4edda; color: #155724; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="test-container">
+            <h1>🔍 Tooltip Persistence Analysis</h1>
+            <p>Comprehensive testing of tooltip behavior during Vue updates</p>
+            
+            <!-- Simulated price display (like QCard) -->
+            <div class="price-display">
+                ${{ currentPrice.toFixed(2) }}
+            </div>
+            
+            <!-- Chart section -->
+            <div class="chart-section">
+                <h3>Sparkline Chart</h3>
+                <canvas ref="chartCanvas" width="600" height="150"></canvas>
+                <div class="status" :class="tooltipStatus.type">
+                    {{ tooltipStatus.message }}
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="controls">
+                <button @click="updatePrice">Update Price (Trigger Vue Update)</button>
+                <button @click="forceChartRedraw">Force Chart Redraw</button>
+                <button @click="testTooltipManually">Test Tooltip Manually</button>
+                <button @click="checkTooltipState">Check Tooltip State</button>
+                <button @click="clearLog">Clear Log</button>
+            </div>
+            
+            <!-- Log panel -->
+            <div class="log-panel">{{ logMessages }}</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createChart } from '../../renderers/chartFactory.js';
+        import { BaseChart } from '../../renderers/BaseChart.js';
+        
+        const { createApp, ref, onMounted, onUnmounted, watch } = Vue;
+
+        const app = createApp({
+            setup() {
+                const chartCanvas = ref(null);
+                const currentPrice = ref(125.45);
+                const logMessages = ref('');
+                const tooltipStatus = ref({ type: 'info', message: 'Ready - hover over chart to test tooltips' });
+                
+                let chartInstance = null;
+                let updateCounter = 0;
+                
+                // Static chart data
+                const chartData = [15, 22, 18, 25, 30, 28, 35, 32, 40, 38, 45, 42, 50, 48, 55, 52, 60, 58, 65, 62];
+                
+                function log(message, type = 'info') {
+                    const timestamp = new Date().toLocaleTimeString();
+                    logMessages.value += `[${timestamp}] ${message}\n`;
+                    console.log(`[Tooltip Analysis] ${message}`);
+                    
+                    // Update status if it's important
+                    if (type !== 'info') {
+                        tooltipStatus.value = { type, message };
+                    }
+                }
+
+                function initializeChart() {
+                    if (!chartCanvas.value) {
+                        log('❌ Canvas not available', 'error');
+                        return false;
+                    }
+
+                    try {
+                        // Clean up existing chart
+                        if (chartInstance) {
+                            log('🧹 Cleaning up previous chart instance');
+                            if (chartInstance.destroy) {
+                                chartInstance.destroy();
+                            }
+                        }
+
+                        const ctx = chartCanvas.value.getContext('2d');
+                        ctx.clearRect(0, 0, 600, 150);
+
+                        const options = {
+                            lineColor: '#1976d2',
+                            fillColor: 'rgba(25, 118, 210, 0.1)',
+                            spotColor: '#ff5722',
+                            highlightSpotColor: '#4caf50',
+                            highlightLineColor: '#4caf50',
+                            lineWidth: 2,
+                            spotRadius: 3,
+                            disableTooltips: false,
+                            tooltipPrefix: 'Value: ',
+                            tooltipSuffix: ' units'
+                        };
+
+                        log('🎨 Creating new chart instance');
+                        chartInstance = createChart('line', ctx, {
+                            data: chartData,
+                            width: 600,
+                            height: 150,
+                            options: options
+                        });
+
+                        if (!chartInstance) {
+                            throw new Error('Chart creation returned null');
+                        }
+
+                        // Enhance mouse event handlers for debugging
+                        const originalMouseMove = chartInstance.handleMouseMove.bind(chartInstance);
+                        const originalMouseLeave = chartInstance.handleMouseLeave.bind(chartInstance);
+
+                        chartInstance.handleMouseMove = function(event) {
+                            const wasVisible = this.currentRegion !== null;
+                            const oldRegion = this.currentRegion;
+                            
+                            originalMouseMove(event);
+                            
+                            const isVisible = this.currentRegion !== null;
+                            const newRegion = this.currentRegion;
+
+                            if (!wasVisible && isVisible) {
+                                log(`✅ Tooltip shown - Region: ${newRegion}`, 'success');
+                                tooltipStatus.value = { type: 'success', message: `Tooltip active - showing data point ${newRegion}` };
+                            } else if (wasVisible && !isVisible) {
+                                log(`❌ Tooltip hidden - was showing region: ${oldRegion}`, 'warning');
+                                tooltipStatus.value = { type: 'warning', message: 'Tooltip hidden' };
+                            } else if (isVisible && oldRegion !== newRegion) {
+                                log(`🎯 Tooltip moved - Region: ${oldRegion} → ${newRegion}`);
+                                tooltipStatus.value = { type: 'success', message: `Tooltip active - showing data point ${newRegion}` };
+                            }
+                        };
+
+                        chartInstance.handleMouseLeave = function() {
+                            const wasVisible = this.currentRegion !== null;
+                            originalMouseLeave();
+                            
+                            if (wasVisible) {
+                                log(`👋 Mouse left chart - tooltip hidden`, 'warning');
+                                tooltipStatus.value = { type: 'info', message: 'Mouse left chart area' };
+                            }
+                        };
+
+                        chartInstance.draw();
+                        log('✅ Chart initialized and drawn successfully', 'success');
+                        return true;
+
+                    } catch (error) {
+                        log(`❌ Chart initialization failed: ${error.message}`, 'error');
+                        console.error('Chart init error:', error);
+                        return false;
+                    }
+                }
+
+                function updatePrice() {
+                    updateCounter++;
+                    
+                    // Preserve tooltip state before update
+                    if (chartInstance && chartInstance.preserveTooltipState) {
+                        log(`💾 Preserving tooltip state before update #${updateCounter}`);
+                        chartInstance.preserveTooltipState();
+                    }
+                    
+                    // Simulate price change (this triggers Vue update)
+                    const change = (Math.random() - 0.5) * 20;
+                    currentPrice.value = Math.max(50, currentPrice.value + change);
+                    
+                    log(`💰 Price updated to $${currentPrice.value.toFixed(2)} (Update #${updateCounter})`);
+                    
+                    // Check tooltip state after Vue update
+                    setTimeout(() => {
+                        if (chartInstance) {
+                            const hasTooltip = chartInstance.currentRegion !== null;
+                            log(`🔍 After Vue update: tooltip ${hasTooltip ? 'visible' : 'hidden'} (region: ${chartInstance.currentRegion})`);
+                            
+                            // Try to restore tooltip state
+                            if (chartInstance.restoreTooltipState) {
+                                const restored = chartInstance.restoreTooltipState();
+                                log(`🔄 Tooltip restoration ${restored ? 'successful' : 'failed'}`);
+                            }
+                        }
+                    }, 50);
+                }
+
+                function forceChartRedraw() {
+                    log('🔄 Forcing chart redraw...');
+                    if (chartInstance && chartInstance.preserveTooltipState) {
+                        chartInstance.preserveTooltipState();
+                    }
+                    
+                    initializeChart();
+                    
+                    setTimeout(() => {
+                        if (chartInstance && chartInstance.restoreTooltipSmart) {
+                            const restored = chartInstance.restoreTooltipSmart();
+                            log(`🔄 Post-redraw smart tooltip restoration ${restored ? 'successful' : 'failed'}`);
+                        }
+                    }, 50);
+                }
+
+                function testTooltipManually() {
+                    if (!chartInstance) {
+                        log('❌ No chart instance for manual test', 'error');
+                        return;
+                    }
+
+                    log('🧪 Running manual tooltip test...');
+                    
+                    const canvas = chartCanvas.value;
+                    const rect = canvas.getBoundingClientRect();
+                    
+                    // Simulate mouse move to middle of chart
+                    const x = rect.left + 300; // Middle of 600px wide chart
+                    const y = rect.top + 75;   // Middle of 150px high chart
+                    
+                    const syntheticEvent = {
+                        clientX: x,
+                        clientY: y,
+                        pageX: x + window.pageXOffset,
+                        pageY: y + window.pageYOffset,
+                        target: canvas
+                    };
+                    
+                    chartInstance.handleMouseMove(syntheticEvent);
+                    
+                    const hasTooltip = chartInstance.currentRegion !== null;
+                    log(`🧪 Manual test result: tooltip ${hasTooltip ? 'shown' : 'not shown'} (region: ${chartInstance.currentRegion})`);
+                }
+
+                function checkTooltipState() {
+                    log('🔍 Checking current tooltip state...');
+                    
+                    if (!chartInstance) {
+                        log('❌ No chart instance', 'error');
+                        return;
+                    }
+                    
+                    const tooltip = BaseChart.getSharedTooltip();
+                    const hasRegion = chartInstance.currentRegion !== null;
+                    const hasMouseEvent = chartInstance.lastMouseEvent !== null;
+                    const preservedState = chartInstance.preservedState;
+                    
+                    log(`📊 Chart State:`);
+                    log(`  - Current region: ${chartInstance.currentRegion}`);
+                    log(`  - Has mouse event: ${hasMouseEvent}`);
+                    log(`  - Tooltip element exists: ${!!tooltip}`);
+                    log(`  - Tooltip visible: ${tooltip ? tooltip.style.display !== 'none' : 'N/A'}`);
+                    log(`  - Preserved state: ${JSON.stringify(preservedState, null, 2)}`);
+                    
+                    if (tooltip) {
+                        log(`🏷️ Tooltip Details:`);
+                        log(`  - Display: ${tooltip.style.display}`);
+                        log(`  - Position: ${tooltip.style.left}, ${tooltip.style.top}`);
+                        log(`  - Content: "${tooltip.textContent}"`);
+                        log(`  - Parent: ${tooltip.parentNode?.tagName || 'none'}`);
+                    }
+                }
+
+                function clearLog() {
+                    logMessages.value = '';
+                    tooltipStatus.value = { type: 'info', message: 'Log cleared - ready for testing' };
+                }
+
+                // Initialize chart when component mounts
+                onMounted(() => {
+                    log('🚀 Component mounted, initializing chart...');
+                    initializeChart();
+                });
+
+                // Clean up on unmount
+                onUnmounted(() => {
+                    if (chartInstance && chartInstance.destroy) {
+                        chartInstance.destroy();
+                    }
+                });
+
+                return {
+                    chartCanvas,
+                    currentPrice,
+                    logMessages,
+                    tooltipStatus,
+                    updatePrice,
+                    forceChartRedraw,
+                    testTooltipManually,
+                    checkTooltipState,
+                    clearLog
+                };
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
