@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tooltip Persistence Test - Sparkline Vue</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../shared/shared.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+        
+        .test-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+            margin: 10px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .chart-container.tooltip-active {
+            border-color: #28a745;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+        }
+        
+        .auto-test-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ffc107;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-good { background: #28a745; }
+        .status-warning { background: #ffc107; }
+        .status-error { background: #dc3545; }
+        
+        .test-log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        
+        .test-description {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        .other-elements {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .sidebar {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #bbdefb;
+        }
+        
+        .timer-display, .dynamic-list, .counter-display {
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e1bee7;
+        }
+        
+        .dynamic-list ul {
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        
+        .dynamic-list li {
+            padding: 2px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Tooltip Persistence Test</h1>
+        <p>Testing Vue tooltip persistence when OTHER elements update (not the chart itself)</p>
+    </div>
+
+    <div id="app" class="test-container">
+        <div class="test-section">
+            <h3>
+                <span class="status-indicator" :class="tooltipStatus"></span>
+                Tooltip Persistence Test
+            </h3>
+            <p class="test-description">
+                This test demonstrates that tooltips persist when OTHER Vue elements update,
+                not the chart itself. Chart updates should hide tooltips (that's normal!).
+            </p>
+            
+            <div class="test-controls">
+                <button class="test-button" @click="startAutoTest" :disabled="autoTestRunning">{{ autoTestRunning ? 'Auto Test Running...' : 'Start Auto Test' }}</button>
+                <button class="test-button" @click="stopAutoTest" :disabled="!autoTestRunning">Stop Auto Test</button>
+                <button class="test-button" @click="updateOtherElement">Update Other Element</button>
+                <button class="test-button" @click="toggleSidebar">Toggle Sidebar</button>
+                <button class="test-button" @click="updateTimer">Update Timer</button>
+                <button class="test-button" @click="addListItem">Add List Item</button>
+                <button class="test-button" @click="clearLog">Clear Log</button>
+            </div>
+            
+            <div class="chart-container" :class="{ 'tooltip-active': tooltipVisible }">
+                <div v-if="autoTestRunning" class="auto-test-indicator">AUTO TEST</div>
+                <h4>Static Sparkline Chart (Never Changes)</h4>
+                <p><strong>Chart Type:</strong> line | <strong>Data Points:</strong> {{ staticData.length }}</p>
+                
+                <!-- Static chart that NEVER changes - tooltips should persist during other updates -->
+                <component 
+                    :is="'sparkline-chart'"
+                    :data="staticData" 
+                    type="line"
+                    :width="300" 
+                    :height="80"
+                    :options="staticOptions"
+                    @tooltip-show="onTooltipShow"
+                    @tooltip-hide="onTooltipHide"
+                />
+            </div>
+            
+            <!-- Other Vue elements that will update independently -->
+            <div class="other-elements">
+                <div class="sidebar" v-if="showSidebar">
+                    <h4>Dynamic Sidebar</h4>
+                    <p>Updates: {{ sidebarCounter }}</p>
+                </div>
+                
+                <div class="timer-display">
+                    <h4>Live Timer: {{ currentTime }}</h4>
+                </div>
+                
+                <div class="dynamic-list">
+                    <h4>Dynamic List ({{ listItems.length }} items)</h4>
+                    <ul>
+                        <li v-for="item in listItems" :key="item.id">{{ item.text }}</li>
+                    </ul>
+                </div>
+                
+                <div class="counter-display">
+                    <h4>Update Counter: {{ updateCounter }}</h4>
+                </div>
+            </div>
+            
+            <div class="test-log" ref="logContainer">
+                <div v-for="(entry, index) in testLog" :key="index">
+                    [{{ entry.time }}] {{ entry.message }}
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Instructions</h3>
+            <ol>
+                <li><strong>Hover over the chart</strong> to show a tooltip</li>
+                <li><strong>While tooltip is visible</strong>, click "Update Other Element" or other buttons</li>
+                <li><strong>Expected:</strong> Tooltip should remain visible since chart itself isn't changing</li>
+                <li><strong>Previous Bug:</strong> Any Vue update would close tooltips, even unrelated ones</li>
+            </ol>
+            <div class="test-description">
+                <strong>The Fix:</strong> Tooltip now lives in document.body instead of Vue's DOM tree,
+                so Vue updates to other elements don't affect it.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createChart } from '../../renderers/chartFactory.js';
+        
+        const { createApp, ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
+
+        // Sparkline component (same as before)
+        const SparklineChart = {
+            template: `<canvas ref="canvas" :width="width" :height="height" class="sparkline-canvas"></canvas>`,
+            props: {
+                type: { type: String, default: 'line' },
+                data: { type: Array, required: true },
+                width: { type: Number, default: 100 },
+                height: { type: Number, default: 30 },
+                options: { type: Object, default: () => ({}) }
+            },
+            emits: ['tooltip-show', 'tooltip-hide'],
+            setup(props, { emit }) {
+                const canvas = ref(null);
+                let chartInstance = null;
+                let clickHandler = null;
+
+                const draw = () => {
+                    if (!canvas.value) return;
+                    
+                    if (chartInstance && chartInstance.destroy) {
+                        chartInstance.destroy();
+                    }
+                    
+                    if (clickHandler && canvas.value) {
+                        canvas.value.removeEventListener('sparklineClick', clickHandler);
+                    }
+                    
+                    const ctx = canvas.value.getContext('2d');
+                    ctx.clearRect(0, 0, props.width, props.height);
+                    chartInstance = createChart(props.type, ctx, props);
+                    
+                    if (chartInstance) {
+                        chartInstance.draw();
+                        
+                        chartInstance.onTooltipShow = () => emit('tooltip-show');
+                        chartInstance.onTooltipHide = () => emit('tooltip-hide');
+                        
+                        ctx.chart = chartInstance;
+                        
+                        if (canvas.value) {
+                            clickHandler = (event) => {
+                                emit('click', event.detail);
+                            };
+                            canvas.value.addEventListener('sparklineClick', clickHandler);
+                        }
+                    }
+                };
+
+                onMounted(draw);
+                watch(() => [props.data, props.options, props.type, props.width, props.height], draw, { deep: true });
+
+                onUnmounted(() => {
+                    if (chartInstance && chartInstance.destroy) {
+                        chartInstance.destroy();
+                    }
+                    
+                    if (clickHandler && canvas.value) {
+                        canvas.value.removeEventListener('sparklineClick', clickHandler);
+                    }
+                });
+
+                return { canvas };
+            }
+        };
+
+        const app = createApp({
+            components: {
+                SparklineChart
+            },
+            setup() {
+                const staticData = ref([5, 8, 2, 9, 4, 7, 3, 8, 5, 6, 9, 2]); // Never changes
+                const testLog = ref([]);
+                const logContainer = ref(null);
+                const tooltipVisible = ref(false);
+                const autoTestRunning = ref(false);
+                const autoTestInterval = ref(null);
+                
+                // Other dynamic elements that update independently
+                const showSidebar = ref(true);
+                const sidebarCounter = ref(0);
+                const currentTime = ref(new Date().toLocaleTimeString());
+                const listItems = ref([
+                    { id: 1, text: 'Initial item 1' },
+                    { id: 2, text: 'Initial item 2' }
+                ]);
+                const updateCounter = ref(0);
+                
+                const staticOptions = ref({
+                    lineColor: '#007bff',
+                    fillColor: 'rgba(0, 123, 255, 0.1)',
+                    spotColor: '#ff6b6b',
+                    tooltipPrefix: 'Value: ',
+                    tooltipSuffix: ' units'
+                });
+
+                const tooltipStatus = computed(() => {
+                    return tooltipVisible.value ? 'status-good' : 'status-warning';
+                });
+
+                const logMessage = (message) => {
+                    const time = new Date().toLocaleTimeString();
+                    testLog.value.push({ time, message });
+                    
+                    nextTick(() => {
+                        if (logContainer.value) {
+                            logContainer.value.scrollTop = logContainer.value.scrollHeight;
+                        }
+                    });
+                };
+
+                // Functions that update OTHER elements (not the chart)
+                const updateOtherElement = () => {
+                    updateCounter.value++;
+                    logMessage(`✅ Other element updated (counter: ${updateCounter.value}) - tooltip should persist`);
+                };
+
+                const toggleSidebar = () => {
+                    showSidebar.value = !showSidebar.value;
+                    sidebarCounter.value++;
+                    logMessage(`✅ Sidebar toggled (${showSidebar.value ? 'shown' : 'hidden'}) - tooltip should persist`);
+                };
+
+                const updateTimer = () => {
+                    currentTime.value = new Date().toLocaleTimeString();
+                    logMessage(`✅ Timer updated (${currentTime.value}) - tooltip should persist`);
+                };
+
+                const addListItem = () => {
+                    const newId = listItems.value.length + 1;
+                    listItems.value.push({ 
+                        id: newId, 
+                        text: `Item ${newId} added at ${new Date().toLocaleTimeString()}` 
+                    });
+                    logMessage(`✅ List item added (${listItems.value.length} total) - tooltip should persist`);
+                };
+
+                const clearLog = () => {
+                    testLog.value = [];
+                    logMessage('Log cleared');
+                };
+
+                const onTooltipShow = () => {
+                    tooltipVisible.value = true;
+                    logMessage('🎯 Tooltip shown - now test Vue updates!');
+                };
+
+                const onTooltipHide = () => {
+                    tooltipVisible.value = false;
+                    logMessage('❌ Tooltip hidden');
+                };
+
+                // Auto test that updates other elements while tooltip might be visible
+                const startAutoTest = () => {
+                    if (autoTestRunning.value) return;
+                    
+                    autoTestRunning.value = true;
+                    logMessage('🤖 Starting auto test - hover over chart first!');
+                    
+                    let testStep = 0;
+                    const testActions = [
+                        updateOtherElement,
+                        toggleSidebar,
+                        updateTimer,
+                        addListItem,
+                        updateOtherElement
+                    ];
+                    
+                    autoTestInterval.value = setInterval(() => {
+                        if (!autoTestRunning.value) return;
+                        
+                        const action = testActions[testStep % testActions.length];
+                        action();
+                        testStep++;
+                        
+                    }, 1500); // Every 1.5 seconds
+                };
+
+                const stopAutoTest = () => {
+                    autoTestRunning.value = false;
+                    if (autoTestInterval.value) {
+                        clearInterval(autoTestInterval.value);
+                        autoTestInterval.value = null;
+                    }
+                    logMessage('⏹️ Auto test stopped');
+                };
+
+                onUnmounted(() => {
+                    stopAutoTest();
+                });
+
+                onMounted(() => {
+                    logMessage('🧪 Tooltip persistence test ready');
+                    logMessage('💡 Hover over chart, then test Vue updates with buttons');
+                });
+
+                return {
+                    staticData,
+                    staticOptions,
+                    testLog,
+                    logContainer,
+                    tooltipStatus,
+                    tooltipVisible,
+                    autoTestRunning,
+                    showSidebar,
+                    sidebarCounter,
+                    currentTime,
+                    listItems,
+                    updateCounter,
+                    updateOtherElement,
+                    toggleSidebar,
+                    updateTimer,
+                    addListItem,
+                    clearLog,
+                    startAutoTest,
+                    stopAutoTest,
+                    onTooltipShow,
+                    onTooltipHide
+                };
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>

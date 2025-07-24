@@ -13,6 +13,7 @@ export class BaseChart {
     this.currentRegion = null;
     this.tooltip = null;
     this.regions = [];
+    this.lastMouseEvent = null; // Store last mouse event for tooltip refresh
     this.setupInteractions();
   }
 
@@ -115,6 +116,9 @@ export class BaseChart {
     this.canvas.addEventListener('mouseleave', this.boundHandleMouseLeave);
     this.canvas.addEventListener('click', this.boundHandleClick);
     this.canvas.style.cursor = 'pointer';
+
+    // Register for shared scroll handling (performance optimization)
+    BaseChart.registerScrollHandler(this);
 
     // Touch events for mobile support
     this.setupTouchSupport();
@@ -231,6 +235,9 @@ export class BaseChart {
   handleMouseMove(event) {
     if (this.options.disableInteraction) return;
 
+    // Store last mouse event for tooltip refresh capability
+    this.lastMouseEvent = event;
+
     const rect = this.canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -260,6 +267,7 @@ export class BaseChart {
 
   // Handle mouse leave events
   handleMouseLeave() {
+    this.lastMouseEvent = null; // Clear stored mouse event
     if (this.currentRegion !== null) {
       this.currentRegion = null;
       this.hideTooltip();
@@ -327,137 +335,11 @@ export class BaseChart {
     return null;
   }
 
-  // Update just tooltip position without changing content
-  updateTooltipPosition(event) {
-    if (this.tooltip && this.tooltip.style.display === 'block') {
-      // Check if this is a touch event or if we're on a touch device
-      const isTouch = this.isTouch || 
-                     (event.sourceCapabilities && event.sourceCapabilities.firesTouchEvents) ||
-                     ('ontouchstart' in window);
-      
-      let left, top;
-      
-      if (isTouch) {
-        // Get tooltip dimensions for better positioning
-        const tooltipRect = this.tooltip.getBoundingClientRect();
-        const tooltipWidth = tooltipRect.width || 120; // fallback width
-        const tooltipHeight = tooltipRect.height || 40; // fallback height
-        
-        // For touch devices: position tooltip to top-left with offset based on tooltip size
-        // Use tooltip width + 20px buffer for left offset, tooltip height + 20px buffer for top offset
-        left = event.pageX - (tooltipWidth + 20);
-        top = event.pageY - (tooltipHeight + 20);
-        
-        // Prevent tooltip from going off the left edge
-        if (left < 10) {
-          left = event.pageX + 15;  // Fallback to right side
-        }
-        
-        // Prevent tooltip from going above viewport
-        if (top < 10) {
-          top = event.pageY + 30;   // Fallback to below finger
-        }
-      } else {
-        // For mouse: keep original positioning
-        left = event.pageX + 10;
-        top = event.pageY - 25;
-      }
-      
-      this.tooltip.style.left = left + 'px';
-      this.tooltip.style.top = top + 'px';
-    }
-  }
 
-  // Update tooltip
-  updateTooltip(event, region) {
-    if (this.options.disableTooltips || region === null) {
-      this.hideTooltip();
-      return;
-    }
 
-    if (!this.tooltip) {
-      this.createTooltip();
-    }
-
-    const tooltipContent = this.getTooltipContent(region);
-    
-    // Clear existing content
-    this.tooltip.innerHTML = '';
-    
-    // Check if we have multi-value content with colors
-    if (tooltipContent && typeof tooltipContent === 'object' && tooltipContent.items) {
-      // Multi-value tooltip with color indicators
-      const container = document.createElement('div');
-      
-      tooltipContent.items.forEach(item => {
-        const line = document.createElement('div');
-        line.style.cssText = 'display: flex; align-items: center; margin: 2px 0; gap: 6px;';
-        
-        if (item.color) {
-          const colorSpot = document.createElement('div');
-          colorSpot.style.cssText = `
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: ${item.color};
-            flex-shrink: 0;
-          `;
-          line.appendChild(colorSpot);
-        }
-        
-        const label = document.createElement('span');
-        label.textContent = item.label;
-        line.appendChild(label);
-        
-        container.appendChild(line);
-      });
-      
-      this.tooltip.appendChild(container);
-    } else {
-      // Single value tooltip - try to add color if available
-      const value = this.values[region];
-      const formattedValue = this.formatTooltipValue(value, region);
-      const fullLabel = `${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
-      
-      // Try to get color for this region
-      const color = this.getRegionColor(region);
-      
-      if (color) {
-        // Show single value with color spot
-        const container = document.createElement('div');
-        const line = document.createElement('div');
-        line.style.cssText = 'display: flex; align-items: center; gap: 6px;';
-        
-        const colorSpot = document.createElement('div');
-        colorSpot.style.cssText = `
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background-color: ${color};
-          flex-shrink: 0;
-        `;
-        line.appendChild(colorSpot);
-        
-        const label = document.createElement('span');
-        label.textContent = fullLabel;
-        line.appendChild(label);
-        
-        container.appendChild(line);
-        this.tooltip.appendChild(container);
-      } else {
-        // Fallback to plain text tooltip
-        this.tooltip.textContent = fullLabel;
-      }
-    }
-    
-    // Use the centralized positioning logic
-    this.updateTooltipPosition(event);
-    this.tooltip.style.display = 'block';
-  }
-
-  // Get or create shared tooltip element (prevents creating hundreds of DOM elements)
+  // Get or create shared tooltip element (Vue-safe version)
   static getSharedTooltip() {
-    if (!BaseChart.sharedTooltip) {
+    if (!BaseChart.sharedTooltip || !document.body.contains(BaseChart.sharedTooltip)) {
       BaseChart.sharedTooltip = document.createElement('div');
       BaseChart.sharedTooltip.className = 'sparkline-tooltip';
       BaseChart.sharedTooltip.style.cssText = `
@@ -476,20 +358,127 @@ export class BaseChart {
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         max-width: 200px;
       `;
+      
+      // Add to document.body (outside Vue's control) instead of any container
       document.body.appendChild(BaseChart.sharedTooltip);
     }
     return BaseChart.sharedTooltip;
   }
 
-  // Create tooltip element (now uses shared tooltip)
-  createTooltip() {
-    this.tooltip = BaseChart.getSharedTooltip();
+  // Shared scroll handler system (performance optimization)
+  static scrollCharts = new Set();
+  static scrollHandlerAttached = false;
+
+  static registerScrollHandler(chart) {
+    BaseChart.scrollCharts.add(chart);
+    
+    if (!BaseChart.scrollHandlerAttached) {
+      window.addEventListener('scroll', BaseChart.handleGlobalScroll, { passive: true });
+      BaseChart.scrollHandlerAttached = true;
+    }
   }
 
-  // Hide tooltip
+  static unregisterScrollHandler(chart) {
+    BaseChart.scrollCharts.delete(chart);
+    
+    if (BaseChart.scrollCharts.size === 0 && BaseChart.scrollHandlerAttached) {
+      window.removeEventListener('scroll', BaseChart.handleGlobalScroll);
+      BaseChart.scrollHandlerAttached = false;
+    }
+  }
+
+  static handleGlobalScroll() {
+    // Only update charts that have active tooltips
+    BaseChart.scrollCharts.forEach(chart => {
+      // Safety check: ensure chart still has valid canvas and state
+      if (chart && chart.canvas && chart.currentRegion !== null && chart.lastMouseEvent) {
+        try {
+          chart.updateTooltipPosition(chart.lastMouseEvent);
+        } catch (error) {
+          // If chart is in invalid state, remove it from scroll tracking
+          console.warn('Removing invalid chart from scroll tracking:', error);
+          BaseChart.scrollCharts.delete(chart);
+        }
+      }
+    });
+  }
+
+  // Create tooltip element (simple version)
+  createTooltip() {
+    this.tooltip = BaseChart.getSharedTooltip();
+    return this.tooltip;
+  }
+
+  // Update tooltip (simple version)
+  updateTooltip(event, region) {
+    if (this.options.disableTooltips || region === null) {
+      this.hideTooltip();
+      return;
+    }
+
+    const tooltip = BaseChart.getSharedTooltip();
+    if (!tooltip) return;
+
+    // Get tooltip content
+    const tooltipContent = this.getTooltipContent(region);
+    
+    if (tooltipContent && typeof tooltipContent === 'object' && tooltipContent.items) {
+      // Multi-value tooltip with color spots - use innerHTML for better performance
+      let html = '';
+      tooltipContent.items.forEach(item => {
+        html += `<div style="display: flex; align-items: center; margin: 2px 0; gap: 6px;">`;
+        
+        if (item.color) {
+          html += `<div style="width: 8px; height: 8px; background: ${item.color}; border-radius: 50%; flex-shrink: 0;"></div>`;
+        }
+        
+        html += `<span>${this.escapeHtml(item.label || '')}</span>`;
+        html += `</div>`;
+      });
+      tooltip.innerHTML = html;
+    } else {
+      // Single value tooltip
+      const value = this.values[region];
+      const formattedValue = this.formatTooltipValue(value, region);
+      const content = `${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
+      tooltip.textContent = content;
+    }
+
+    // Show tooltip
+    tooltip.style.display = 'block';
+    
+    // Use the improved positioning method
+    this.updateTooltipPosition(event);
+  }
+
+  // Update tooltip position
+  updateTooltipPosition(event) {
+    const tooltip = BaseChart.getSharedTooltip();
+    if (!tooltip || tooltip.style.display === 'none' || !event) return;
+    
+    try {
+      // Use pageX/pageY or calculate from clientX/clientY + scroll offset
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      
+      const x = (event.pageX || event.clientX + scrollX) + 10;
+      const y = (event.pageY || event.clientY + scrollY) - 10;
+      
+      // Ensure coordinates are valid numbers
+      if (isNaN(x) || isNaN(y)) return;
+      
+      tooltip.style.left = Math.max(0, x) + 'px';
+      tooltip.style.top = Math.max(0, y) + 'px';
+    } catch (error) {
+      console.warn('Error updating tooltip position:', error);
+    }
+  }
+
+  // Hide tooltip (simple version)
   hideTooltip() {
-    if (this.tooltip) {
-      this.tooltip.style.display = 'none';
+    const tooltip = BaseChart.getSharedTooltip();
+    if (tooltip) {
+      tooltip.style.display = 'none';
     }
   }
 
@@ -569,6 +558,13 @@ export class BaseChart {
       .substring(0, 500); // Limit length to prevent excessive tooltips
   }
 
+  // Escape HTML for safe innerHTML usage
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // Redraw with highlight
   redrawWithHighlight() {
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -633,6 +629,9 @@ export class BaseChart {
     // Add defensive null check for canvas
     if (!this.canvas) return;
     
+    // Hide any active tooltip
+    this.hideTooltip();
+    
     // Remove mouse event listeners to prevent memory leaks
     if (this.boundHandleMouseMove) {
       this.canvas.removeEventListener('mousemove', this.boundHandleMouseMove);
@@ -643,6 +642,9 @@ export class BaseChart {
     if (this.boundHandleClick) {
       this.canvas.removeEventListener('click', this.boundHandleClick);
     }
+    
+    // Unregister from shared scroll handler
+    BaseChart.unregisterScrollHandler(this);
     
     // Remove touch event listeners (only if they were added)
     if (this.boundHandleTouchStart) {
@@ -662,10 +664,8 @@ export class BaseChart {
     // Reset touch state for consistency
     this.isTouch = false;
     
-    // Hide tooltip but don't remove it since it's shared
-    if (this.tooltip) {
-      this.tooltip.style.display = 'none';
-    }
+    // Clear stored mouse event
+    this.lastMouseEvent = null;
   }
 
   // Reinitialize for object pooling (performance optimization)
