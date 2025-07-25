@@ -4,6 +4,12 @@
 import { BaseChart } from './BaseChart.js';
 
 export class BoxChart extends BaseChart {
+  constructor(ctx, props) {
+    super(ctx, props);
+    this._cachedStats = null;
+    this._cachedStatsData = null;
+  }
+
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -21,7 +27,8 @@ export class BoxChart extends BaseChart {
       target: undefined,
       targetColor: '#4a2',
       minValue: undefined,
-      maxValue: undefined
+      maxValue: undefined,
+      highlightSpotColor: '#2196F3' // Override base default to blue for box plots
     };
   }
 
@@ -60,6 +67,39 @@ export class BoxChart extends BaseChart {
     };
   }
 
+  // Cache-aware method to get box plot statistics
+  getStats() {
+    const { raw } = this.options;
+    
+    // For raw mode, always compute directly (no caching needed as it's just array access)
+    if (raw && this.values.length >= 7) {
+      return {
+        q1: this.values[2],
+        q2: this.values[3], // median
+        q3: this.values[4],
+        lowerWhisker: this.values[1],
+        upperWhisker: this.values[5],
+        outliers: [this.values[0], this.values[6]].filter(v => v !== null)
+      };
+    }
+
+    // For computed mode, use caching
+    const validValues = this.values.filter(v => v !== null);
+    if (validValues.length === 0) return null;
+
+    // Check if we can use cached result
+    if (this._cachedStats && this._cachedStatsData && 
+        this._cachedStatsData.length === validValues.length &&
+        this._cachedStatsData.every((val, i) => val === validValues[i])) {
+      return this._cachedStats;
+    }
+
+    // Calculate and cache
+    this._cachedStats = this.calculateBoxPlotStats(validValues);
+    this._cachedStatsData = [...validValues]; // Store copy for comparison
+    return this._cachedStats;
+  }
+
   draw() {
     if (this.values.length === 0) return;
 
@@ -89,10 +129,8 @@ export class BoxChart extends BaseChart {
         outliers: [this.values[0], this.values[6]].filter(v => v !== null)
       };
     } else {
-      // Compute from raw data
-      const validValues = this.values.filter(v => v !== null);
-      if (validValues.length === 0) return;
-      stats = this.calculateBoxPlotStats(validValues);
+      // Use cached computation
+      stats = this.getStats();
     }
 
     if (!stats) return;
@@ -190,19 +228,6 @@ export class BoxChart extends BaseChart {
     }
   }
 
-  getRegionAtPoint(x, y) {
-    // For box plots, we can return a special region indicator
-    // Since it's not really an indexed data series, we'll return 0 to show summary stats
-    const { width, height } = this;
-    
-    // Check if the point is within the chart bounds
-    if (x >= 0 && x <= width && y >= 0 && y <= height) {
-      return 0; // Return 0 to show box plot summary
-    }
-    
-    return null;
-  }
-
   // Get nearest region to mouse cursor for smooth tooltip following
   getNearestRegion(x, y) {
     // For box plots, always show the summary when mouse is over the chart
@@ -217,24 +242,7 @@ export class BoxChart extends BaseChart {
 
   // Override getTooltipContent for box plots to show detailed statistics
   getTooltipContent(region) {
-    const { raw } = this.options;
-    let stats;
-    
-    if (raw && this.values.length >= 7) {
-      stats = {
-        q1: this.values[2],
-        q2: this.values[3], // median
-        q3: this.values[4],
-        lowerWhisker: this.values[1],
-        upperWhisker: this.values[5],
-        outliers: [this.values[0], this.values[6]].filter(v => v !== null)
-      };
-    } else {
-      const validValues = this.values.filter(v => v !== null);
-      if (validValues.length === 0) return null;
-      stats = this.calculateBoxPlotStats(validValues);
-    }
-    
+    const stats = this.getStats();
     if (!stats) return null;
     
     const items = [
@@ -275,24 +283,7 @@ export class BoxChart extends BaseChart {
 
   // Override tooltip formatting for box plots - matches original jquery.sparkline format
   getDefaultTooltipFormat(value, region) {
-    const { raw } = this.options;
-    let stats;
-    
-    if (raw && this.values.length >= 7) {
-      stats = {
-        q1: this.values[2],
-        q2: this.values[3], // median
-        q3: this.values[4],
-        lowerWhisker: this.values[1],
-        upperWhisker: this.values[5],
-        outliers: [this.values[0], this.values[6]].filter(v => v !== null)
-      };
-    } else {
-      const validValues = this.values.filter(v => v !== null);
-      if (validValues.length === 0) return 'No data';
-      stats = this.calculateBoxPlotStats(validValues);
-    }
-    
+    const stats = this.getStats();
     if (!stats) return 'No data';
     
     // Format exactly like original jquery.sparkline: field names mapped to descriptive labels
@@ -319,23 +310,7 @@ Right Whisker: ${stats.upperWhisker.toFixed(2)}`;
 
   getRegionFields(region) {
     if (region === 0) {
-      const { raw } = this.options;
-      let stats;
-      
-      if (raw) {
-        stats = {
-          q1: this.values[2],
-          q2: this.values[3], 
-          q3: this.values[4],
-          lowerWhisker: this.values[1],
-          upperWhisker: this.values[5],
-          outliers: [this.values[0], this.values[6]].filter(v => v !== null)
-        };
-      } else {
-        const validValues = this.values.filter(v => v !== null);
-        stats = this.calculateBoxPlotStats(validValues);
-      }
-      
+      const stats = this.getStats();
       if (!stats) return null;
       
       return {
@@ -359,7 +334,55 @@ Right Whisker: ${stats.upperWhisker.toFixed(2)}`;
   }
 
   drawHighlight(region) {
-    // Box plots don't typically have highlighting
-    // Could be implemented to highlight different parts of the box
+    if (region === null || region === undefined) return;
+    
+    const ctx = this.ctx;
+    const { width, height, topOffset, bottomOffset } = this.getDrawingDimensions();
+    
+    // Get the box plot stats using cached method
+    const stats = this.getStats();
+    if (!stats) return;
+    
+    // Calculate scale (same as in draw method)
+    const allValues = [
+      stats.lowerWhisker, stats.q1, stats.q2, stats.q3, stats.upperWhisker,
+      ...stats.outliers
+    ].filter(v => v !== null);
+    
+    const minVal = Math.min(...allValues);
+    const maxVal = Math.max(...allValues);
+    const range = maxVal - minVal || 1;
+    
+    const getY = (value) => topOffset + height - ((value - minVal) / range) * height;
+    
+    // Box dimensions
+    const boxWidth = Math.min(this.width * 0.3, 20);
+    const boxLeft = (this.width - boxWidth) / 2;
+    const boxRight = boxLeft + boxWidth;
+    const centerX = this.width / 2;
+    
+    ctx.save();
+    
+    // Subtle highlight - just a thin outline around the box
+    const boxTop = getY(stats.q3);
+    const boxBottom = getY(stats.q1);
+    
+    // Draw a subtle highlight outline around the box
+    ctx.strokeStyle = this.options.highlightSpotColor || '#2196F3';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([]);
+    ctx.strokeRect(boxLeft - 0.5, boxTop - 0.5, boxWidth + 1, (boxBottom - boxTop) + 1);
+    
+    // Slightly emphasize the median line
+    const medianY = getY(stats.q2);
+    ctx.strokeStyle = this.options.highlightSpotColor || '#2196F3';
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    ctx.moveTo(boxLeft - 1, medianY);
+    ctx.lineTo(boxRight + 1, medianY);
+    ctx.stroke();
+    
+    ctx.restore();
   }
 }

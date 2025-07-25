@@ -16,9 +16,7 @@ export default {
     height: { type: Number, default: 30 },
     options: { type: Object, default: () => ({}) },
     // Performance optimization mode
-    optimized: { type: Boolean, default: false },
-    // Streaming mode - enables smart tooltip restoration
-    streaming: { type: Boolean, default: false }
+    optimized: { type: Boolean, default: false }
   },
   setup(props, { emit }) {
     const canvas = ref(null);
@@ -28,11 +26,16 @@ export default {
     const draw = () => {
       if (!canvas.value) return;
       
-      // Preserve tooltip state if the current chart owns the tooltip
+      // Preserve tooltip state before destroying the previous chart
+      let shouldPreserveTooltip = false;
+      let tooltipOwnership = null;
+      
       if (chartInstance) {
         const tooltip = chartInstance.constructor.getSharedTooltip ? chartInstance.constructor.getSharedTooltip() : null;
         if (tooltip && tooltip._owner === chartInstance.chartId) {
           chartInstance.preserveTooltipState();
+          shouldPreserveTooltip = true;
+          tooltipOwnership = chartInstance.chartId; // Store the persistent ID
         }
       }
       
@@ -66,6 +69,14 @@ export default {
       if (chartInstance) {
         chartInstance.draw();
         
+        // If we preserved tooltip state, restore ownership and tooltip
+        if (shouldPreserveTooltip && tooltipOwnership === chartInstance.chartId) {
+          const tooltip = chartInstance.constructor.getSharedTooltip ? chartInstance.constructor.getSharedTooltip() : null;
+          if (tooltip) {
+            tooltip._owner = chartInstance.chartId; // Restore ownership with persistent ID
+          }
+        }
+        
         // Forward click events - store reference for cleanup
         if (canvas.value) {
           clickHandler = (event) => {
@@ -76,13 +87,8 @@ export default {
         
         // Schedule tooltip refresh after Vue's DOM updates complete
         setTimeout(() => {
-          if (chartInstance) {
-            // Always use smart restoration for all charts
-            if (chartInstance.restoreTooltipSmart) {
-              chartInstance.restoreTooltipSmart();
-            } else if (chartInstance.refreshTooltip) {
-              chartInstance.refreshTooltip();
-            }
+          if (chartInstance && chartInstance.restoreTooltipSmart) {
+            chartInstance.restoreTooltipSmart();
           }
         }, 0);
       }
@@ -108,6 +114,11 @@ export default {
           console.warn('Error removing click handler during unmount:', error);
         }
         clickHandler = null;
+      }
+      
+      // Clean up persistent chart ID when component is truly being unmounted
+      if (canvas.value && chartInstance && chartInstance.constructor.cleanupCanvasChartId) {
+        chartInstance.constructor.cleanupCanvasChartId(canvas.value);
       }
     });
 

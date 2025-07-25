@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sparkline Vue - Comprehensive Examples</title>
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-    <link rel="icon" type="image/x-icon" href="../favicon.ico">
     <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
     <link rel="stylesheet" href="/docs/shared/shared.css">
 </head>
@@ -200,7 +199,7 @@
                         <div class="example-card">
                             <div class="example-title">Box Plot</div>
                             <div class="chart-display">
-                                <div class="chart-label">Statistical box plot <em>(hover for detailed stats with colors)</em></div>
+                                <div class="chart-label">Statistical box plot <em>(hover for detailed stats with visual feedback)</em></div>
                                 <canvas id="box-basic" width="200" height="50"></canvas>
                             </div>
                             <div class="code-block">&lt;Sparkline :data="[4,27,34,52,54,59,61,68,78,82,85,87,91,93,100]" 
@@ -232,8 +231,24 @@
         }
 
         // Helper function to create a sparkline on canvas
-        function createSparkline(canvas, data, type, options = {}) {
-            if (!canvas || !data) return null;
+        function createSparkline(canvasOrId, data, type, options = {}) {
+            if (!canvasOrId || !data) return null;
+            
+            let canvas;
+            if (typeof canvasOrId === 'string') {
+                canvas = document.getElementById(canvasOrId);
+                if (!canvas) {
+                    console.warn('Canvas element not found:', canvasOrId);
+                    return null;
+                }
+            } else {
+                canvas = canvasOrId;
+            }
+            
+            if (!canvas || typeof canvas.getContext !== 'function') {
+                console.warn('Invalid canvas element');
+                return null;
+            }
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -291,7 +306,15 @@
             { id: 'discrete-basic', data: sampleData.discrete, type: 'discrete', options: {}},
             { id: 'tristate-basic', data: sampleData.tristate, type: 'tristate', options: {}},
             { id: 'bullet-basic', data: sampleData.bullet, type: 'bullet', options: {}},
-            { id: 'box-basic', data: sampleData.box, type: 'box', options: {}}
+            { id: 'box-basic', data: sampleData.box, type: 'box', options: { 
+                boxFillColor: '#e3f2fd',
+                boxLineColor: '#1976d2',
+                medianColor: '#d32f2f',
+                whiskerColor: '#424242',
+                outlierFillColor: '#fff3e0',
+                outlierLineColor: '#f57c00',
+                highlightLighten: 1.3
+            }}
         ]
 
         // Initialize all charts after DOM is ready
@@ -301,141 +324,6 @@
                 if (canvas) {
                     createSparkline(canvas, chart.data, chart.type, chart.options);
                 }
-            });
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Basic line chart
-            createSparkline('chart1', [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7], {
-                type: 'line',
-                lineColor: '#007acc',
-                fillColor: false,
-                width: 'auto',
-                height: '30px'
-            });
-
-            // Line chart with fill
-            createSparkline('chart2', [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7], {
-                type: 'line',
-                lineColor: '#ff6b6b',
-                fillColor: '#ffe6e6',
-                width: 'auto',
-                height: '40px'
-            });
-
-            // Basic bar chart
-            createSparkline('chart3', [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7], {
-                type: 'bar',
-                barColor: '#4ecdc4',
-                width: 'auto',
-                height: '40px'
-            });
-
-            // Pie chart
-            createSparkline('chart4', [10, 8, 5, 3], {
-                type: 'pie',
-                sliceColors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'],
-                width: '60px',
-                height: '60px'
-            });
-
-            // Line chart with range
-            createSparkline('chart5', [1,4,6,6,8,5,3,5], {
-                type: 'line',
-                lineColor: '#ff9f43',
-                width: 'auto',
-                height: '30px',
-                chartRangeMin: 0,
-                chartRangeMax: 10
-            });
-
-            // Bar chart with negative values
-            createSparkline('chart6', [2, 4, -3, -1, 2, -2, 3], {
-                type: 'bar',
-                barColor: '#10ac84',
-                negBarColor: '#ee5253',
-                width: 'auto',
-                height: '40px'
-            });
-
-            // Discrete chart
-            createSparkline('chart7', [4, 6, 7, 7, 4, 3, 2, 1, 4, 4], {
-                type: 'discrete',
-                lineColor: '#5f27cd',
-                width: 'auto',
-                height: '30px'
-            });
-
-            // Tristate chart
-            createSparkline('chart8', [1, 1, 0, 1, -1, -1, 1, -1, 0, 0, 1, 1], {
-                type: 'tristate',
-                posBarColor: '#00d2d3',
-                negBarColor: '#ff9ff3',
-                zeroBarColor: '#54a0ff',
-                width: 'auto',
-                height: '30px'
-            });
-
-            // Bullet chart
-            createSparkline('chart9', [10, 12, 12, 9, 7], {
-                type: 'bullet',
-                targetWidth: 3,
-                targetColor: '#ff3838',
-                performanceColor: '#2ed573',
-                rangeColors: ['#eccc68', '#ffa502', '#ff6348'],
-                width: 'auto',
-                height: '30px'
-            });
-
-            // Box plot
-            createSparkline('chart10', [4, 27, 34, 52, 54, 59, 61, 68, 78, 82, 85, 87, 91, 93, 100], {
-                type: 'box',
-                width: 'auto',
-                height: '40px'
-            });
-
-            // Line with spots and highlights
-            createSparkline('chart11', [8, 4, 0, 0, 0, 0, 1, 4, 4, 10, 10, 10, 10, 0, 0, 0, 4, 6, 5, 9, 10], {
-                type: 'line',
-                lineColor: '#2d3436',
-                fillColor: '#ddd',
-                highlightSpotColor: '#e17055',
-                minSpotColor: '#00b894',
-                maxSpotColor: '#e84393',
-                spotRadius: 3,
-                width: 'auto',
-                height: '40px'
-            });
-
-            // Custom colored bars
-            createSparkline('chart12', [5, 6, 7, 2, 0, -4, -2, 4], {
-                type: 'bar',
-                barColor: '#fd79a8',
-                negBarColor: '#636e72',
-                zeroColor: '#74b9ff',
-                width: 'auto',
-                height: '40px'
-            });
-
-            // Multi-series line (composite)
-            createSparkline('chart13', [[5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7], [3, 4, 5, 7, 7, 3, 1, 0, 0, 2, 4, 5]], {
-                type: 'line',
-                lineColor: ['#6c5ce7', '#a29bfe'],
-                fillColor: [false, '#a29bfe33'],
-                composite: true,
-                width: 'auto',
-                height: '40px'
-            });
-
-            // Normalize line chart
-            createSparkline('chart14', [200, 400, 300, 600, 800, 300, 100], {
-                type: 'line',
-                lineColor: '#00b894',
-                normalRangeMin: 300,
-                normalRangeMax: 500,
-                normalRangeColor: '#00b89444',
-                width: 'auto',
-                height: '40px'
             });
         });
     </script>

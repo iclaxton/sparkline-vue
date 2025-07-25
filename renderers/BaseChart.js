@@ -2,6 +2,16 @@
 // Base class for all chart types
 
 export class BaseChart {
+  // Touch interaction constants
+  static TOUCH_OFFSET = 25;        // Offset to clear finger without being excessive
+  static TOUCH_SAFETY_BUFFER = 5;  // Small buffer for comfortable viewing
+  static TOUCH_TAP_THRESHOLD = 10; // Maximum movement for tap detection
+  static TOUCH_TAP_DURATION = 300; // Maximum duration for tap detection
+  static TOUCH_TOOLTIP_DELAY = 150; // Delay before hiding tooltip on touch end
+  
+  // Mouse interaction constants
+  static MOUSE_OFFSET = 15;        // Offset for mouse tooltip positioning
+  
   constructor(ctx, props) {
     this.ctx = ctx;
     this.canvas = ctx.canvas;
@@ -20,11 +30,17 @@ export class BaseChart {
     wasTooltipVisible: false,
     lastRegion: null,
     lastMousePosition: null,
-    lastRelativePosition: null // Store position relative to chart
+    lastRelativePosition: null, // Store position relative to chart
+    wasTouch: false // Store touch state
   };
   
-  // Unique ID for this chart instance to track tooltip ownership
-  this.chartId = 'chart_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);    this.setupInteractions();
+  // Persistent ID for this chart instance to track tooltip ownership across redraws
+  this.chartId = this.getPersistentChartId(ctx.canvas);
+  
+  // Track timers for cleanup
+  this.timers = new Set();
+  
+  this.setupInteractions();
   }
 
   getDefaults() {
@@ -56,6 +72,20 @@ export class BaseChart {
       topPadding: 3,  // Add top padding for all charts
       bottomPadding: 3  // Add bottom padding for all charts
     };
+  }
+
+  // Get or create a persistent chart ID based on the canvas element
+  getPersistentChartId(canvas) {
+    // Try to get existing ID from canvas data attribute
+    if (canvas.dataset.sparklineChartId) {
+      return canvas.dataset.sparklineChartId;
+    }
+    
+    // Create new persistent ID and store it on the canvas
+    const persistentId = 'chart_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    canvas.dataset.sparklineChartId = persistentId;
+    
+    return persistentId;
   }
 
   processValues(data) {
@@ -148,9 +178,14 @@ export class BaseChart {
 
     // Bind touch event handlers
     this.boundHandleTouchStart = (event) => {
-      event.preventDefault();
+      // Only prevent default if the event is cancelable
+      if (event.cancelable) {
+        event.preventDefault();
+      }
       this.isTouch = true;
       touchStartTime = Date.now();
+      
+      // Touch state tracking for proper event handling
       
       const touch = event.touches[0];
       touchStartPos = { x: touch.clientX, y: touch.clientY };
@@ -161,15 +196,21 @@ export class BaseChart {
         clientY: touch.clientY,
         pageX: touch.pageX || (touch.clientX + window.pageXOffset),
         pageY: touch.pageY || (touch.clientY + window.pageYOffset),
-        target: this.canvas
+        target: this.canvas,
+        isTouchEvent: true // Mark as touch event for proper positioning
       };
+      
+      // Create synthetic mouse event for unified handling
       
       // Use the chart's built-in mouse move handler
       this.handleMouseMove(syntheticEvent);
     };
 
     this.boundHandleTouchMove = (event) => {
-      event.preventDefault();
+      // Only prevent default if the event is cancelable
+      if (event.cancelable) {
+        event.preventDefault();
+      }
       if (this.isTouch && event.touches.length === 1) {
         const touch = event.touches[0];
         const rect = this.canvas.getBoundingClientRect();
@@ -184,10 +225,13 @@ export class BaseChart {
             clientY: touch.clientY,
             pageX: touch.pageX || (touch.clientX + window.pageXOffset),
             pageY: touch.pageY || (touch.clientY + window.pageYOffset),
-            target: this.canvas
+            target: this.canvas,
+            isTouchEvent: true // Mark as touch event for proper positioning
           };
           
-          // Use the chart's built-in mouse move handler
+          // Process touch movement with synthetic events
+          
+          // Use the chart's built-in mouse move handler - this should show tooltips
           this.handleMouseMove(syntheticEvent);
         } else {
           // Touch moved outside canvas - hide tooltip
@@ -197,26 +241,30 @@ export class BaseChart {
     };
 
     this.boundHandleTouchEnd = (event) => {
-      event.preventDefault();
+      // Only prevent default if the event is cancelable
+      if (event.cancelable) {
+        event.preventDefault();
+      }
       const touchEndTime = Date.now();
       const touchDuration = touchEndTime - touchStartTime;
       
       // If it was a quick touch (tap) and didn't move much, treat it as a click
-      if (touchDuration < 300 && touchStartPos && event.changedTouches.length > 0) {
+      if (touchDuration < BaseChart.TOUCH_TAP_DURATION && touchStartPos && event.changedTouches.length > 0) {
         const touch = event.changedTouches[0];
         const moveDistance = Math.sqrt(
           Math.pow(touch.clientX - touchStartPos.x, 2) + 
           Math.pow(touch.clientY - touchStartPos.y, 2)
         );
         
-        // If the touch didn't move much (less than 10px), treat as a click
-        if (moveDistance < 10) {
+        // If the touch didn't move much (less than threshold), treat as a click
+        if (moveDistance < BaseChart.TOUCH_TAP_THRESHOLD) {
           const syntheticClickEvent = {
             clientX: touch.clientX,
             clientY: touch.clientY,
             pageX: touch.pageX || (touch.clientX + window.pageXOffset),
             pageY: touch.pageY || (touch.clientY + window.pageYOffset),
-            target: this.canvas
+            target: this.canvas,
+            isTouchEvent: true // Mark as touch event
           };
           
           // Trigger click handler
@@ -227,8 +275,17 @@ export class BaseChart {
       this.isTouch = false;
       touchStartPos = null;
       
-      // Use the chart's built-in mouse leave handler to clean up tooltips
-      this.handleMouseLeave();
+      // For touch, keep tooltip visible a bit longer instead of immediately hiding
+      // This allows users to see the tooltip before lifting their finger
+      const timeoutId = setTimeout(() => {
+        if (!this.isTouch) { // Only hide if no new touch started
+          this.handleMouseLeave();
+        }
+        this.timers.delete(timeoutId); // Clean up timer reference
+      }, BaseChart.TOUCH_TOOLTIP_DELAY);
+      
+      // Track the timer for cleanup
+      this.timers.add(timeoutId);
     };
 
     // Add touch event listeners
@@ -239,6 +296,11 @@ export class BaseChart {
 
     // Store touch state on the chart instance
     this.isTouch = false;
+    
+    // If this chart is being recreated during an active touch session, restore touch state
+    if (this.preservedState.wasTouch) {
+      this.isTouch = true;
+    }
   }
 
   // Handle mouse move events
@@ -252,7 +314,7 @@ export class BaseChart {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Always find nearest point instead of requiring mouse to be in region
+    // Find region for interaction handling
     const region = this.getNearestRegion(x, y);
     
     if (region !== this.currentRegion) {
@@ -289,15 +351,9 @@ export class BaseChart {
 
   // Preserve current tooltip state before data updates
   preserveTooltipState() {
-    // Debug logging (remove in production)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[preserveTooltipState] Current region:', this.currentRegion);
-      console.log('[preserveTooltipState] Last mouse event:', !!this.lastMouseEvent);
-      console.log('[preserveTooltipState] Canvas:', !!this.canvas);
-    }
-    
     this.preservedState.wasTooltipVisible = this.currentRegion !== null;
     this.preservedState.lastRegion = this.currentRegion;
+    this.preservedState.wasTouch = this.isTouch || false; // Preserve touch state
     
     if (this.lastMouseEvent && this.canvas) {
       const rect = this.canvas.getBoundingClientRect();
@@ -311,7 +367,8 @@ export class BaseChart {
         clientX: this.lastMouseEvent.clientX,
         clientY: this.lastMouseEvent.clientY,
         pageX: this.lastMouseEvent.pageX,
-        pageY: this.lastMouseEvent.pageY
+        pageY: this.lastMouseEvent.pageY,
+        isTouchEvent: this.lastMouseEvent.isTouchEvent || false // Preserve touch state
       };
       
       // Calculate relative position within the chart
@@ -368,11 +425,18 @@ export class BaseChart {
           clientY: rect.top + y,
           pageX: rect.left + x + scrollX,
           pageY: rect.top + y + scrollY,
-          target: this.canvas
+          target: this.canvas,
+          isTouchEvent: this.preservedState.lastMousePosition?.isTouchEvent || false // Restore touch state
         };
         
         this.lastMouseEvent = syntheticEvent;
         this.currentRegion = region;
+        
+        // Restore touch state if it was preserved
+        if (this.preservedState.wasTouch) {
+          this.isTouch = true;
+        }
+        
         this.updateTooltip(syntheticEvent, region);
         this.redrawWithHighlight();
         
@@ -397,37 +461,17 @@ export class BaseChart {
     }
   }
 
-  // Smart tooltip restoration for charts with new data
-  restoreTooltipForStreaming() {
-    return this.restoreTooltipSmart();
-  }
-
   // Smart tooltip restoration - finds closest data point after chart updates
   restoreTooltipSmart() {
-    // Debug logging (remove in production)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[restoreTooltipSmart] Preserved state:', this.preservedState);
-      console.log('[restoreTooltipSmart] Canvas:', !!this.canvas);
-    }
-    
     if (!this.preservedState.wasTooltipVisible) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[restoreTooltipSmart] No tooltip was visible to restore');
-      }
       return false;
     }
     
     if (!this.preservedState.lastRelativePosition) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[restoreTooltipSmart] No relative position saved');
-      }
       return false;
     }
     
     if (!this.canvas) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[restoreTooltipSmart] No canvas available');
-      }
       return false;
     }
 
@@ -449,7 +493,7 @@ export class BaseChart {
         return false;
       }
       
-      // For streaming charts, find the closest available region (more forgiving)
+      // For charts with preserved data, find the closest available region (more forgiving)
       let region = this.getNearestRegion(x, y);
       
       // If no exact region found, try to find the closest region by x-coordinate
@@ -492,11 +536,17 @@ export class BaseChart {
           clientY: rect.top + y,
           pageX: rect.left + x + scrollX,
           pageY: rect.top + y + scrollY,
-          target: this.canvas
+          target: this.canvas,
+          isTouchEvent: this.preservedState.lastMousePosition?.isTouchEvent || false // Restore touch state
         };
         
         this.lastMouseEvent = syntheticEvent;
         this.currentRegion = region;
+        
+        // Restore touch state if it was preserved
+        if (this.preservedState.wasTouch) {
+          this.isTouch = true;
+        }
         
         // Claim tooltip ownership immediately before updating
         const tooltip = BaseChart.getSharedTooltip();
@@ -527,6 +577,7 @@ export class BaseChart {
     this.preservedState.lastRegion = null;
     this.preservedState.lastMousePosition = null;
     this.preservedState.lastRelativePosition = null;
+    this.preservedState.wasTouch = false; // Clear touch state
   }
 
   // Handle click events
@@ -717,21 +768,110 @@ export class BaseChart {
     if (!tooltip || tooltip.style.display === 'none' || !event) return;
     
     try {
-      // Use pageX/pageY or calculate from clientX/clientY + scroll offset
-      const scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
-      const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      // Check if this is actually a touch event (simpler detection)
+      const isActualTouch = event.isTouchEvent || false;
       
-      const x = (event.pageX || event.clientX + scrollX) + 10;
-      const y = (event.pageY || event.clientY + scrollY) - 10;
+      let left, top;
+      
+      if (isActualTouch) {
+        // Get tooltip dimensions for better positioning
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const tooltipWidth = tooltipRect.width || 100; // fallback width
+        const tooltipHeight = tooltipRect.height || 30; // fallback height
+        
+        // Reasonable touch offset - configurable constants
+        const touchOffset = BaseChart.TOUCH_OFFSET;
+        const safetyBuffer = BaseChart.TOUCH_SAFETY_BUFFER;
+        
+        // For touch devices: position tooltip offset by reasonable touch distance
+        const pageX = event.pageX || (event.clientX + (window.pageXOffset || document.documentElement.scrollLeft || 0));
+        const pageY = event.pageY || (event.clientY + (window.pageYOffset || document.documentElement.scrollTop || 0));
+        
+        // Primary position: left and above finger (more reasonable offset)
+        left = pageX - (tooltipWidth + touchOffset);
+        top = pageY - (tooltipHeight + touchOffset);
+        
+        // Prevent tooltip from going off the left edge
+        if (left < 10) {
+          // Fallback to right side: smaller offset
+          left = pageX + touchOffset + safetyBuffer;
+        }
+        
+        // Prevent tooltip from going above viewport
+        if (top < 10) {
+          // Fallback to below finger: smaller offset
+          top = pageY + touchOffset + safetyBuffer;
+        }
+      } else {
+        // For mouse: simple positioning with basic edge detection
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        
+        const pageX = event.pageX || (event.clientX + scrollX);
+        const pageY = event.pageY || (event.clientY + scrollY);
+        
+        // Get tooltip dimensions for edge detection
+        let tooltipRect = tooltip.getBoundingClientRect();
+        let tooltipWidth = tooltipRect.width || 150; // fallback width
+        let tooltipHeight = tooltipRect.height || 40; // fallback height
+        
+        // For multi-line tooltips (like box plots), ensure we have proper dimensions
+        if (tooltipRect.width === 0 || tooltipRect.height === 0) {
+          // Force a reflow to get accurate dimensions
+          tooltip.style.visibility = 'hidden';
+          tooltip.style.display = 'block';
+          const forcedRect = tooltip.getBoundingClientRect();
+          tooltip.style.visibility = 'visible';
+          
+          if (forcedRect.width > 0 && forcedRect.height > 0) {
+            tooltipWidth = forcedRect.width;
+            tooltipHeight = forcedRect.height;
+          }
+        }
+        
+        // Get viewport dimensions
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Use overridable method for position calculation
+        const position = this.calculateTooltipPosition(pageX, pageY, tooltipWidth, tooltipHeight, viewportWidth, viewportHeight);
+        left = position.left;
+        top = position.top;
+      }
       
       // Ensure coordinates are valid numbers
-      if (isNaN(x) || isNaN(y)) return;
+      if (isNaN(left) || isNaN(top)) return;
       
-      tooltip.style.left = Math.max(0, x) + 'px';
-      tooltip.style.top = Math.max(0, y) + 'px';
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
     } catch (error) {
       console.warn('Error updating tooltip position:', error);
     }
+  }
+
+  // Default tooltip positioning logic - can be overridden by chart types
+  calculateTooltipPosition(pageX, pageY, tooltipWidth, tooltipHeight, viewportWidth, viewportHeight) {
+    // Default position: bottom-left corner of tooltip northeast of cursor
+    let left = pageX + BaseChart.MOUSE_OFFSET;
+    let top = pageY - (tooltipHeight + BaseChart.MOUSE_OFFSET);
+    
+    // Check if tooltip would go off the right edge
+    if (left + tooltipWidth > viewportWidth - 10) {
+      // Flip to northwest: bottom-right corner of tooltip northwest of cursor
+      left = pageX - (tooltipWidth + BaseChart.MOUSE_OFFSET);
+    }
+    
+    // Check if tooltip would go off the top edge
+    if (top < 10) {
+      // Move below cursor: top-left corner southeast of cursor
+      top = pageY + BaseChart.MOUSE_OFFSET;
+    }
+    
+    // Final boundary checks
+    left = Math.max(10, left);
+    top = Math.max(10, top);
+    
+    return { left, top };
   }
 
   // Hide tooltip (simple version)
@@ -833,17 +973,21 @@ export class BaseChart {
   redrawWithHighlight() {
     // Ensure we have a clean canvas
     this.ctx.save();
-    this.ctx.clearRect(0, 0, this.width, this.height);
     
-    // Redraw the chart completely
-    this.draw();
-    
-    // Add highlight if needed
-    if (this.currentRegion !== null && !this.options.disableHighlight) {
-      this.drawHighlight(this.currentRegion);
+    try {
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      
+      // Redraw the chart completely
+      this.draw();
+      
+      // Add highlight if needed
+      if (this.currentRegion !== null && !this.options.disableHighlight) {
+        this.drawHighlight(this.currentRegion);
+      }
+    } finally {
+      // Always restore context state, even if exception occurs
+      this.ctx.restore();
     }
-    
-    this.ctx.restore();
   }
 
   // Draw highlight - to be implemented by subclasses
@@ -901,20 +1045,26 @@ export class BaseChart {
     // Add defensive null check for canvas
     if (!this.canvas) return;
     
-    // For streaming charts, preserve tooltip state and transfer ownership temporarily
+    // Clear all pending timers to prevent memory leaks
+    this.timers.forEach(timerId => {
+      clearTimeout(timerId);
+    });
+    this.timers.clear();
+    
+    // For charts with preserved tooltip state, maintain tooltip ownership temporarily
     const tooltip = BaseChart.getSharedTooltip();
-    let shouldPreserveForStreaming = false;
+    let preservedTooltipOwnership = false;
     
     if (tooltip && tooltip._owner === this.chartId && this.preservedState.wasTooltipVisible) {
       this.preserveTooltipState();
-      shouldPreserveForStreaming = true;
+      preservedTooltipOwnership = true;
       
-      // Clear ownership temporarily to prevent hiding during destruction
-      tooltip._owner = null;
+      // Don't clear ownership here - let the new chart instance with the same persistent ID claim it
+      // This maintains continuity across redraws
+    } else {
+      // Hide any active tooltip (but only if we own it)
+      this.hideTooltip();
     }
-    
-    // Hide any active tooltip (but only if we own it)
-    this.hideTooltip();
     
     // Remove mouse event listeners to prevent memory leaks
     if (this.boundHandleMouseMove) {
@@ -1005,6 +1155,12 @@ export class BaseChart {
     this.regions = [];
     this.isTouch = false;
     
+    // Clear any pending timers
+    this.timers.forEach(timerId => {
+      clearTimeout(timerId);
+    });
+    this.timers.clear();
+    
     // Reset canvas cursor
     if (this.canvas) {
       this.canvas.style.cursor = 'default';
@@ -1016,12 +1172,29 @@ export class BaseChart {
     }
   }
 
+  // Static method to clean up persistent chart ID from canvas (call when canvas is being removed)
+  static cleanupCanvasChartId(canvas) {
+    if (canvas && canvas.dataset) {
+      delete canvas.dataset.sparklineChartId;
+    }
+  }
+
   // Static method to clean up shared tooltip (call this when disposing of all charts)
   static cleanupSharedTooltip() {
     if (BaseChart.sharedTooltip && BaseChart.sharedTooltip.parentNode) {
       BaseChart.sharedTooltip.parentNode.removeChild(BaseChart.sharedTooltip);
       BaseChart.sharedTooltip = null;
     }
+  }
+
+  // Static method to transfer tooltip ownership (useful during chart recreation)
+  static transferTooltipOwnership(fromChartId, toChartId) {
+    const tooltip = BaseChart.getSharedTooltip();
+    if (tooltip && tooltip._owner === fromChartId) {
+      tooltip._owner = toChartId;
+      return true;
+    }
+    return false;
   }
 
   // Static method to refresh all active tooltips (useful after Vue updates)
@@ -1039,7 +1212,14 @@ BaseChart.sharedTooltip = null;
 
 // Auto-cleanup shared tooltip on page unload
 if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
+  const beforeUnloadHandler = () => {
     BaseChart.cleanupSharedTooltip();
-  });
+  };
+  
+  window.addEventListener('beforeunload', beforeUnloadHandler);
+  
+  // Provide cleanup method for SPA environments
+  BaseChart.cleanupGlobalListeners = () => {
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+  };
 }

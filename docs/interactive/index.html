@@ -1042,16 +1042,12 @@
             // Function to update the chart
             function updateChart() {
                 try {
-                    // Clean up existing chart and touch handlers
-                    const canvas = document.getElementById('interactive-chart');
-                    if (canvas && canvas.touchCleanup) {
-                        canvas.touchCleanup();
-                    }
-                    
+                    // Clean up existing chart
                     if (interactiveChart && typeof interactiveChart.destroy === 'function') {
                         interactiveChart.destroy();
                     }
                     
+                    const canvas = document.getElementById('interactive-chart');
                     const type = controls.type?.value || 'line';
                     const valuesStr = controls.values?.value || '5,6,7,9,9,5,3,2,2,4,6,7';
                     const width = parseInt(controls.width?.value || '300');
@@ -1079,101 +1075,11 @@
                     const options = getChartOptions();
                     interactiveChart = createSparkline(canvas, values, type, options);
                     
-                    // Add touch support for tooltips
-                    if (canvas && interactiveChart && !options.disableTooltips) {
-                        setupTouchSupport(canvas, interactiveChart);
-                    }
+                    // Charts automatically include touch support when created
+                    // No need for additional custom touch handling
                 } catch (error) {
                     console.log('Error updating chart:', error);
                 }
-            }
-
-            // Touch support for tooltips - Use chart's built-in tooltip system
-            function setupTouchSupport(canvas, chart) {
-                let isTouch = false;
-
-                // Touch event handlers using chart's built-in tooltip system
-                function handleTouchStart(event) {
-                    event.preventDefault();
-                    isTouch = true;
-                    
-                    const touch = event.touches[0];
-                    
-                    // Create synthetic mouse event for the chart's mouse handlers
-                    const syntheticEvent = {
-                        clientX: touch.clientX,
-                        clientY: touch.clientY,
-                        pageX: touch.pageX || (touch.clientX + window.pageXOffset),
-                        pageY: touch.pageY || (touch.clientY + window.pageYOffset),
-                        target: canvas
-                    };
-                    
-                    // Use the chart's built-in mouse move handler
-                    if (chart && typeof chart.handleMouseMove === 'function') {
-                        chart.handleMouseMove(syntheticEvent);
-                    }
-                }
-
-                function handleTouchMove(event) {
-                    event.preventDefault();
-                    if (isTouch && event.touches.length === 1) {
-                        const touch = event.touches[0];
-                        const rect = canvas.getBoundingClientRect();
-                        
-                        // Check if touch is still within canvas bounds
-                        if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
-                            touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
-                            
-                            // Create synthetic mouse event
-                            const syntheticEvent = {
-                                clientX: touch.clientX,
-                                clientY: touch.clientY,
-                                pageX: touch.pageX || (touch.clientX + window.pageXOffset),
-                                pageY: touch.pageY || (touch.clientY + window.pageYOffset),
-                                target: canvas
-                            };
-                            
-                            // Use the chart's built-in mouse move handler
-                            if (chart && typeof chart.handleMouseMove === 'function') {
-                                chart.handleMouseMove(syntheticEvent);
-                            }
-                        } else {
-                            // Touch moved outside canvas - hide tooltip
-                            if (chart && typeof chart.handleMouseLeave === 'function') {
-                                chart.handleMouseLeave();
-                            }
-                        }
-                    }
-                }
-
-                function handleTouchEnd(event) {
-                    event.preventDefault();
-                    isTouch = false;
-                    
-                    // Use the chart's built-in mouse leave handler to clean up
-                    if (chart && typeof chart.handleMouseLeave === 'function') {
-                        chart.handleMouseLeave();
-                    }
-                }
-
-                // Add touch event listeners
-                canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-                canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-                canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-                canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
-
-                // Store cleanup function on canvas for later removal
-                canvas.touchCleanup = function() {
-                    canvas.removeEventListener('touchstart', handleTouchStart);
-                    canvas.removeEventListener('touchmove', handleTouchMove);
-                    canvas.removeEventListener('touchend', handleTouchEnd);
-                    canvas.removeEventListener('touchcancel', handleTouchEnd);
-                    
-                    // Clean up any tooltips using the chart's cleanup
-                    if (chart && typeof chart.hideTooltip === 'function') {
-                        chart.hideTooltip();
-                    }
-                };
             }
 
             // Array to store observers for cleanup
