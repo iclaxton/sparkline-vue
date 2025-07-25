@@ -16,7 +16,9 @@ export default {
     height: { type: Number, default: 30 },
     options: { type: Object, default: () => ({}) },
     // Performance optimization mode
-    optimized: { type: Boolean, default: false }
+    optimized: { type: Boolean, default: false },
+    // Streaming mode - enables smart tooltip restoration
+    streaming: { type: Boolean, default: false }
   },
   setup(props, { emit }) {
     const canvas = ref(null);

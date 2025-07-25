@@ -160,6 +160,9 @@ export class BaseChart {
     // Register for shared scroll handling (performance optimization)
     BaseChart.registerScrollHandler(this);
 
+    // Register for shared scroll handling (performance optimization)
+    BaseChart.registerScrollHandler(this);
+
     // Touch events for mobile support
     this.setupTouchSupport();
   }
@@ -310,6 +313,9 @@ export class BaseChart {
     // Store last mouse event for tooltip refresh capability
     this.lastMouseEvent = event;
 
+    // Store last mouse event for tooltip refresh capability
+    this.lastMouseEvent = event;
+
     const rect = this.canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -339,6 +345,7 @@ export class BaseChart {
 
   // Handle mouse leave events
   handleMouseLeave() {
+    this.lastMouseEvent = null; // Clear stored mouse event
     this.lastMouseEvent = null; // Clear stored mouse event
     if (this.currentRegion !== null) {
       this.currentRegion = null;
@@ -715,8 +722,84 @@ export class BaseChart {
   createTooltip() {
     this.tooltip = BaseChart.getSharedTooltip();
     return this.tooltip;
+
+
+  // Get or create shared tooltip element (Vue-safe version)
+  static getSharedTooltip() {
+    if (!BaseChart.sharedTooltip || !document.body.contains(BaseChart.sharedTooltip)) {
+      BaseChart.sharedTooltip = document.createElement('div');
+      BaseChart.sharedTooltip.className = 'sparkline-tooltip';
+      BaseChart.sharedTooltip.style.cssText = `
+        position: absolute;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-family: Arial, sans-serif;
+        pointer-events: none;
+        z-index: 1000;
+        display: none;
+        line-height: 1.4;
+        white-space: pre-line;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        max-width: 200px;
+      `;
+      
+      // Add to document.body (outside Vue's control) instead of any container
+      document.body.appendChild(BaseChart.sharedTooltip);
+      
+      // Initialize tooltip ownership tracking
+      BaseChart.sharedTooltip._owner = null;
+    }
+    return BaseChart.sharedTooltip;
   }
 
+  // Shared scroll handler system (performance optimization)
+  static scrollCharts = new Set();
+  static scrollHandlerAttached = false;
+
+  static registerScrollHandler(chart) {
+    BaseChart.scrollCharts.add(chart);
+    
+    if (!BaseChart.scrollHandlerAttached) {
+      window.addEventListener('scroll', BaseChart.handleGlobalScroll, { passive: true });
+      BaseChart.scrollHandlerAttached = true;
+    }
+  }
+
+  static unregisterScrollHandler(chart) {
+    BaseChart.scrollCharts.delete(chart);
+    
+    if (BaseChart.scrollCharts.size === 0 && BaseChart.scrollHandlerAttached) {
+      window.removeEventListener('scroll', BaseChart.handleGlobalScroll);
+      BaseChart.scrollHandlerAttached = false;
+    }
+  }
+
+  static handleGlobalScroll() {
+    // Only update charts that have active tooltips
+    BaseChart.scrollCharts.forEach(chart => {
+      // Safety check: ensure chart still has valid canvas and state
+      if (chart && chart.canvas && chart.currentRegion !== null && chart.lastMouseEvent) {
+        try {
+          chart.updateTooltipPosition(chart.lastMouseEvent);
+        } catch (error) {
+          // If chart is in invalid state, remove it from scroll tracking
+          console.warn('Removing invalid chart from scroll tracking:', error);
+          BaseChart.scrollCharts.delete(chart);
+        }
+      }
+    });
+  }
+
+  // Create tooltip element (simple version)
+  createTooltip() {
+    this.tooltip = BaseChart.getSharedTooltip();
+    return this.tooltip;
+  }
+
+  // Update tooltip (simple version)
   // Update tooltip (simple version)
   updateTooltip(event, region) {
     if (this.options.disableTooltips || region === null) {
@@ -736,18 +819,26 @@ export class BaseChart {
     if (tooltipContent && typeof tooltipContent === 'object' && tooltipContent.items) {
       // Multi-value tooltip with color spots - use innerHTML for better performance
       let html = '';
+      // Multi-value tooltip with color spots - use innerHTML for better performance
+      let html = '';
       tooltipContent.items.forEach(item => {
+        html += `<div style="display: flex; align-items: center; margin: 2px 0; gap: 6px;">`;
         html += `<div style="display: flex; align-items: center; margin: 2px 0; gap: 6px;">`;
         
         if (item.color) {
+          html += `<div style="width: 8px; height: 8px; background: ${item.color}; border-radius: 50%; flex-shrink: 0;"></div>`;
           html += `<div style="width: 8px; height: 8px; background: ${item.color}; border-radius: 50%; flex-shrink: 0;"></div>`;
         }
         
         html += `<span>${this.escapeHtml(item.label || '')}</span>`;
         html += `</div>`;
+        html += `<span>${this.escapeHtml(item.label || '')}</span>`;
+        html += `</div>`;
       });
       tooltip.innerHTML = html;
+      tooltip.innerHTML = html;
     } else {
+      // Single value tooltip
       // Single value tooltip
       const value = this.values[region];
       const formattedValue = this.formatTooltipValue(value, region);
@@ -875,7 +966,15 @@ export class BaseChart {
   }
 
   // Hide tooltip (simple version)
+  // Hide tooltip (simple version)
   hideTooltip() {
+    const tooltip = BaseChart.getSharedTooltip();
+    if (!tooltip) return;
+    
+    // Only hide the tooltip if this chart owns it or if no one owns it
+    if (!tooltip._owner || tooltip._owner === this.chartId) {
+      tooltip.style.display = 'none';
+      tooltip._owner = null;
     const tooltip = BaseChart.getSharedTooltip();
     if (!tooltip) return;
     
@@ -969,6 +1068,13 @@ export class BaseChart {
     return div.innerHTML;
   }
 
+  // Escape HTML for safe innerHTML usage
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // Redraw with highlight
   redrawWithHighlight() {
     // Ensure we have a clean canvas
@@ -988,6 +1094,8 @@ export class BaseChart {
       // Always restore context state, even if exception occurs
       this.ctx.restore();
     }
+    
+    this.ctx.restore();
   }
 
   // Draw highlight - to be implemented by subclasses
@@ -1080,6 +1188,9 @@ export class BaseChart {
     // Unregister from shared scroll handler
     BaseChart.unregisterScrollHandler(this);
     
+    // Unregister from shared scroll handler
+    BaseChart.unregisterScrollHandler(this);
+    
     // Remove touch event listeners (only if they were added)
     if (this.boundHandleTouchStart) {
       this.canvas.removeEventListener('touchstart', this.boundHandleTouchStart);
@@ -1098,6 +1209,9 @@ export class BaseChart {
     // Reset touch state for consistency
     this.isTouch = false;
     
+    // Clear stored mouse event and preserved state
+    this.lastMouseEvent = null;
+    this.clearPreservedState();
     // Clear stored mouse event and preserved state
     this.lastMouseEvent = null;
     this.clearPreservedState();
