@@ -8,9 +8,10 @@ export default defineConfig(({ command, mode }) => {
   const isDocsBuild = command === 'build' && mode === 'docs';  
   
   if (isLibraryBuild) {
-    // Library build configuration
+    // Library build configuration (production mode)
     return {
       plugins: [vue()],
+      mode: 'production', // Ensure production mode
       build: {
         lib: {
           entry: resolve(__dirname, 'index.js'),
@@ -18,6 +19,7 @@ export default defineConfig(({ command, mode }) => {
           fileName: (format) => `sparkline-vue.${format}.js`,
           formats: ['es', 'umd']
         },
+        minify: 'terser', // Enable minification
         rollupOptions: {
           external: ['vue'],
           output: {
@@ -27,17 +29,22 @@ export default defineConfig(({ command, mode }) => {
           }
         },
         outDir: 'dist'
+      },
+      define: {
+        'process.env.NODE_ENV': '"production"' // Explicitly set NODE_ENV to production
       }
     };
   }
   
   if (isDocsBuild) {
-    // Docs build configuration
+    // Docs build configuration (production mode)
     return {
       base: '/sparkline-vue/', // MUST match your GitHub Pages repo name
       plugins: [vue()],
+      mode: 'production', // Ensure production mode
       build: {
-        outDir: 'dist-docs',        
+        outDir: 'dist-docs',
+        minify: 'terser', // Enable minification for better performance
         rollupOptions: {
           input: {
             main: resolve(__dirname, 'index.html'),
@@ -67,7 +74,8 @@ export default defineConfig(({ command, mode }) => {
       },
       define: {
         __VUE_OPTIONS_API__: true,
-        __VUE_PROD_DEVTOOLS__: false
+        __VUE_PROD_DEVTOOLS__: false,
+        'process.env.NODE_ENV': '"production"' // Explicitly set NODE_ENV to production
       }
     };
   }

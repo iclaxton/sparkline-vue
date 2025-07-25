@@ -22,8 +22,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:docs": "vite build --mode=docs --outDir=dist-docs",
+    "build": "cross-env NODE_ENV=production vite build",
+    "build:docs": "cross-env NODE_ENV=production vite build --mode=docs --outDir=dist-docs",
     "preview": "vite preview",
     "serve": "vite",
     "clean": "rimraf dist dist-docs",
@@ -43,15 +43,17 @@
     "data-visualization"
   ],
   "author": "Ian Claxton",
-  "license": "BSD-3-Clause",  
+  "license": "BSD-3-Clause",
   "peerDependencies": {
     "vue": "^3.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
+    "cross-env": "^7.0.3",
+    "rimraf": "^5.0.0",
+    "terser": "^5.43.1",
     "vite": "^5.0.0",
-    "vue": "^3.4.0",
-    "rimraf": "^5.0.0"
+    "vue": "^3.4.0"
   },
   "files": [
     "index.js",

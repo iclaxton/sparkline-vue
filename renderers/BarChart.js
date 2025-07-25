@@ -226,6 +226,9 @@ export class BarChart extends BaseChart {
     let range = maxVal - minVal;
     if (range === 0) range = 1;
 
+    // Store stack totals for tooltip use
+    this.stackTotals = stackTotals;
+
     // Calculate bar dimensions
     let barWidthFinal = barWidth;
     let centerOffset = 0;
@@ -441,20 +444,33 @@ export class BarChart extends BaseChart {
     
     if (isStacked) {
       // Multi-value tooltip for stacked bars
-      const stackedRegions = this.regions.filter(r => r.valueIndex === region);
+      // Region here is the stackIndex (which column)
+      const stackedRegions = this.regions.filter(r => r.stackIndex === region);
       
       if (stackedRegions.length === 0) return null;
       
-      // Sort by stackIndex to show in visual order (top to bottom)
-      stackedRegions.sort((a, b) => b.stackIndex - a.stackIndex);
+      // Calculate the total for this stack (use pre-calculated if available)
+      const stackTotal = this.stackTotals && this.stackTotals[region] !== undefined 
+        ? this.stackTotals[region] 
+        : stackedRegions.reduce((sum, r) => sum + (r.value || 0), 0);
+      
+      // Sort by segmentIndex to show in visual order (bottom to top)
+      stackedRegions.sort((a, b) => a.segmentIndex - b.segmentIndex);
       
       const items = stackedRegions.map(r => {
-        const stackValue = this.stackedValues[r.valueIndex][r.stackIndex];
-        const formattedValue = this.formatTooltipValue(stackValue, r.valueIndex);
+        const stackValue = r.value; // Value is stored directly in the region
+        const formattedValue = this.formatTooltipValue(stackValue, r.stackIndex);
         return {
           label: `${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`,
-          color: this.getBarColor(stackValue, r.valueIndex, r.stackIndex)
+          color: r.color // Color is stored directly in the region
         };
+      });
+      
+      // Add total as the last item
+      const formattedTotal = this.formatTooltipValue(stackTotal, region);
+      items.push({
+        label: `Total: ${this.options.tooltipPrefix}${formattedTotal}${this.options.tooltipSuffix}`,
+        color: '#666' // Gray color for total
       });
       
       return { items };

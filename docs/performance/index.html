@@ -461,16 +461,22 @@
                 document.getElementById('memory-savings').textContent = `${memoryImprovement}%`;
                 document.getElementById('dom-reduction').textContent = `${domReduction}%`;
                 
-                // Highlight the winner
-                const standardSection = document.querySelector('.test-section:nth-child(2)');
-                const optimizedSection = document.querySelector('.test-section:nth-child(3)');
+                // Find the correct sections by their content/containers
+                const standardSection = document.querySelector('#standard-charts').closest('.test-section');
+                const optimizedSection = document.querySelector('#optimized-charts').closest('.test-section');
                 
-                if (lastOptimizedTime < lastStandardTime) {
-                    optimizedSection.classList.add('performance-winner');
-                    standardSection.classList.add('performance-loser');
-                } else {
-                    standardSection.classList.add('performance-winner');
-                    optimizedSection.classList.add('performance-loser');
+                if (standardSection && optimizedSection) {
+                    // Remove any existing classes first
+                    standardSection.classList.remove('performance-winner', 'performance-loser');
+                    optimizedSection.classList.remove('performance-winner', 'performance-loser');
+                    
+                    if (lastOptimizedTime < lastStandardTime) {
+                        optimizedSection.classList.add('performance-winner');
+                        standardSection.classList.add('performance-loser');
+                    } else {
+                        standardSection.classList.add('performance-winner');
+                        optimizedSection.classList.add('performance-loser');
+                    }
                 }
             }
         }
