@@ -303,12 +303,311 @@ $('.sparkline').sparkline([1,4,6,6,8,5,3,5], {
 />
 ```
 
+## Advanced Usage
+
+### Programmatic Control
+
+Access chart methods for advanced control:
+
+```vue
+<template>
+  <Sparkline 
+    ref="chartRef"
+    :data="chartData" 
+    type="line"
+  />
+  <button @click="refreshChart">Refresh</button>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import Sparkline from 'sparkline-vue'
+
+const chartRef = ref(null)
+const chartData = ref([1, 2, 3, 4, 5])
+
+const refreshChart = () => {
+  chartRef.value?.refresh()
+}
+
+// Access chart instance
+const getChartDetails = () => {
+  const instance = chartRef.value?.getChartInstance()
+  console.log('Chart instance:', instance)
+}
+</script>
+```
+
+### Event Handling
+
+Listen to chart interactions:
+
+```vue
+<Sparkline 
+  :data="[1,2,3,4,5]"
+  type="line"
+  @click="handleClick"
+  @region-change="handleRegionChange"
+/>
+
+<script setup>
+const handleClick = (detail) => {
+  console.log('Clicked region:', detail.region)
+  console.log('Value:', detail.value)
+}
+
+const handleRegionChange = (detail) => {
+  console.log('Region changed:', detail.region)
+  console.log('Previous region:', detail.previousRegion)
+}
+</script>
+```
+
+## Performance Optimization
+
+### Use Optimized Mode for Many Charts
+
+When displaying many charts (50+), enable optimized mode:
+
+```vue
+<Sparkline 
+  :data="data"
+  :optimized="true"
+/>
+```
+
+Benefits:
+- **Object Pooling**: Reuses chart instances
+- **Shared Tooltips**: One tooltip for all charts
+- **Cached Defaults**: Reduces memory allocations
+- **~50% faster** rendering with large datasets
+
+### Streaming Mode for Live Data
+
+For real-time data updates:
+
+```vue
+<Sparkline 
+  :data="liveData"
+  :streaming="true"
+/>
+```
+
+This preserves tooltip state during updates for smoother UX.
+
+### Performance Tips
+
+1. **Batch Updates**: Update data in batches rather than individual points
+2. **Debounce Rapid Changes**: Use `debounce` for frequently updating data
+3. **Appropriate Dimensions**: Smaller charts render faster
+4. **Disable Tooltips**: Set `disableTooltips: true` if not needed
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import { debounce } from 'lodash-es'
+
+const chartData = ref([])
+
+// Debounce rapid updates
+const updateData = debounce((newData) => {
+  chartData.value = newData
+}, 100)
+</script>
+```
+
+## Accessibility
+
+The component includes built-in accessibility features:
+
+- **ARIA role**: Canvas has `role="img"`
+- **ARIA label**: Descriptive label with chart type and data point count
+- **Keyboard navigation**: Accessible through standard tab navigation
+- **Screen reader friendly**: Provides context about chart content
+
+### Enhancing Accessibility
+
+Provide additional context when needed:
+
+```vue
+<div role="region" aria-label="Sales performance chart">
+  <h3 id="chart-title">Monthly Sales</h3>
+  <Sparkline 
+    :data="salesData"
+    type="line"
+    aria-describedby="chart-title"
+  />
+  <p class="sr-only">
+    Sales trend showing {{ salesData.length }} months of data
+  </p>
+</div>
+```
+
+## Common Pitfalls
+
+### 1. Forgetting Required Props
+
+The component includes helpful validation that will warn you in development mode.
+
+❌ **Wrong**:
+```vue
+<Sparkline type="line" />
+<!-- Console warning: [Sparkline] data prop is required -->
+```
+
+✅ **Correct**:
+```vue
+<Sparkline :data="[1,2,3,4,5]" type="line" />
+```
+
+### 2. Passing Non-Numeric Data
+
+❌ **Wrong**:
+```vue
+<Sparkline :data="['1', '2', '3']" />
+<!-- Console warning: [Sparkline] data must be an array -->
+```
+
+✅ **Correct**:
+```vue
+<Sparkline :data="[1, 2, 3]" />
+```
+
+### 3. Mutating Props Directly
+
+❌ **Wrong**:
+```vue
+<script setup>
+const data = [1, 2, 3]
+data.push(4) // Mutates directly
+</script>
+```
+
+✅ **Correct**:
+```vue
+<script setup>
+import { ref } from 'vue'
+
+const data = ref([1, 2, 3])
+data.value = [...data.value, 4] // Create new array
+</script>
+```
+
+### 4. Not Handling Empty Data
+
+✅ **Best Practice**:
+```vue
+<template>
+  <div v-if="chartData.length > 0">
+    <Sparkline :data="chartData" />
+  </div>
+  <div v-else>
+    No data available
+  </div>
+</template>
+```
+
+### 5. Incorrect Dimensions
+
+❌ **Wrong**:
+```vue
+<Sparkline :data="data" width="200px" height="50px" />
+<!-- Console warning: [Sparkline] width must be a positive number -->
+```
+
+✅ **Correct**:
+```vue
+<Sparkline :data="data" :width="200" :height="50" />
+```
+
+## Server-Side Rendering (SSR)
+
+The component is SSR-compatible (Nuxt, VitePress, etc.):
+
+```vue
+<!-- Works in Nuxt without client-only wrapper -->
+<Sparkline :data="[1,2,3,4,5]" type="line" />
+```
+
+The component automatically detects server environment and skips canvas operations during SSR.
+
+## TypeScript Support
+
+Full TypeScript support with comprehensive type definitions:
+
+```typescript
+import { ref } from 'vue'
+import Sparkline, { type SparklineProps } from 'sparkline-vue'
+
+const props: SparklineProps = {
+  data: [1, 2, 3, 4, 5],
+  type: 'line',
+  width: 200,
+  height: 50,
+  options: {
+    lineColor: '#00f',
+    fillColor: '#cdf'
+  }
+}
+```
+
+## Testing
+
+The package includes comprehensive tests. To run them:
+
+```bash
+npm install
+npm test
+```
+
+### Testing Your Implementation
+
+```typescript
+import { mount } from '@vue/test-utils'
+import Sparkline from 'sparkline-vue'
+
+describe('My Sparkline Usage', () => {
+  it('renders correctly', () => {
+    const wrapper = mount(Sparkline, {
+      props: {
+        data: [1, 2, 3, 4, 5],
+        type: 'line'
+      }
+    })
+    
+    expect(wrapper.find('canvas').exists()).toBe(true)
+  })
+})
+```
+
 ## Browser Support
 
 - Chrome 60+
 - Firefox 55+
 - Safari 12+
 - Edge 79+
+
+## Troubleshooting
+
+### Charts Not Rendering
+
+1. **Check browser console** for error messages
+2. **Verify data format** is an array of numbers
+3. **Ensure dimensions** are positive numbers
+4. **Check canvas support** in your browser
+
+### Performance Issues
+
+1. **Enable optimized mode** for many charts
+2. **Reduce data points** if possible
+3. **Use appropriate chart dimensions**
+4. **Disable tooltips** if not needed
+
+### TypeScript Errors
+
+1. **Update type definitions**: `npm install sparkline-vue@latest`
+2. **Check prop types** match the interface
+3. **Import types**: `import type { SparklineProps } from 'sparkline-vue'`
 
 ## Contributing
 

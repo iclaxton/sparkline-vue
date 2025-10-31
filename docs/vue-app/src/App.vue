@@ -264,12 +264,12 @@
 </template>
 
 <script>
-import SparkLine from './components/SparkLine.vue'
+import Sparkline from '/components/Sparkline.vue'
 
 export default {
   name: 'App',
   components: {
-    SparkLine
+    'spark-line': Sparkline
   },
   data() {
     return {
