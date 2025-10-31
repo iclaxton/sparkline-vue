@@ -23,6 +23,7 @@ export default defineConfig(({ command, mode }) => {
         rollupOptions: {
           external: ['vue'],
           output: {
+            exports: 'auto', // Suppress warning for mixed named/default exports
             globals: {
               vue: 'Vue'
             }
