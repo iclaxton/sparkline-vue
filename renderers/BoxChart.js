@@ -3,13 +3,27 @@
 
 import { BaseChart } from './BaseChart.js';
 
+/**
+ * BoxChart renderer for sparkline box plot charts
+ * Renders statistical distributions with quartiles, whiskers, and outliers
+ * @extends BaseChart
+ */
 export class BoxChart extends BaseChart {
+  /**
+   * Constructor for BoxChart
+   * @param {CanvasRenderingContext2D} ctx - Canvas rendering context
+   * @param {Object} props - Chart properties
+   */
   constructor(ctx, props) {
     super(ctx, props);
     this._cachedStats = null;
     this._cachedStatsData = null;
   }
 
+  /**
+   * Get default options for box plot chart
+   * @returns {Object} Default options object
+   */
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -32,6 +46,12 @@ export class BoxChart extends BaseChart {
     };
   }
 
+  /**
+   * Calculate box plot statistics from raw values
+   * @param {number[]} values - Array of numeric values
+   * @returns {Object|null} Statistics object with q1, q2 (median), q3, whiskers, and outliers
+   * @private
+   */
   calculateBoxPlotStats(values) {
     const sorted = [...values].sort((a, b) => a - b);
     const n = sorted.length;
@@ -67,7 +87,12 @@ export class BoxChart extends BaseChart {
     };
   }
 
-  // Cache-aware method to get box plot statistics
+  /**
+   * Get box plot statistics with caching for performance
+   * Supports both raw mode (pre-calculated stats) and computed mode
+   * @returns {Object|null} Statistics object or null if no data
+   * @private
+   */
   getStats() {
     const { raw } = this.options;
     
@@ -100,6 +125,9 @@ export class BoxChart extends BaseChart {
     return this._cachedStats;
   }
 
+  /**
+   * Draw the box plot with quartiles, whiskers, median, and outliers
+   */
   draw() {
     if (this.values.length === 0) return;
 
@@ -228,7 +256,13 @@ export class BoxChart extends BaseChart {
     }
   }
 
-  // Get nearest region to mouse cursor for smooth tooltip following
+  /**
+   * Get the nearest region to the mouse cursor for smooth tooltip following
+   * For box plots, always shows summary when mouse is over the chart
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Region index (always 0 for box plots) or null
+   */
   getNearestRegion(x, y) {
     // For box plots, always show the summary when mouse is over the chart
     const { width, height } = this;
@@ -240,7 +274,11 @@ export class BoxChart extends BaseChart {
     return null;
   }
 
-  // Override getTooltipContent for box plots to show detailed statistics
+  /**
+   * Get tooltip content with detailed box plot statistics
+   * @param {number} region - Region index
+   * @returns {Object|null} Tooltip content with items array containing all stats
+   */
   getTooltipContent(region) {
     const stats = this.getStats();
     if (!stats) return null;
@@ -281,7 +319,12 @@ export class BoxChart extends BaseChart {
     return { items };
   }
 
-  // Override tooltip formatting for box plots - matches original jquery.sparkline format
+  /**
+   * Default tooltip formatting for box plots (jquery.sparkline compatible)
+   * @param {number} value - Value to format
+   * @param {number} region - Region index
+   * @returns {string} Formatted multi-line tooltip text
+   */
   getDefaultTooltipFormat(value, region) {
     const stats = this.getStats();
     if (!stats) return 'No data';
@@ -294,6 +337,12 @@ Left Whisker: ${stats.lowerWhisker.toFixed(2)}
 Right Whisker: ${stats.upperWhisker.toFixed(2)}`;
   }
 
+  /**
+   * Get the region at a specific point for interaction detection
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Region index (always 0 for box plots) or null
+   */
   getRegionAtPoint(x, y) {
     // For box plots, we could detect different regions (quartiles, whiskers, etc.)
     // For now, return 0 if within the chart area
@@ -304,10 +353,11 @@ Right Whisker: ${stats.upperWhisker.toFixed(2)}`;
     return null;
   }
 
-  getNearestRegion(x, y) {
-    return this.getRegionAtPoint(x, y);
-  }
-
+  /**
+   * Get standardized fields for a box plot region (sparkline.js compliance)
+   * @param {number} region - Region index
+   * @returns {Object|null} Region fields object with quartiles and whiskers
+   */
   getRegionFields(region) {
     if (region === 0) {
       const stats = this.getStats();
@@ -333,6 +383,11 @@ Right Whisker: ${stats.upperWhisker.toFixed(2)}`;
     return super.getRegionFields(region);
   }
 
+  /**
+   * Draw highlight overlay for the hovered box plot
+   * Highlights the box outline and median line
+   * @param {number} region - Region index to highlight
+   */
   drawHighlight(region) {
     if (region === null || region === undefined) return;
     

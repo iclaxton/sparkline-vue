@@ -3,7 +3,16 @@
 
 import { BaseChart } from './BaseChart.js';
 
+/**
+ * TriStateChart renderer for win/loss/draw sparkline charts
+ * Renders three-state values (positive, negative, zero) as colored bars
+ * @extends BaseChart
+ */
 export class TriStateChart extends BaseChart {
+  /**
+   * Get default options for tristate chart
+   * @returns {Object} Default options object
+   */
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -17,6 +26,9 @@ export class TriStateChart extends BaseChart {
     };
   }
 
+  /**
+   * Draw the tristate chart with win/loss/draw bars centered on zero line
+   */
   draw() {
     if (this.values.length === 0) return;
 
@@ -110,6 +122,12 @@ export class TriStateChart extends BaseChart {
     });
   }
 
+  /**
+   * Get the region at a specific point for interaction detection
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Region index or null
+   */
   getRegionAtPoint(x, y) {
     if (this.values.length === 0) return null;
     
@@ -152,7 +170,12 @@ export class TriStateChart extends BaseChart {
     return null;
   }
 
-  // Get nearest region to mouse cursor for smooth tooltip following
+  /**
+   * Get the nearest region to the mouse cursor for smooth tooltip following
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Nearest region index or null
+   */
   getNearestRegion(x, y) {
     if (this.values.length === 0) return null;
     
@@ -202,6 +225,11 @@ export class TriStateChart extends BaseChart {
     return nearestIndex >= 0 ? nearestIndex : null;
   }
 
+  /**
+   * Get standardized fields for a region (sparkline.js compliance)
+   * @param {number} region - Region index
+   * @returns {Object} Region fields object
+   */
   getRegionFields(region) {
     if (typeof region === 'number') {
       const value = this.values[region];
@@ -219,7 +247,11 @@ export class TriStateChart extends BaseChart {
     return super.getRegionFields(region);
   }
 
-  // Get color for a specific region
+  /**
+   * Get the color for a specific region based on its tristate value
+   * @param {number} region - Region index
+   * @returns {string|null} Color hex code or null
+   */
   getRegionColor(region) {
     if (typeof region === 'number') {
       const value = this.values[region];
@@ -228,7 +260,11 @@ export class TriStateChart extends BaseChart {
     return null;
   }
 
-  // Override getTooltipContent for tristate charts to show win/loss/draw summary
+  /**
+   * Get tooltip content with current state and win/loss/draw summary
+   * @param {number} region - Region index
+   * @returns {Object|null} Tooltip content with items array
+   */
   getTooltipContent(region) {
     // For tristate charts, we can show a summary of all states when hovering over any bar
     const wins = this.values.filter(v => v > 0).length;
@@ -285,7 +321,12 @@ export class TriStateChart extends BaseChart {
     return null;
   }
 
-  // Custom tooltip formatting for tristate charts
+  /**
+   * Custom tooltip formatting for tristate charts (Win/Loss/Draw)
+   * @param {number} value - Value to format (1=Win, 0=Draw, -1=Loss)
+   * @param {number} region - Region index
+   * @returns {string} Formatted tooltip text
+   */
   getDefaultTooltipFormat(value, region) {
     // Force the custom tooltip format
     if (value === 1) return 'Win';
@@ -294,11 +335,22 @@ export class TriStateChart extends BaseChart {
     return `Tristate: ${value}`; // Fallback that shows it's working
   }
 
-  // Also override formatTooltipValue to ensure our custom format is used
+  /**
+   * Format tooltip value using custom tristate format
+   * @param {number} value - Value to format
+   * @param {number} region - Region index
+   * @returns {string} Formatted tooltip text
+   */
   formatTooltipValue(value, region) {
     return this.getDefaultTooltipFormat(value, region);
   }
 
+  /**
+   * Get bar color based on tristate value and colorMap
+   * @param {number} value - Bar value (positive/negative/zero)
+   * @returns {string} Color hex code
+   * @private
+   */
   getBarColor(value) {
     const { posBarColor, negBarColor, zeroBarColor, colorMap } = this.options;
     
@@ -313,6 +365,10 @@ export class TriStateChart extends BaseChart {
     }
   }
 
+  /**
+   * Draw highlight overlay for the hovered tristate bar
+   * @param {number} region - Region index to highlight
+   */
   drawHighlight(region) {
     if (typeof region !== 'number' || this.values[region] === null) return;
     

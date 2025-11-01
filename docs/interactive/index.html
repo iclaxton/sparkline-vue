@@ -1907,41 +1907,53 @@
                 });
             }
 
+            // Track if we're currently updating to prevent cascading updates
+            let isUpdating = false;
+
             // Set up auto-update listeners
             Object.values(controls).forEach(control => {
                 if (control) {
                     const handleUpdate = () => {
-                        if (control === controls.type) {
-                            updateOptionVisibility(control.value);
-                            updateDisplayedDefaults(); // Update default colors when type changes
-                            updateOverrideCheckboxes(); // Update override checkboxes based on whether values match defaults
+                        // Prevent cascading updates
+                        if (isUpdating) return;
+                        
+                        isUpdating = true;
+                        try {
+                            if (control === controls.type) {
+                                updateOptionVisibility(control.value);
+                                updateDisplayedDefaults(); // Update default colors when type changes
+                                updateOverrideCheckboxes(); // Update override checkboxes based on whether values match defaults
 
-                            // Set appropriate default values for different chart types
-                            if (controls.values) {
-                                if (control.value === 'line-multi') {
-                                    controls.values.value = '[[10,15,20,18,25,30],[15,18,22,20,26,28],[12,16,19,17,23,26]]';
-                                    // Set default multi-series options to showcase array properties
-                                    if (controls.seriesNames) controls.seriesNames.value = 'Revenue, Expenses, Profit';
-                                    if (controls.seriesColors) controls.seriesColors.value = '#0066cc, #ff6600, #00cc66';
-                                    if (controls.seriesFillColors) controls.seriesFillColors.value = 'transparent';
-                                    if (controls.seriesLineWidths) controls.seriesLineWidths.value = '0.7, 0.7, 0.7';
-                                    if (controls.seriesSpotRadii) controls.seriesSpotRadii.value = '0.5, 0.5, 0.5';
-                                } else if (control.value === 'bullet') {
-                                    controls.values.value = '10,12,12,9,7';
-                                } else if (control.value === 'tristate') {
-                                    controls.values.value = '1,1,0,1,-1,-1,1,-1,0,0,1,1';
-                                } else if (control.value === 'pie') {
-                                    controls.values.value = '1,1,2,3';
-                                } else if (control.value === 'box') {
-                                    controls.values.value = '-50,1,4,27,34,52,54,59,61,68,78,82,85,87,91,93,100,200';
-                                } else if (control.value === 'discrete') {
-                                    controls.values.value = '4,6,7,7,4,3,2,1,4,5,7,9';
-                                } else {
-                                    controls.values.value = '5,6,7,9,9,5,3,2,2,4,6,7';
+                                // Set appropriate default values for different chart types
+                                // Temporarily remove event listeners to prevent cascading updates
+                                if (controls.values) {
+                                    if (control.value === 'line-multi') {
+                                        controls.values.value = '[[10,15,20,18,25,30],[15,18,22,20,26,28],[12,16,19,17,23,26]]';
+                                        // Set default multi-series options to showcase array properties
+                                        if (controls.seriesNames) controls.seriesNames.value = 'Revenue, Expenses, Profit';
+                                        if (controls.seriesColors) controls.seriesColors.value = '#0066cc, #ff6600, #00cc66';
+                                        if (controls.seriesFillColors) controls.seriesFillColors.value = 'transparent';
+                                        if (controls.seriesLineWidths) controls.seriesLineWidths.value = '0.7, 0.7, 0.7';
+                                        if (controls.seriesSpotRadii) controls.seriesSpotRadii.value = '0.5, 0.5, 0.5';
+                                    } else if (control.value === 'bullet') {
+                                        controls.values.value = '10,12,12,9,7';
+                                    } else if (control.value === 'tristate') {
+                                        controls.values.value = '1,1,0,1,-1,-1,1,-1,0,0,1,1';
+                                    } else if (control.value === 'pie') {
+                                        controls.values.value = '1,1,2,3';
+                                    } else if (control.value === 'box') {
+                                        controls.values.value = '-50,1,4,27,34,52,54,59,61,68,78,82,85,87,91,93,100,200';
+                                    } else if (control.value === 'discrete') {
+                                        controls.values.value = '4,6,7,7,4,3,2,1,4,5,7,9';
+                                    } else {
+                                        controls.values.value = '5,6,7,9,9,5,3,2,2,4,6,7';
+                                    }
                                 }
                             }
+                            updateChart();
+                        } finally {
+                            isUpdating = false;
                         }
-                        updateChart();
                     };
 
                     if (control.tagName.toLowerCase() === 'select') {

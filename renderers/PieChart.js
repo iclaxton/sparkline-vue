@@ -3,7 +3,16 @@
 
 import { BaseChart } from './BaseChart.js';
 
+/**
+ * PieChart renderer for sparkline pie charts
+ * Renders values as colored slices sorted by size (largest first)
+ * @extends BaseChart
+ */
 export class PieChart extends BaseChart {
+  /**
+   * Get default options for pie chart
+   * @returns {Object} Default options object
+   */
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -17,6 +26,9 @@ export class PieChart extends BaseChart {
     };
   }
 
+  /**
+   * Draw the pie chart with sorted slices (largest to smallest)
+   */
   draw() {
     if (this.values.length === 0) return;
 
@@ -73,7 +85,11 @@ export class PieChart extends BaseChart {
     });
   }
 
-  // Get color for a specific region
+  /**
+   * Get the color for a specific pie slice region
+   * @param {number} region - Region index
+   * @returns {string|null} Color hex code or null
+   */
   getRegionColor(region) {
     if (typeof region === 'number') {
       const { sliceColors } = this.options;
@@ -82,6 +98,13 @@ export class PieChart extends BaseChart {
     return null;
   }
 
+  /**
+   * Get the pie slice region at a specific point for interaction detection
+   * Calculates angular position to determine which slice is under the cursor
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Region index (original data index) or null
+   */
   getRegionAtPoint(x, y) {
     const { width, height, topOffset, bottomOffset } = this.getDrawingDimensions();
     const { borderWidth } = this.options;
@@ -136,14 +159,23 @@ export class PieChart extends BaseChart {
     return null;
   }
 
-  // Get nearest region to mouse cursor for smooth tooltip following
+  /**
+   * Get the nearest region to the mouse cursor for smooth tooltip following
+   * For pie charts, uses same logic as getRegionAtPoint (angular-based)
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Nearest region index or null
+   */
   getNearestRegion(x, y) {
     // For pie charts, we'll use the same logic as getRegionAtPoint
     // since pie chart interaction is based on angular position
     return this.getRegionAtPoint(x, y);
   }
 
-  // Draw highlight for hovered pie slice
+  /**
+   * Draw highlight overlay with glow effect for the hovered pie slice
+   * @param {number} region - Region index to highlight
+   */
   drawHighlight(region) {
     if (region === null || region === undefined) return;
     
@@ -223,7 +255,12 @@ export class PieChart extends BaseChart {
     ctx.restore();
   }
 
-  // Override getRegionFields for pie chart compliance
+  /**
+   * Get standardized fields for a pie slice region (sparkline.js compliance)
+   * Includes percentage calculation and sorted color assignment
+   * @param {number} region - Region index
+   * @returns {Object} Region fields object with percent and color
+   */
   getRegionFields(region) {
     if (typeof region === 'number') {
       const value = this.values[region];

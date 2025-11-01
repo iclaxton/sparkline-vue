@@ -3,7 +3,16 @@
 
 import { BaseChart } from './BaseChart.js';
 
+/**
+ * BarChart renderer for sparkline bar charts
+ * Supports single-value bars and stacked bars with automatic width calculation
+ * @extends BaseChart
+ */
 export class BarChart extends BaseChart {
+  /**
+   * Get default options for bar charts
+   * @returns {Object} Default options object
+   */
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -21,6 +30,10 @@ export class BarChart extends BaseChart {
     };
   }
 
+  /**
+   * Draw the bar chart on the canvas
+   * Handles both single-value and stacked bar rendering
+   */
   draw() {
     if (this.values.length === 0) return;
 
@@ -194,6 +207,10 @@ export class BarChart extends BaseChart {
     }
   }
 
+  /**
+   * Draw stacked bar chart where each bar is made up of multiple segments
+   * @private
+   */
   drawStackedBars() {
     const ctx = this.ctx;
     const { width, height, topOffset, bottomOffset } = this.getDrawingDimensions();
@@ -303,7 +320,12 @@ export class BarChart extends BaseChart {
     });
   }
 
-  // Get region at specific point for interaction
+  /**
+   * Get the region at a specific point for interaction detection
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Region index for regular bars, or stack index for stacked bars
+   */
   getRegionAtPoint(x, y) {
     if (!this.regions) return null;
     
@@ -341,7 +363,12 @@ export class BarChart extends BaseChart {
     return null;
   }
 
-  // Get nearest region to mouse cursor for smooth tooltip following
+  /**
+   * Get the nearest region to the mouse cursor for smooth tooltip following
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Nearest region index or stack index
+   */
   getNearestRegion(x, y) {
     if (!this.regions || this.regions.length === 0) return null;
     
@@ -393,7 +420,10 @@ export class BarChart extends BaseChart {
     }
   }
 
-  // Draw highlight for hovered bar
+  /**
+   * Draw highlight overlay for the hovered bar or stacked bar
+   * @param {number} region - Region index or stack index to highlight
+   */
   drawHighlight(region) {
     if (!this.regions) return;
     
@@ -437,7 +467,12 @@ export class BarChart extends BaseChart {
     }
   }
 
-  // Get tooltip content - override for multi-value stacked bars and single-value bars
+  /**
+   * Get tooltip content with colors for bars
+   * Overrides base implementation to support multi-value stacked bars
+   * @param {number} region - Region index or stack index
+   * @returns {Object|null} Tooltip content with items array containing labels and colors
+   */
   getTooltipContent(region) {
     // Check if this is stacked data
     const isStacked = this.regions.length > 0 && this.regions[0].stackIndex !== undefined;
@@ -494,7 +529,11 @@ export class BarChart extends BaseChart {
     return null; // Use default tooltip without color
   }
 
-  // Get color for a specific region
+  /**
+   * Get the color for a specific bar region
+   * @param {number} region - Region index
+   * @returns {string|null} Color hex code or null
+   */
   getRegionColor(region) {
     if (typeof region === 'number' && region >= 0 && region < this.values.length) {
       // Check if this is stacked data
@@ -509,7 +548,12 @@ export class BarChart extends BaseChart {
     return null; // Stacked bars handle colors in their own getTooltipContent
   }
 
-  // Format tooltip value for bar charts
+  /**
+   * Format tooltip value for bar charts with default format
+   * @param {number} value - Value to format
+   * @param {number|Object} region - Region index or stacked bar region object
+   * @returns {string} Formatted tooltip text
+   */
   getDefaultTooltipFormat(value, region) {
     if (typeof region === 'object' && region.stackIndex !== undefined) {
       return `Stack ${region.stackIndex + 1}, Segment ${region.segmentIndex + 1}: ${region.value}`;
@@ -517,7 +561,12 @@ export class BarChart extends BaseChart {
     return `Bar ${region + 1}: ${value}`;
   }
 
-  // Get enhanced data for bar chart tooltips
+  /**
+   * Get enhanced data for bar chart tooltips
+   * @param {number} value - Value of the region
+   * @param {number|Object} region - Region index or stacked bar region object
+   * @returns {Object} Enhanced tooltip data object
+   */
   getTooltipData(value, region) {
     if (typeof region === 'object' && region.stackIndex !== undefined) {
       return {
@@ -540,7 +589,11 @@ export class BarChart extends BaseChart {
     };
   }
 
-  // Override getRegionFields for bar chart compliance
+  /**
+   * Get standardized fields for a region (sparkline.js compliance)
+   * @param {number|Object} region - Region index or stacked bar region object
+   * @returns {Object} Region fields object
+   */
   getRegionFields(region) {
     if (typeof region === 'number') {
       const value = this.values[region];
@@ -573,7 +626,13 @@ export class BarChart extends BaseChart {
     return super.getRegionFields(region);
   }
 
-  // Helper method to get bar color
+  /**
+   * Helper method to determine bar color based on value and options
+   * @param {number|null} value - Bar value
+   * @param {number} index - Bar index for colorMap lookup
+   * @returns {string} Color hex code
+   * @private
+   */
   getBarColor(value, index) {
     const { barColor, negBarColor, zeroColor, nullColor, colorMap } = this.options;
     

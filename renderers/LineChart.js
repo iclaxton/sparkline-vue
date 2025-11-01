@@ -3,8 +3,17 @@
 
 import { BaseChart } from './BaseChart.js';
 
+/**
+ * LineChart renderer for sparkline line charts
+ * Supports single-series and multi-series line charts with fills, spots, and highlighting
+ * @extends BaseChart
+ */
 export class LineChart extends BaseChart {
-  // Default high-contrast color palette for multi-series
+  /**
+   * Default high-contrast color palette for multi-series charts
+   * @type {string[]}
+   * @static
+   */
   static DEFAULT_SERIES_COLORS = [
     '#0066cc', // Blue
     '#ff6600', // Orange
@@ -16,6 +25,11 @@ export class LineChart extends BaseChart {
     '#66cc00'  // Lime
   ];
 
+  /**
+   * Default transparent fills for multi-series charts
+   * @type {string[]}
+   * @static
+   */
   static DEFAULT_SERIES_FILLS = [
     'transparent',   // Blue
     'transparent',   // Orange
@@ -27,6 +41,10 @@ export class LineChart extends BaseChart {
     'transparent'    // Lime
   ];
 
+  /**
+   * Get default options for line charts
+   * @returns {Object} Default options object
+   */
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -47,6 +65,13 @@ export class LineChart extends BaseChart {
     };
   }
 
+  /**
+   * Process input data and detect single-series vs multi-series format
+   * Single-series: [1, 2, 3] or [[x1, y1], [x2, y2], ...]
+   * Multi-series: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+   * @param {Array} data - Input data array
+   * @returns {Array} Processed values array
+   */
   processValues(data) {
     if (!Array.isArray(data) || data.length === 0) {
       return [];
@@ -101,6 +126,12 @@ export class LineChart extends BaseChart {
     return processed;
   }
 
+  /**
+   * Process multi-series data format
+   * @param {Array<Array>} data - Array of series arrays
+   * @returns {Array<Array>} Processed multi-series data
+   * @private
+   */
   processMultiSeriesValues(data) {
     this.isMultiSeries = true;
     this.seriesData = [];
@@ -143,6 +174,10 @@ export class LineChart extends BaseChart {
     return data;
   }
 
+  /**
+   * Draw the line chart on the canvas
+   * Handles both single-series and multi-series rendering
+   */
   draw() {
     if (this.values.length === 0) return;
 
@@ -324,6 +359,11 @@ export class LineChart extends BaseChart {
     this.drawMinMaxSpots(points, minY, maxY);
   }
 
+  /**
+   * Draw multi-series line chart with multiple lines on the same canvas
+   * Each series gets its own color from the color palette
+   * @private
+   */
   drawMultiSeries() {
     if (!this.seriesData || this.seriesData.length === 0) return;
 
@@ -416,7 +456,15 @@ export class LineChart extends BaseChart {
     this.multiSeriesLineColors = lineColors;
   }
 
-  // Helper to get per-series option values
+  /**
+   * Get per-series option values
+   * If option is an array, use each element for corresponding series
+   * If option is a single value, use it for all series
+   * @param {string} optionName - Name of the option to retrieve
+   * @param {Array} defaultValues - Default values if option not specified
+   * @returns {Array} Array of values, one per series
+   * @private
+   */
   getSeriesOption(optionName, defaultValues) {
     const optionValue = this.options[optionName];
     
@@ -432,6 +480,23 @@ export class LineChart extends BaseChart {
     return defaultValues;
   }
 
+  /**
+   * Draw filled area under a series line
+   * Handles null values by creating separate continuous segments
+   * @param {CanvasRenderingContext2D} ctx - Canvas context
+   * @param {Object} series - Series data object
+   * @param {number} minX - Minimum x value
+   * @param {number} maxX - Maximum x value
+   * @param {number} minY - Minimum y value
+   * @param {number} maxY - Maximum y value
+   * @param {number} rangeX - X range (maxX - minX)
+   * @param {number} rangeY - Y range (maxY - minY)
+   * @param {string} fillColor - Fill color for the area
+   * @param {number} topOffset - Top padding offset
+   * @param {number} height - Drawing height
+   * @param {number} bottomOffset - Bottom padding offset
+   * @private
+   */
   drawSeriesFill(ctx, series, minX, maxX, minY, maxY, rangeX, rangeY, fillColor, topOffset, height, bottomOffset) {
     const points = [];
     
@@ -501,6 +566,25 @@ export class LineChart extends BaseChart {
     ctx.restore();
   }
 
+  /**
+   * Draw a line for a single series in a multi-series chart
+   * @param {CanvasRenderingContext2D} ctx - Canvas context
+   * @param {Object} series - Series data object
+   * @param {number} minX - Minimum x value
+   * @param {number} maxX - Maximum x value
+   * @param {number} minY - Minimum y value
+   * @param {number} maxY - Maximum y value
+   * @param {number} rangeX - X range (maxX - minX)
+   * @param {number} rangeY - Y range (maxY - minY)
+   * @param {string} lineColor - Line color
+   * @param {number} lineWidth - Line width in pixels
+   * @param {number} spotRadius - Spot radius in pixels
+   * @param {number} topOffset - Top padding offset
+   * @param {number} height - Drawing height
+   * @param {number} seriesIndex - Index of this series
+   * @returns {Array<Object>} Array of point objects with {x, y, value, index, seriesIndex}
+   * @private
+   */
   drawSeriesLine(ctx, series, minX, maxX, minY, maxY, rangeX, rangeY, lineColor, lineWidth, spotRadius, topOffset, height, seriesIndex) {
     const points = [];
     
@@ -555,6 +639,15 @@ export class LineChart extends BaseChart {
     return points;
   }
 
+  /**
+   * Draw a shaded normal range band on the chart
+   * @param {CanvasRenderingContext2D} ctx - Canvas context
+   * @param {number} minY - Minimum y value of chart
+   * @param {number} maxY - Maximum y value of chart
+   * @param {number} rangeY - Y range (maxY - minY)
+   * @param {number} topOffset - Top padding offset
+   * @private
+   */
   drawNormalRange(ctx, minY, maxY, rangeY, topOffset) {
     const { normalRangeMin, normalRangeMax, normalRangeColor } = this.options;
     
@@ -568,6 +661,13 @@ export class LineChart extends BaseChart {
     }
   }
 
+  /**
+   * Draw special colored spots for minimum and maximum values
+   * @param {Array<Object>} points - Array of point objects
+   * @param {number} minY - Minimum y value
+   * @param {number} maxY - Maximum y value
+   * @private
+   */
   drawMinMaxSpots(points, minY, maxY) {
     const { minSpotColor, maxSpotColor, spotRadius } = this.options;
     const ctx = this.ctx;
@@ -590,7 +690,13 @@ export class LineChart extends BaseChart {
     });
   }
 
-  // Get region at specific point for interaction
+  /**
+   * Get the region (data point index) at a specific canvas coordinate
+   * Used for click and touch interactions
+   * @param {number} x - X coordinate on canvas
+   * @param {number} y - Y coordinate on canvas
+   * @returns {number|null} Index of the data point, or null if none found
+   */
   getRegionAtPoint(x, y) {
     if (!this.regions) return null;
     
@@ -604,7 +710,14 @@ export class LineChart extends BaseChart {
     return null;
   }
 
-  // Get nearest region to mouse cursor for smooth tooltip following
+  /**
+   * Get the nearest region (data point index) to cursor position
+   * Used for smooth tooltip following behavior
+   * Prioritizes horizontal distance for better line chart UX
+   * @param {number} x - X coordinate on canvas
+   * @param {number} y - Y coordinate on canvas
+   * @returns {number|null} Index of the nearest data point, or null if none found
+   */
   getNearestRegion(x, y) {
     // For multi-series, find nearest x-position across all series
     if (this.isMultiSeries && this.multiSeriesPoints) {
@@ -646,7 +759,12 @@ export class LineChart extends BaseChart {
     return nearestIndex;
   }
 
-  // Draw highlight for hovered point
+  /**
+   * Draw highlight for the hovered data point(s)
+   * For multi-series: highlights all points at the same x-position with a vertical line
+   * For single-series: highlights the point with a spot and vertical line
+   * @param {number} regionIndex - Index of the data point to highlight
+   */
   drawHighlight(regionIndex) {
     const ctx = this.ctx;
     const { highlightSpotColor, highlightLineColor, minSpotColor, maxSpotColor } = this.options;
@@ -736,7 +854,13 @@ export class LineChart extends BaseChart {
     }
   }
 
-  // Get tooltip content - override to use yvalues for bounds checking
+  /**
+   * Get tooltip content for a data point
+   * For multi-series: shows all series values at the same x-position
+   * For single-series: shows the value with min/max labels if applicable
+   * @param {number} region - Index of the data point
+   * @returns {Object|null} Tooltip content object with items array, or null if invalid
+   */
   getTooltipContent(region) {
     // Multi-series tooltip - show all series at this index
     if (this.isMultiSeries && this.multiSeriesPoints && typeof region === 'number') {
@@ -819,7 +943,12 @@ export class LineChart extends BaseChart {
     return null; // Use default single-value tooltip without color
   }
 
-  // Get color for a specific region
+  /**
+   * Get the color for a specific data point region
+   * Returns special colors for min/max points, or default spot/line color
+   * @param {number} region - Index of the data point
+   * @returns {string|null} Color string, or null if invalid region
+   */
   getRegionColor(region) {
     if (typeof region === 'number' && region >= 0 && region < this.yvalues.length) {
       const value = this.yvalues[region]; // Use yvalues, not values
@@ -848,7 +977,13 @@ export class LineChart extends BaseChart {
     return null;
   }
 
-  // Format tooltip value for line charts - only used when no template format is specified
+  /**
+   * Get default tooltip format for line charts
+   * Uses coordinate format (x, y) when no template format is specified
+   * @param {number} value - Y value of the data point
+   * @param {number} region - Index of the data point
+   * @returns {string} Formatted tooltip string
+   */
   getDefaultTooltipFormat(value, region) {
     // Only use coordinate format when explicitly no template format is provided
     if (!this.options.tooltipFormat || this.options.tooltipFormat === '') {
@@ -860,7 +995,13 @@ export class LineChart extends BaseChart {
     return super.getDefaultTooltipFormat(value, region);
   }
 
-  // Get enhanced data for line chart tooltips
+  /**
+   * Get enhanced tooltip data object for line charts
+   * Includes x, y coordinates and point number information
+   * @param {number} value - Y value of the data point
+   * @param {number} region - Index of the data point
+   * @returns {Object} Tooltip data object with x, y, point, and total properties
+   */
   getTooltipData(value, region) {
     const baseData = {
       ...super.getTooltipData(value, region),
@@ -877,7 +1018,12 @@ export class LineChart extends BaseChart {
     return baseData;
   }
 
-  // Override getRegionFields for line chart compliance
+  /**
+   * Get detailed field information for a specific region
+   * Used for custom tooltip formatters and event handlers
+   * @param {number} region - Index of the data point
+   * @returns {Object} Object with isNull, value, index, x, y, color, fillColor, and offset properties
+   */
   getRegionFields(region) {
     if (typeof region === 'number') {
       const value = this.values[region];
