@@ -23,8 +23,9 @@ export class DiscreteChart extends BaseChart {
       lineHeight: '30%', // Defaults to 30% of graph height per jQuery Sparkline
       thresholdColor: undefined,
       thresholdValue: 0,
-      highlightLighten: 1.7
-
+      highlightLighten: 1.7,
+      dataLabels: undefined,   // Optional array of labels OR callback function(index) => label for data points (shown in tooltips)
+      getPointDataLabel: undefined  // Alternative: callback function(index) => label for high-performance scenarios
     };
   }
 
@@ -169,6 +170,54 @@ export class DiscreteChart extends BaseChart {
       }
       
       return lineColor;
+    }
+    return null;
+  }
+
+  /**
+   * Get data label for a specific point index
+   * Supports both array (dataLabels) and callback (getPointDataLabel)
+   * @param {number} index - The data point index
+   * @returns {string|null} The label for this point, or null if none
+   */
+  getPointLabel(index) {
+    // Priority 1: callback function (for performance)
+    if (this.options.getPointDataLabel && typeof this.options.getPointDataLabel === 'function') {
+      try {
+        return this.options.getPointDataLabel(index);
+      } catch (error) {
+        console.warn('Error in getPointDataLabel callback:', error);
+      }
+    }
+    
+    // Priority 2: array of labels
+    if (Array.isArray(this.options.dataLabels) && index < this.options.dataLabels.length) {
+      return this.options.dataLabels[index];
+    }
+    
+    // Default: "Point {n}"
+    return `Point ${index + 1}`;
+  }
+
+  /**
+   * Get tooltip content for discrete chart
+   * @param {number} region - Region index
+   * @returns {Object|null} Tooltip content with title and items
+   */
+  getTooltipContent(region) {
+    const color = this.getRegionColor(region);
+    if (color && typeof region === 'number' && region >= 0 && region < this.values.length) {
+      const value = this.values[region];
+      const pointLabel = this.getPointLabel(region);
+      const formattedValue = this.formatTooltipValue(value, region);
+      
+      return {
+        title: pointLabel,
+        items: [{
+          label: `${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`,
+          color: color
+        }]
+      };
     }
     return null;
   }

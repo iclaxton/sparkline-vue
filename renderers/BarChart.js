@@ -26,7 +26,10 @@ export class BarChart extends BaseChart {
       barSpacing: 1,
       chartRangeClip: false,
       colorMap: undefined,
-      stackedBarColor: undefined
+      stackedBarColor: undefined,
+      dataLabels: undefined,   // Optional array of labels OR callback function(index) => label for data points (shown in tooltips)
+      getPointDataLabel: undefined,  // Alternative: callback function(index) => label for high-performance scenarios
+      seriesNames: undefined   // Optional array of series names for stacked bar segments
     };
   }
 
@@ -468,6 +471,31 @@ export class BarChart extends BaseChart {
   }
 
   /**
+   * Get data label for a specific point index
+   * Supports both array (dataLabels) and callback (getPointDataLabel)
+   * @param {number} index - The data point index
+   * @returns {string|null} The label for this point, or null if none
+   */
+  getPointLabel(index) {
+    // Priority 1: callback function (for performance)
+    if (this.options.getPointDataLabel && typeof this.options.getPointDataLabel === 'function') {
+      try {
+        return this.options.getPointDataLabel(index);
+      } catch (error) {
+        console.warn('Error in getPointDataLabel callback:', error);
+      }
+    }
+    
+    // Priority 2: array of labels
+    if (Array.isArray(this.options.dataLabels) && index < this.options.dataLabels.length) {
+      return this.options.dataLabels[index];
+    }
+    
+    // Default: "Bar {n}"
+    return `Bar ${index + 1}`;
+  }
+
+  /**
    * Get tooltip content with colors for bars
    * Overrides base implementation to support multi-value stacked bars
    * @param {number} region - Region index or stack index
@@ -484,6 +512,9 @@ export class BarChart extends BaseChart {
       
       if (stackedRegions.length === 0) return null;
       
+      // Get the point label (date, month, etc.) to use as title
+      const pointLabel = this.getPointLabel(region);
+      
       // Calculate the total for this stack (use pre-calculated if available)
       const stackTotal = this.stackTotals && this.stackTotals[region] !== undefined 
         ? this.stackTotals[region] 
@@ -492,11 +523,14 @@ export class BarChart extends BaseChart {
       // Sort by segmentIndex to show in visual order (bottom to top)
       stackedRegions.sort((a, b) => a.segmentIndex - b.segmentIndex);
       
+      const seriesNames = this.options.seriesNames || [];
       const items = stackedRegions.map(r => {
         const stackValue = r.value; // Value is stored directly in the region
         const formattedValue = this.formatTooltipValue(stackValue, r.stackIndex);
+        const seriesName = seriesNames[r.segmentIndex] || `Segment ${r.segmentIndex + 1}`;
+        // Include series name before the value
         return {
-          label: `${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`,
+          label: `${seriesName}: ${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`,
           color: r.color // Color is stored directly in the region
         };
       });
@@ -508,18 +542,37 @@ export class BarChart extends BaseChart {
         color: '#666' // Gray color for total
       });
       
-      return { items };
+      return { 
+        title: pointLabel,  // Show label as title above all segments
+        items 
+      };
     } else {
-      // Single-value tooltip for regular bars
+      // Single-value tooltip for regular bars - use title + items like stacked bars
       const color = this.getRegionColor(region);
       if (color && typeof region === 'number' && region >= 0 && region < this.values.length) {
         const value = this.values[region];
-        const formattedValue = this.formatTooltipValue(value, region);
-        const fullLabel = `${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
-        
+
+        // Get the point label (date, month, etc.)
+        const pointLabel = this.getPointLabel(region);
+
+        // Build item label (do not repeat pointLabel)
+        let itemLabel;
+        if (this.options.tooltipFormatter && typeof this.options.tooltipFormatter === 'function') {
+          try {
+            const result = this.options.tooltipFormatter(value, region, this, { pointLabel });
+            itemLabel = this.sanitizeTooltipContent(result);
+          } catch (error) {
+            console.warn('Custom tooltip formatter error:', error);
+            itemLabel = `${this.options.tooltipPrefix}${this.formatTooltipValue(value, region)}${this.options.tooltipSuffix}`;
+          }
+        } else {
+          itemLabel = `${this.options.tooltipPrefix}${this.formatTooltipValue(value, region)}${this.options.tooltipSuffix}`;
+        }
+
         return {
+          title: pointLabel,
           items: [{
-            label: fullLabel,
+            label: itemLabel,
             color: color
           }]
         };

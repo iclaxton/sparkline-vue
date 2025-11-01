@@ -22,7 +22,9 @@ export class TriStateChart extends BaseChart {
       posBarColor: '#0f0',
       negBarColor: '#f00',
       zeroBarColor: '#999',
-      colorMap: {}
+      colorMap: {},
+      dataLabels: undefined,   // Optional array of labels OR callback function(index) => label for data points (shown in tooltips)
+      getPointDataLabel: undefined  // Alternative: callback function(index) => label for high-performance scenarios
     };
   }
 
@@ -261,6 +263,31 @@ export class TriStateChart extends BaseChart {
   }
 
   /**
+   * Get data label for a specific point index
+   * Supports both array (dataLabels) and callback (getPointDataLabel)
+   * @param {number} index - The data point index
+   * @returns {string|null} The label for this point, or null if none
+   */
+  getPointLabel(index) {
+    // Priority 1: callback function (for performance)
+    if (this.options.getPointDataLabel && typeof this.options.getPointDataLabel === 'function') {
+      try {
+        return this.options.getPointDataLabel(index);
+      } catch (error) {
+        console.warn('Error in getPointDataLabel callback:', error);
+      }
+    }
+    
+    // Priority 2: array of labels
+    if (Array.isArray(this.options.dataLabels) && index < this.options.dataLabels.length) {
+      return this.options.dataLabels[index];
+    }
+    
+    // Default: "Point {n}"
+    return `Point ${index + 1}`;
+  }
+
+  /**
    * Get tooltip content with current state and win/loss/draw summary
    * @param {number} region - Region index
    * @returns {Object|null} Tooltip content with items array
@@ -273,49 +300,58 @@ export class TriStateChart extends BaseChart {
     
     if (typeof region === 'number') {
       const currentValue = this.values[region];
+      const pointLabel = this.getPointLabel(region);
       const items = [];
       
       // Add current state info
       if (currentValue > 0) {
         items.push({
-          label: `Current: Win`,
+          label: `Win`,
           color: this.options.posBarColor
         });
       } else if (currentValue < 0) {
         items.push({
-          label: `Current: Loss`,
+          label: `Loss`,
           color: this.options.negBarColor
         });
       } else {
         items.push({
-          label: `Current: Draw`,
+          label: `Draw`,
           color: this.options.zeroBarColor
         });
       }
       
+      // Add separator before summary stats
+      items.push({
+        isSeparator: true
+      });
+      
       // Add summary stats
       if (wins > 0) {
         items.push({
-          label: `Wins: ${wins}`,
+          label: `Total Wins: ${wins}`,
           color: this.options.posBarColor
         });
       }
       
       if (losses > 0) {
         items.push({
-          label: `Losses: ${losses}`,
+          label: `Total Losses: ${losses}`,
           color: this.options.negBarColor
         });
       }
       
       if (draws > 0) {
         items.push({
-          label: `Draws: ${draws}`,
+          label: `Total Draws: ${draws}`,
           color: this.options.zeroBarColor
         });
       }
       
-      return { items };
+      return { 
+        title: pointLabel,
+        items 
+      };
     }
     
     return null;

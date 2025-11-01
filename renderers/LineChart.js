@@ -61,7 +61,9 @@ export class LineChart extends BaseChart {
       chartRangeMinX: undefined,
       chartRangeMaxX: undefined,
       xvalues: undefined,
-      seriesNames: undefined  // Optional array of series names
+      seriesNames: undefined,  // Optional array of series names
+      dataLabels: undefined,   // Optional array of labels OR callback function(index) => label for data points (shown in tooltips)
+      getPointDataLabel: undefined  // Alternative: callback function(index) => label for high-performance scenarios
     };
   }
 
@@ -371,28 +373,12 @@ export class LineChart extends BaseChart {
     const { width, height, topOffset, bottomOffset } = this.getDrawingDimensions();
     
     // Get or create per-series options
-    // For multi-series, default to our color palette unless user explicitly sets lineColor
-    const userSpecifiedLineColor = this.options.lineColor !== undefined && this.options.lineColor !== '#00f'; // '#00f' is BaseChart default
-    const lineColors = userSpecifiedLineColor
-      ? this.getSeriesOption('lineColor', LineChart.DEFAULT_SERIES_COLORS)
-      : LineChart.DEFAULT_SERIES_COLORS;
-    
-    // For multi-series, default to transparent fills unless user explicitly sets fillColor
-    const userSpecifiedFill = this.options.fillColor !== undefined && this.options.fillColor !== '#cdf'; // '#cdf' is BaseChart default
-    const fillColors = userSpecifiedFill 
-      ? this.getSeriesOption('fillColor', LineChart.DEFAULT_SERIES_FILLS)
-      : LineChart.DEFAULT_SERIES_FILLS;
-    
-    // For multi-series, use smaller default line widths and spot radii unless user explicitly sets them
-    const userSpecifiedLineWidth = this.options.lineWidth !== undefined && this.options.lineWidth !== 1; // 1 is BaseChart default
-    const lineWidths = userSpecifiedLineWidth 
-      ? this.getSeriesOption('lineWidth', [this.options.lineWidth])
-      : this.getSeriesOption('lineWidth', [0.7]);
-    
-    const userSpecifiedSpotRadius = this.options.spotRadius !== undefined && this.options.spotRadius !== 1.5; // 1.5 is BaseChart default
-    const spotRadii = userSpecifiedSpotRadius
-      ? this.getSeriesOption('spotRadius', [this.options.spotRadius])
-      : this.getSeriesOption('spotRadius', [0.5]);
+    // For multi-series, check if user provided custom values via getSeriesOption (which handles arrays)
+    // If getSeriesOption returns the default, use our multi-series defaults
+    const lineColors = this.getSeriesOption('lineColor', LineChart.DEFAULT_SERIES_COLORS);
+    const fillColors = this.getSeriesOption('fillColor', LineChart.DEFAULT_SERIES_FILLS);
+    const lineWidths = this.getSeriesOption('lineWidth', [1]);
+    const spotRadii = this.getSeriesOption('spotRadius', [1.5]);
 
     // Calculate global ranges across all series
     let allYVals = [];
@@ -471,7 +457,14 @@ export class LineChart extends BaseChart {
     if (Array.isArray(optionValue)) {
       return optionValue;
     } else if (optionValue !== undefined && optionValue !== null) {
-      // Single value - use for all series
+      // Check if this is actually the single-series default value
+      // If so, use multi-series defaults instead
+      const singleSeriesDefaults = this.getDefaults();
+      if (singleSeriesDefaults[optionName] === optionValue) {
+        // This is the default value, use multi-series defaults
+        return defaultValues;
+      }
+      // User explicitly set this value - use for all series
       return [optionValue];
     }
     
@@ -855,6 +848,31 @@ export class LineChart extends BaseChart {
   }
 
   /**
+   * Get data label for a specific point index
+   * Supports both array (dataLabels) and callback (getPointDataLabel)
+   * @param {number} index - The data point index
+   * @returns {string|null} The label for this point, or null if none
+   */
+  getPointLabel(index) {
+    // Priority 1: callback function (for performance)
+    if (this.options.getPointDataLabel && typeof this.options.getPointDataLabel === 'function') {
+      try {
+        return this.options.getPointDataLabel(index);
+      } catch (error) {
+        console.warn('Error in getPointDataLabel callback:', error);
+      }
+    }
+    
+    // Priority 2: array of labels
+    if (Array.isArray(this.options.dataLabels) && index < this.options.dataLabels.length) {
+      return this.options.dataLabels[index];
+    }
+    
+    // Default: "Point {n}"
+    return `Point ${index + 1}`;
+  }
+
+  /**
    * Get tooltip content for a data point
    * For multi-series: shows all series values at the same x-position
    * For single-series: shows the value with min/max labels if applicable
@@ -869,12 +887,16 @@ export class LineChart extends BaseChart {
       // Use the colors that were actually used during drawing
       const lineColors = this.multiSeriesLineColors || LineChart.DEFAULT_SERIES_COLORS;
       
+      // Get the point label (date, month, etc.) to use as title
+      const pointLabel = this.getPointLabel(region);
+      
       this.multiSeriesPoints.forEach((seriesPoints, idx) => {
         const point = seriesPoints.points.find(p => p.index === region);
         if (point) {
           const seriesName = seriesNames[idx] || `Series ${idx + 1}`;
           const value = point.value;
           const formattedValue = this.formatTooltipValue(value, region);
+          // No longer include pointLabel in each series line - it's shown as title
           const label = `${seriesName}: ${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
           const color = lineColors[idx % lineColors.length];
           
@@ -883,58 +905,65 @@ export class LineChart extends BaseChart {
       });
       
       if (items.length > 0) {
-        return { items };
+        return { 
+          title: pointLabel,  // Show label as title above all series
+          items 
+        };
       }
       
       return null;
     }
     
-    // Single series tooltip
+    // Single series tooltip - use title + items structure to match multi-series
     const color = this.getRegionColor(region);
     if (color && typeof region === 'number' && region >= 0 && region < this.yvalues.length) {
       const value = this.yvalues[region];
-      
+
       // Check if this is a min/max value
       const yVals = this.yvalues.filter(v => v !== null);
       const minY = Math.min(...yVals);
       const maxY = Math.max(...yVals);
       const isMin = value === minY && value !== maxY && this.options.minSpotColor;
       const isMax = value === maxY && value !== minY && this.options.maxSpotColor;
-      
-      // If there's a custom formatter, pass additional context about min/max
-      let label;
+
+      // Get the point label (date, month, etc.)
+      const pointLabel = this.getPointLabel(region);
+
+      // Build the single item label (without repeating the pointLabel)
+      let itemLabel;
       if (this.options.tooltipFormatter && typeof this.options.tooltipFormatter === 'function') {
         try {
-          // Pass min/max information as additional parameters to the formatter
+          // Allow formatter to return the inner item text; pass context including pointLabel
           const result = this.options.tooltipFormatter(value, region, this, {
             isMin: isMin,
             isMax: isMax,
             minValue: minY,
-            maxValue: maxY
+            maxValue: maxY,
+            pointLabel: pointLabel
           });
-          label = this.sanitizeTooltipContent(result);
+          itemLabel = this.sanitizeTooltipContent(result);
         } catch (error) {
           console.warn('Custom tooltip formatter error:', error);
           const defaultFormatted = this.getDefaultTooltipFormat(value, region);
-          label = `${this.options.tooltipPrefix}${defaultFormatted}${this.options.tooltipSuffix}`;
+          itemLabel = `${this.options.tooltipPrefix}${defaultFormatted}${this.options.tooltipSuffix}`;
         }
       } else {
-        // No custom formatter - use default formatting with min/max labels
         const formattedValue = this.formatTooltipValue(value, region);
         const fullFormattedValue = `${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
-        
+
         if (isMin) {
-          label = `Min: ${fullFormattedValue}`;
+          itemLabel = `Min: ${fullFormattedValue}`;
         } else if (isMax) {
-          label = `Max: ${fullFormattedValue}`;
+          itemLabel = `Max: ${fullFormattedValue}`;
         } else {
-          label = fullFormattedValue;
+          itemLabel = `${fullFormattedValue}`;
         }
       }
-      
+
       return {
+        title: pointLabel,
         items: [{
-          label: label,
+          label: itemLabel,
           color: color
         }]
       };

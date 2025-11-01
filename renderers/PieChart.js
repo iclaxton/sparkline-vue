@@ -22,7 +22,9 @@ export class PieChart extends BaseChart {
                     '#dd4477', '#0099c6', '#990099'],
       borderWidth: 0,
       borderColor: '#000',
-      highlightLighten: 1
+      highlightLighten: 1,
+      dataLabels: undefined,   // Optional array of labels for pie slices (mapped to original unsorted data indices)
+      getPointDataLabel: undefined  // Alternative: callback function(index) => label for high-performance scenarios
     };
   }
 
@@ -253,6 +255,45 @@ export class PieChart extends BaseChart {
     
     // Restore style
     ctx.restore();
+  }
+
+  /**
+   * Get label for a data point (pie slice) - uses callback, array, or default
+   * @param {number} index - Original data index (not sorted position)
+   * @returns {string} Label for the point
+   */
+  getPointLabel(index) {
+    // Priority: callback > array > default
+    if (this.options.getPointDataLabel) {
+      return this.options.getPointDataLabel(index);
+    }
+    if (this.options.dataLabels && this.options.dataLabels[index] !== undefined) {
+      return this.options.dataLabels[index];
+    }
+    return `Slice ${index + 1}`;
+  }
+
+  /**
+   * Generate tooltip content for a pie slice
+   * Returns consistent title + items structure for tooltip display
+   * @param {number} region - Original data index of the slice
+   * @returns {Object} Tooltip content with title and items array
+   */
+  getTooltipContent(region) {
+    const pointLabel = this.getPointLabel(region);
+    const fields = this.getRegionFields(region);
+    
+    if (fields.isNull) {
+      return { title: pointLabel, items: [{ label: 'No data', color: null }] };
+    }
+    
+    return {
+      title: pointLabel,
+      items: [{
+        label: `${fields.value} (${fields.percent.toFixed(1)}%)`,
+        color: fields.color
+      }]
+    };
   }
 
   /**
