@@ -722,32 +722,47 @@
             box: {
                 chartClass: 'box-options',
                 properties: [
-                    { id: 'box-line-color', propertyName: 'boxLineColor', label: 'Box Line Color', type: 'color' },
-                    { id: 'box-fill-color', propertyName: 'boxFillColor', label: 'Box Fill Color', type: 'color' },
-                    { id: 'box-median-color', propertyName: 'medianColor', label: 'Median Color', type: 'color' },
-                    { id: 'box-whisker-color', propertyName: 'whiskerColor', label: 'Whisker Color', type: 'color' },
-                    { id: 'box-outlier-line-color', propertyName: 'outlierLineColor', label: 'Outlier Line Color', type: 'color' },
-                    { id: 'box-outlier-fill-color', propertyName: 'outlierFillColor', label: 'Outlier Fill Color', type: 'color' },
-                    { id: 'box-target-color', propertyName: 'targetColor', label: 'Target Color', type: 'color' },
-                    { id: 'box-show-outliers', propertyName: 'showOutliers', label: 'Show Outliers', type: 'checkbox' },
+                    { id: 'box-line-color', propertyName: 'boxLineColor', label: 'Box Line Color', type: 'color', checked: false, disabled: true },
+                    { id: 'box-fill-color', propertyName: 'boxFillColor', label: 'Box Fill Color', type: 'color', checked: false, disabled: true },
+                    { id: 'box-median-color', propertyName: 'medianColor', label: 'Median Color', type: 'color', checked: false, disabled: true },
+                    { id: 'box-whisker-color', propertyName: 'whiskerColor', label: 'Whisker Color', type: 'color', checked: false, disabled: true },
+                    { id: 'box-outlier-line-color', propertyName: 'outlierLineColor', label: 'Outlier Line Color', type: 'color', checked: false, disabled: true },
+                    { id: 'box-outlier-fill-color', propertyName: 'outlierFillColor', label: 'Outlier Fill Color', type: 'color', checked: false, disabled: true },
+                    { id: 'box-target-color', propertyName: 'targetColor', label: 'Target Color', type: 'color', checked: false, disabled: true },
+                    { id: 'box-mean-color', propertyName: 'meanColor', label: 'Mean Color', type: 'color', checked: false, disabled: true },
+                    { id: 'box-is-horizontal', propertyName: 'isHorizontal', label: 'Horizontal Orientation', type: 'checkbox', defaultValue: true },
+                    { id: 'box-show-outliers', propertyName: 'showOutliers', label: 'Show Outliers', type: 'checkbox', defaultValue: true },
+                    { id: 'box-show-mean', propertyName: 'showMean', label: 'Show Mean', type: 'checkbox', defaultValue: false },
                     { id: 'box-outlier-i-q-r', propertyName: 'outlierIQR', label: 'Outlier IQR', type: 'number', min: 0, max: 5, step: 0.1 },
                     { id: 'box-spot-radius', propertyName: 'spotRadius', label: 'Spot Radius', type: 'number', min: 0, max: 10, step: 0.5 },
+                    { id: 'box-width', propertyName: 'boxWidth', label: 'Box Width (0.1-1.0)', type: 'number', min: 0.1, max: 1.0, step: 0.05, defaultValue: 0.5 },
+                    { id: 'box-border-radius', propertyName: 'borderRadius', label: 'Border Radius (px)', type: 'number', min: 0, max: 10, step: 1, defaultValue: 2 },
                     { id: 'box-target', propertyName: 'target', label: 'Target', type: 'number', step: 'any', placeholder: 'Optional' }
                 ]
             }
         };
 
-        // Sample data sets for different chart types
+        // Sample data sets for different chart types (stored as strings for direct use in text input)
         const sampleData = {
-            line: [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7],
-            bar: [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7],
-            pie: [1, 1, 1, 2],
-            discrete: [4, 6, 7, 7, 4, 3, 2, 1, 4, 5, 7, 9],
-            tristate: [1, 1, -1, 1, -1, 0, 1, -1],
-            bullet: [10, 12, 12, 9, 7],
-            box: [4, 27, 34, 52, 54, 59, 61, 68, 78, 82, 85, 87, 91, 93, 100],
-            'line-multi': [[5,6,7],[9,5,3],[2,4,6]]
+            line: '5,6,7,9,9,5,3,2,2,4,6,7',
+            bar: '5,6,7,9,9,5,3,2,2,4,6,7',
+            pie: '1,1,1,2',
+            discrete: '4,6,7,7,4,3,2,1,4,5,7,9',
+            tristate: '1,1,0,-1,1,-1,0,1,-1',
+            bullet: '10,12,12,9,7',
+            box: '4,27,34,52,54,59,61,68,78,82,85,87,91,93,100',
+            'line-multi': '[[5,6,7],[9,5,3],[2,4,6]]'
         };
+
+        // Helper function to load sample data for a chart type
+        function loadSampleDataForChartType(chartType) {
+            if (sampleData[chartType]) {
+                const valuesControl = document.getElementById('chart-values');
+                if (valuesControl) {
+                    valuesControl.value = sampleData[chartType];
+                }
+            }
+        }
 
         // Function to get chart defaults from the actual chart class
         function getChartDefaults(chartType) {
@@ -794,7 +809,7 @@
             if (sampleData[chartType]) {
                 const valuesControl = document.getElementById('chart-values');
                 if (valuesControl) {
-                    valuesControl.value = sampleData[chartType].join(',');
+                    valuesControl.value = sampleData[chartType];
                 }
             }
 
@@ -1419,16 +1434,23 @@
                         }
                         break;
                     case 'box':
-                        options.boxLineColor = controls.boxLineColor?.value || '#000000';
-                        options.boxFillColor = controls.boxFillColor?.value || '#ccddff';
-                        options.medianColor = controls.boxMedianColor?.value || '#ff0000';
-                        options.whiskerColor = controls.boxWhiskerColor?.value || '#000000';
-                        options.outlierLineColor = controls.boxOutlierLineColor?.value || '#333333';
-                        options.outlierFillColor = controls.boxOutlierFillColor?.value || '#ffffff';
-                        options.targetColor = controls.boxTargetColor?.value || '#44aa22';
+                        options.boxLineColor = controls.boxLineColor?.value || '#2c3e50';
+                        options.boxFillColor = controls.boxFillColor?.value || '#e8f4f8';
+                        options.medianColor = controls.boxMedianColor?.value || '#c0392b';
+                        options.whiskerColor = controls.boxWhiskerColor?.value || '#2c3e50';
+                        options.outlierLineColor = controls.boxOutlierLineColor?.value || '#7f8c8d';
+                        options.outlierFillColor = controls.boxOutlierFillColor?.value || '#ecf0f1';
+                        options.targetColor = controls.boxTargetColor?.value || '#27ae60';
+                        options.isHorizontal = controls.boxIsHorizontal?.checked ?? true;
                         options.showOutliers = controls.boxShowOutliers?.checked ?? true;
+                        options.showMean = controls.boxShowMean?.checked || false;
+                        if (controls.boxMeanColorEnable?.checked) {
+                            options.meanColor = controls.boxMeanColor?.value;
+                        }
                         options.outlierIQR = parseFloat(controls.boxOutlierIQR?.value || '1.5');
                         options.spotRadius = parseFloat(controls.boxSpotRadius?.value || '1.5');
+                        options.boxWidth = parseFloat(controls.boxWidth?.value || '0.5');
+                        options.borderRadius = parseFloat(controls.boxBorderRadius?.value || '2');
                         if (controls.boxTarget?.value && controls.boxTarget.value.trim() !== '') {
                             options.target = parseFloat(controls.boxTarget.value);
                         }
@@ -1580,17 +1602,23 @@
                         { prop: 'performanceColor', defaultKey: 'bullet-performance-color', isColor: true }
                     ],
                     box: [
-                        { prop: 'boxLineColor', defaultValue: '#000000', isColor: true },
-                        { prop: 'boxFillColor', defaultValue: '#ccddff', isColor: true },
-                        { prop: 'medianColor', defaultValue: '#ff0000', isColor: true },
-                        { prop: 'whiskerColor', defaultValue: '#000000', isColor: true },
-                        { prop: 'outlierLineColor', defaultValue: '#333333', isColor: true },
-                        { prop: 'outlierFillColor', defaultValue: '#ffffff', isColor: true },
-                        { prop: 'targetColor', defaultValue: '#44aa22', isColor: true },
+                        { prop: 'boxLineColor', defaultValue: '#2c3e50', isColor: true },
+                        { prop: 'boxFillColor', defaultValue: '#e8f4f8', isColor: true },
+                        { prop: 'medianColor', defaultValue: '#c0392b', isColor: true },
+                        { prop: 'whiskerColor', defaultValue: '#2c3e50', isColor: true },
+                        { prop: 'outlierLineColor', defaultValue: '#7f8c8d', isColor: true },
+                        { prop: 'outlierFillColor', defaultValue: '#ecf0f1', isColor: true },
+                        { prop: 'targetColor', defaultValue: '#27ae60', isColor: true },
+                        { prop: 'meanColor', defaultValue: '#8e44ad', isColor: true },
                         { prop: 'showOutliers', defaultValue: true },
                         { prop: 'outlierIQR', defaultValue: 1.5 },
                         { prop: 'spotRadius', defaultValue: 1.5 },
-                        { prop: 'target', alwaysInclude: true }
+                        { prop: 'boxWidth', defaultValue: 0.5 },
+                        { prop: 'borderRadius', defaultValue: 2 },
+                        { prop: 'target', alwaysInclude: true },
+                        { prop: 'isHorizontal', defaultValue: true },
+                        { prop: 'showMean', defaultValue: false },
+                        { prop: 'meanSymbol', defaultValue: 'diamond' }
                     ]
                 };
 
@@ -1920,35 +1948,11 @@
                         isUpdating = true;
                         try {
                             if (control === controls.type) {
+                                // Load sample data for the new chart type BEFORE updating UI
+                                loadSampleDataForChartType(control.value);
                                 updateOptionVisibility(control.value);
                                 updateDisplayedDefaults(); // Update default colors when type changes
                                 updateOverrideCheckboxes(); // Update override checkboxes based on whether values match defaults
-
-                                // Set appropriate default values for different chart types
-                                // Temporarily remove event listeners to prevent cascading updates
-                                if (controls.values) {
-                                    if (control.value === 'line-multi') {
-                                        controls.values.value = '[[10,15,20,18,25,30],[15,18,22,20,26,28],[12,16,19,17,23,26]]';
-                                        // Set default multi-series options to showcase array properties
-                                        if (controls.seriesNames) controls.seriesNames.value = 'Revenue, Expenses, Profit';
-                                        if (controls.seriesColors) controls.seriesColors.value = '#0066cc, #ff6600, #00cc66';
-                                        if (controls.seriesFillColors) controls.seriesFillColors.value = 'transparent';
-                                        if (controls.seriesLineWidths) controls.seriesLineWidths.value = '0.7, 0.7, 0.7';
-                                        if (controls.seriesSpotRadii) controls.seriesSpotRadii.value = '0.5, 0.5, 0.5';
-                                    } else if (control.value === 'bullet') {
-                                        controls.values.value = '10,12,12,9,7';
-                                    } else if (control.value === 'tristate') {
-                                        controls.values.value = '1,1,0,1,-1,-1,1,-1,0,0,1,1';
-                                    } else if (control.value === 'pie') {
-                                        controls.values.value = '1,1,2,3';
-                                    } else if (control.value === 'box') {
-                                        controls.values.value = '-50,1,4,27,34,52,54,59,61,68,78,82,85,87,91,93,100,200';
-                                    } else if (control.value === 'discrete') {
-                                        controls.values.value = '4,6,7,7,4,3,2,1,4,5,7,9';
-                                    } else {
-                                        controls.values.value = '5,6,7,9,9,5,3,2,2,4,6,7';
-                                    }
-                                }
                             }
                             updateChart();
                         } finally {
@@ -1996,8 +2000,9 @@
             });
 
             // Initialize the demo
-            updateOptionVisibility(controls.type.value);
-            resetControlsToDefaults('line'); // Load defaults for initial chart type
+            const initialChartType = controls.type.value || 'line';
+            updateOptionVisibility(initialChartType);
+            resetControlsToDefaults(initialChartType); // Load defaults and sample data for initial chart type
             updateOverrideCheckboxes(); // Check if initial values match defaults
             updateChart();
 
