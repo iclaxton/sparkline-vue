@@ -674,6 +674,7 @@
             
             // Pie chart
             { id: 'offset', propertyName: 'offset', label: 'Offset', type: 'number', min: 0, max: 360, visibleFor: ['pie'], group: 'Layout' },
+            { id: 'glow-intensity', propertyName: 'glowIntensity', label: 'Glow Intensity', type: 'number', min: 0, max: 20, defaultValue: 5, visibleFor: ['pie'], group: 'Highlight' },
             { id: 'border-width', propertyName: 'borderWidth', label: 'Border Width', type: 'number', min: 0, max: 10, visibleFor: ['pie'], group: 'Border' },
             { id: 'border-color', propertyName: 'borderColor', label: 'Border Color', type: 'color', checked: false, disabled: true, visibleFor: ['pie'], group: 'Border' },
             
@@ -1343,6 +1344,9 @@
                         break;
                     case 'pie':
                         options.offset = parseInt(controls.offset?.value || '0');
+                        if (controls.glowIntensity?.value) {
+                            options.glowIntensity = parseInt(controls.glowIntensity.value);
+                        }
                         options.borderWidth = parseInt(controls.borderWidth?.value || '0');
                         if (controls.borderColorEnable?.checked) {
                             options.borderColor = controls.borderColor?.value;
@@ -1569,6 +1573,7 @@
                     ],
                     pie: [
                         { prop: 'offset', defaultValue: 0 },
+                        { prop: 'glowIntensity', defaultValue: 5 },
                         { prop: 'borderWidth', defaultValue: 0 },
                         { prop: 'borderColor', defaultKey: 'border-color', isColor: true }
                     ],

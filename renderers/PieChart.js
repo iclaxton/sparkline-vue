@@ -23,6 +23,7 @@ export class PieChart extends BaseChart {
       borderWidth: 0,
       borderColor: '#000',
       highlightLighten: 1,
+      glowIntensity: 5,        // Glow blur intensity for highlighted slices (0 = no glow)
       dataLabels: undefined,   // Optional array of labels for pie slices (mapped to original unsorted data indices)
       getPointDataLabel: undefined  // Alternative: callback function(index) => label for high-performance scenarios
     };
@@ -232,7 +233,7 @@ export class PieChart extends BaseChart {
     
     // Draw subtle glow effect around the slice
     ctx.shadowColor = highlightColor;
-    ctx.shadowBlur = 8;
+    ctx.shadowBlur = this.options.glowIntensity;
     ctx.fillStyle = highlightColor;
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);

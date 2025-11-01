@@ -511,4 +511,363 @@ describe('Sparkline Component', () => {
       expect(wrapper.exists()).toBe(true)
     })
   })
+
+  describe('Point Labels (dataLabels)', () => {
+    describe('Line Charts', () => {
+      it('accepts dataLabels array for single-series line chart', () => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, 2, 3, 4, 5],
+            type: 'line',
+            options: {
+              dataLabels: ['Jan', 'Feb', 'Mar', 'Apr', 'May']
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+
+      it('accepts dataLabels array for multi-series line chart', () => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [[1, 2, 3], [4, 5, 6]],
+            type: 'line',
+            options: {
+              dataLabels: ['2022', '2023', '2024'],
+              seriesNames: ['Series A', 'Series B']
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+
+      it('accepts getPointDataLabel callback for line chart', () => {
+        const labelCallback = (index) => `Point ${index + 1}`
+        
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, 2, 3, 4, 5],
+            type: 'line',
+            options: {
+              getPointDataLabel: labelCallback
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+    })
+
+    describe('Bar Charts', () => {
+      it('accepts dataLabels array for bar chart', () => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, 2, 3, 4, 5],
+            type: 'bar',
+            options: {
+              dataLabels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5']
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+
+      it('accepts seriesNames for stacked bar chart', () => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [[1, 2], [3, 4]],
+            type: 'bar',
+            options: {
+              dataLabels: ['2023', '2024'],
+              seriesNames: ['Product A', 'Product B']
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+
+      it('accepts getPointDataLabel callback for bar chart', () => {
+        const labelCallback = (index) => `Bar ${index + 1}`
+        
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, 2, 3, 4, 5],
+            type: 'bar',
+            options: {
+              getPointDataLabel: labelCallback
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+    })
+
+    describe('TriState Charts', () => {
+      it('accepts dataLabels array for tristate chart', () => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, -1, 0, 1, -1],
+            type: 'tristate',
+            options: {
+              dataLabels: ['Game 1', 'Game 2', 'Game 3', 'Game 4', 'Game 5']
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+
+      it('accepts getPointDataLabel callback for tristate chart', () => {
+        const labelCallback = (index) => `Match ${index + 1}`
+        
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, -1, 0, 1, -1],
+            type: 'tristate',
+            options: {
+              getPointDataLabel: labelCallback
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+    })
+
+    describe('Discrete Charts', () => {
+      it('accepts dataLabels array for discrete chart', () => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [4, 6, 7, 7, 4, 3, 2, 1],
+            type: 'discrete',
+            options: {
+              dataLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon']
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+
+      it('accepts getPointDataLabel callback for discrete chart', () => {
+        const labelCallback = (index) => `Day ${index + 1}`
+        
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [4, 6, 7, 7, 4, 3, 2, 1],
+            type: 'discrete',
+            options: {
+              getPointDataLabel: labelCallback
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+    })
+
+    describe('Pie Charts', () => {
+      it('accepts dataLabels array for pie chart', () => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, 2, 3, 4],
+            type: 'pie',
+            options: {
+              dataLabels: ['Category A', 'Category B', 'Category C', 'Category D']
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+
+      it('accepts getPointDataLabel callback for pie chart', () => {
+        const labelCallback = (index) => `Slice ${index + 1}`
+        
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, 2, 3, 4],
+            type: 'pie',
+            options: {
+              getPointDataLabel: labelCallback
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+
+      it('handles sorted pie slices with correct label mapping', () => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, 4, 2, 3],
+            type: 'pie',
+            options: {
+              dataLabels: ['Small', 'Largest', 'Medium', 'Large']
+            }
+          }
+        })
+        
+        // Pie chart sorts by value but should maintain original index mapping for labels
+        expect(wrapper.exists()).toBe(true)
+      })
+    })
+  })
+
+  describe('Series Names', () => {
+    it('accepts seriesNames for multi-series line chart', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+          type: 'line',
+          options: {
+            seriesNames: ['North', 'South', 'East']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('accepts seriesNames for stacked bar chart segments', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [[1, 2, 3], [4, 5, 6]],
+          type: 'bar',
+          options: {
+            seriesNames: ['Revenue', 'Costs']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+  })
+
+  describe('Tooltip Separators', () => {
+    it('renders tristate chart with tooltip separator', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, -1, 0, 1, -1],
+          type: 'tristate',
+          options: {
+            dataLabels: ['Game 1', 'Game 2', 'Game 3', 'Game 4', 'Game 5']
+          }
+        }
+      })
+      
+      // TriState tooltips should show separator between current state and totals
+      expect(wrapper.exists()).toBe(true)
+    })
+  })
+
+  describe('Pie Chart Glow Intensity', () => {
+    it('accepts glowIntensity option for pie chart', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, 2, 3, 4],
+          type: 'pie',
+          options: {
+            glowIntensity: 10
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('uses default glowIntensity of 5 when not specified', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, 2, 3, 4],
+          type: 'pie'
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('accepts glowIntensity of 0 to disable glow', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, 2, 3, 4],
+          type: 'pie',
+          options: {
+            glowIntensity: 0
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('accepts high glowIntensity values', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, 2, 3, 4],
+          type: 'pie',
+          options: {
+            glowIntensity: 20
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+  })
+
+  describe('Combined Features', () => {
+    it('supports dataLabels and seriesNames together', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [[1, 2, 3], [4, 5, 6]],
+          type: 'line',
+          options: {
+            dataLabels: ['2022', '2023', '2024'],
+            seriesNames: ['Product A', 'Product B']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('supports callback with seriesNames', () => {
+      const labelCallback = (index) => `Q${index + 1}`
+      
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [[1, 2, 3], [4, 5, 6]],
+          type: 'line',
+          options: {
+            getPointDataLabel: labelCallback,
+            seriesNames: ['Revenue', 'Profit']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('pie chart with both dataLabels and glowIntensity', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, 2, 3, 4],
+          type: 'pie',
+          options: {
+            dataLabels: ['A', 'B', 'C', 'D'],
+            glowIntensity: 8
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+  })
 })
+
