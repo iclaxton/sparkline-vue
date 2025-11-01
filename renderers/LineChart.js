@@ -4,6 +4,29 @@
 import { BaseChart } from './BaseChart.js';
 
 export class LineChart extends BaseChart {
+  // Default high-contrast color palette for multi-series
+  static DEFAULT_SERIES_COLORS = [
+    '#0066cc', // Blue
+    '#ff6600', // Orange
+    '#00cc66', // Green
+    '#cc00cc', // Magenta
+    '#cc6600', // Brown
+    '#0099cc', // Cyan
+    '#cc0066', // Pink
+    '#66cc00'  // Lime
+  ];
+
+  static DEFAULT_SERIES_FILLS = [
+    'transparent',   // Blue
+    'transparent',   // Orange
+    'transparent',   // Green
+    'transparent',   // Magenta
+    'transparent',   // Brown
+    'transparent',   // Cyan
+    'transparent',   // Pink
+    'transparent'    // Lime
+  ];
+
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -15,11 +38,33 @@ export class LineChart extends BaseChart {
       chartRangeClip: false,
       chartRangeMinX: undefined,
       chartRangeMaxX: undefined,
-      xvalues: undefined
+      xvalues: undefined,
+      seriesNames: undefined  // Optional array of series names
     };
   }
 
   processValues(data) {
+    if (!Array.isArray(data) || data.length === 0) {
+      return [];
+    }
+    
+    // Detect multi-series data: [[1,2,3], [4,5,6], [7,8,9]]
+    // Check if:
+    // 1. Data has at least 2 elements
+    // 2. First element is an array
+    // 3. Second element is also an array (at least 2 series)
+    // 4. First element of first array is NOT an array (not [[x,y], [x,y]] format)
+    const isMultiSeries = data.length >= 2 &&
+                          Array.isArray(data[0]) && 
+                          Array.isArray(data[1]) &&
+                          data[0].length > 0 &&
+                          !Array.isArray(data[0][0]);
+    
+    if (isMultiSeries) {
+      return this.processMultiSeriesValues(data);
+    }
+
+    // Single series processing
     const processed = [];
     const xvals = [];
     const yvals = [];
@@ -48,7 +93,50 @@ export class LineChart extends BaseChart {
 
     this.xvalues = xvals;
     this.yvalues = yvals;
+    this.isMultiSeries = false;
     return processed;
+  }
+
+  processMultiSeriesValues(data) {
+    this.isMultiSeries = true;
+    this.seriesData = [];
+    
+    // Process each series
+    data.forEach((series, seriesIndex) => {
+      const xvals = [];
+      const yvals = [];
+      const processed = [];
+      
+      series.forEach((val, i) => {
+        if (val === null || val === undefined) {
+          processed.push(null);
+          xvals.push(i);
+          yvals.push(null);
+        } else if (Array.isArray(val) && val.length === 2) {
+          // Handle [x, y] pairs within series
+          processed.push(val);
+          xvals.push(val[0]);
+          yvals.push(val[1]);
+        } else {
+          const num = parseFloat(val);
+          if (!isNaN(num)) {
+            processed.push(num);
+            xvals.push(i);
+            yvals.push(num);
+          }
+        }
+      });
+      
+      this.seriesData.push({
+        values: processed,
+        xvalues: xvals,
+        yvalues: yvals,
+        seriesIndex: seriesIndex
+      });
+    });
+    
+    // Return the original data for compatibility
+    return data;
   }
 
   draw() {
@@ -58,6 +146,12 @@ export class LineChart extends BaseChart {
     
     // Clear the canvas before drawing
     ctx.clearRect(0, 0, this.width, this.height);
+    
+    // Check if this is multi-series data
+    if (this.isMultiSeries) {
+      this.drawMultiSeries();
+      return;
+    }
     
     const { width, height, topOffset, bottomOffset } = this.getDrawingDimensions();
     const { lineColor, fillColor, lineWidth, spotRadius, spotColor } = this.options;
@@ -70,6 +164,10 @@ export class LineChart extends BaseChart {
     const maxY = this.options.chartRangeMax !== undefined ? this.options.chartRangeMax : Math.max(...yVals);
     const minX = Math.min(...this.xvalues);
     const maxX = Math.max(...this.xvalues);
+    
+    // Store min/max for highlight to use
+    this.minY = minY;
+    this.maxY = maxY;
 
     const rangeY = maxY - minY || 1;
     const rangeX = maxX - minX || 1;
@@ -222,6 +320,237 @@ export class LineChart extends BaseChart {
     this.drawMinMaxSpots(points, minY, maxY);
   }
 
+  drawMultiSeries() {
+    if (!this.seriesData || this.seriesData.length === 0) return;
+
+    const ctx = this.ctx;
+    const { width, height, topOffset, bottomOffset } = this.getDrawingDimensions();
+    
+    // Get or create per-series options
+    // For multi-series, default to our color palette unless user explicitly sets lineColor
+    const userSpecifiedLineColor = this.options.lineColor !== undefined && this.options.lineColor !== '#00f'; // '#00f' is BaseChart default
+    const lineColors = userSpecifiedLineColor
+      ? this.getSeriesOption('lineColor', LineChart.DEFAULT_SERIES_COLORS)
+      : LineChart.DEFAULT_SERIES_COLORS;
+    
+    // For multi-series, default to transparent fills unless user explicitly sets fillColor
+    const userSpecifiedFill = this.options.fillColor !== undefined && this.options.fillColor !== '#cdf'; // '#cdf' is BaseChart default
+    const fillColors = userSpecifiedFill 
+      ? this.getSeriesOption('fillColor', LineChart.DEFAULT_SERIES_FILLS)
+      : LineChart.DEFAULT_SERIES_FILLS;
+    
+    // For multi-series, use smaller default line widths and spot radii unless user explicitly sets them
+    const userSpecifiedLineWidth = this.options.lineWidth !== undefined && this.options.lineWidth !== 1; // 1 is BaseChart default
+    const lineWidths = userSpecifiedLineWidth 
+      ? this.getSeriesOption('lineWidth', [this.options.lineWidth])
+      : this.getSeriesOption('lineWidth', [0.7]);
+    
+    const userSpecifiedSpotRadius = this.options.spotRadius !== undefined && this.options.spotRadius !== 1.5; // 1.5 is BaseChart default
+    const spotRadii = userSpecifiedSpotRadius
+      ? this.getSeriesOption('spotRadius', [this.options.spotRadius])
+      : this.getSeriesOption('spotRadius', [0.5]);
+
+    // Calculate global ranges across all series
+    let allYVals = [];
+    let allXVals = [];
+    
+    this.seriesData.forEach(series => {
+      allYVals.push(...series.yvalues.filter(v => v !== null));
+      allXVals.push(...series.xvalues);
+    });
+    
+    if (allYVals.length === 0) return;
+
+    const minY = this.options.chartRangeMin !== undefined ? this.options.chartRangeMin : Math.min(...allYVals);
+    const maxY = this.options.chartRangeMax !== undefined ? this.options.chartRangeMax : Math.max(...allYVals);
+    const minX = Math.min(...allXVals);
+    const maxX = Math.max(...allXVals);
+
+    const rangeY = maxY - minY || 1;
+    const rangeX = maxX - minX || 1;
+
+    // Draw normal range if specified
+    this.drawNormalRange(ctx, minY, maxY, rangeY, topOffset);
+
+    // Store all series points for interaction
+    this.multiSeriesPoints = [];
+    this.regions = [];
+
+    // Draw fills first (in reverse order so first series is on top)
+    for (let s = this.seriesData.length - 1; s >= 0; s--) {
+      const series = this.seriesData[s];
+      const fillColor = fillColors[s % fillColors.length];
+      
+      if (fillColor && fillColor !== 'transparent' && fillColor !== '') {
+        this.drawSeriesFill(ctx, series, minX, maxX, minY, maxY, rangeX, rangeY, fillColor, topOffset, height, bottomOffset);
+      }
+    }
+
+    // Draw lines and collect points
+    this.seriesData.forEach((series, seriesIndex) => {
+      const lineColor = lineColors[seriesIndex % lineColors.length];
+      const lineWidth = lineWidths[seriesIndex % lineWidths.length];
+      const spotRadius = spotRadii[seriesIndex % spotRadii.length];
+      
+      const seriesPoints = this.drawSeriesLine(ctx, series, minX, maxX, minY, maxY, rangeX, rangeY, lineColor, lineWidth, spotRadius, topOffset, height, seriesIndex);
+      
+      // Calculate min/max for this series
+      const seriesYVals = series.yvalues.filter(v => v !== null);
+      const seriesMinY = seriesYVals.length > 0 ? Math.min(...seriesYVals) : minY;
+      const seriesMaxY = seriesYVals.length > 0 ? Math.max(...seriesYVals) : maxY;
+      
+      this.multiSeriesPoints.push({
+        seriesIndex,
+        points: seriesPoints,
+        color: lineColor,
+        minY: seriesMinY,
+        maxY: seriesMaxY
+      });
+    });
+    
+    // Store the actual line colors used for tooltip rendering
+    this.multiSeriesLineColors = lineColors;
+  }
+
+  // Helper to get per-series option values
+  getSeriesOption(optionName, defaultValues) {
+    const optionValue = this.options[optionName];
+    
+    if (Array.isArray(optionValue)) {
+      return optionValue;
+    } else if (optionValue !== undefined && optionValue !== null) {
+      // Single value - use for all series
+      return [optionValue];
+    }
+    
+    // For multi-series, use the provided defaults
+    // (Don't fall back to BaseChart defaults which are for single series)
+    return defaultValues;
+  }
+
+  drawSeriesFill(ctx, series, minX, maxX, minY, maxY, rangeX, rangeY, fillColor, topOffset, height, bottomOffset) {
+    const points = [];
+    
+    // Build points array
+    for (let i = 0; i < series.values.length; i++) {
+      if (series.yvalues[i] !== null) {
+        const x = ((series.xvalues[i] - minX) / rangeX) * this.width;
+        const y = topOffset + height - ((series.yvalues[i] - minY) / rangeY) * height;
+        points.push({ x, y, index: i });
+      }
+    }
+
+    if (points.length < 2) return;
+
+    // Group into continuous segments
+    const segments = [];
+    let currentSegment = [];
+    
+    for (let i = 0; i < points.length; i++) {
+      const point = points[i];
+      
+      if (currentSegment.length > 0) {
+        const lastPointIndex = currentSegment[currentSegment.length - 1].index;
+        let hasNullBetween = false;
+        for (let j = lastPointIndex + 1; j < point.index; j++) {
+          if (series.yvalues[j] === null) {
+            hasNullBetween = true;
+            break;
+          }
+        }
+        if (hasNullBetween) {
+          if (currentSegment.length > 0) {
+            segments.push([...currentSegment]);
+          }
+          currentSegment = [];
+        }
+      }
+      
+      currentSegment.push(point);
+    }
+    
+    if (currentSegment.length > 0) {
+      segments.push(currentSegment);
+    }
+
+    // Fill each segment
+    ctx.save();
+    ctx.fillStyle = fillColor;
+    segments.forEach(segment => {
+      if (segment.length > 1) {
+        ctx.beginPath();
+        segment.forEach((point, index) => {
+          if (index === 0) {
+            ctx.moveTo(point.x, point.y);
+          } else {
+            ctx.lineTo(point.x, point.y);
+          }
+        });
+        const lastPoint = segment[segment.length - 1];
+        const firstPoint = segment[0];
+        ctx.lineTo(lastPoint.x, this.height - bottomOffset);
+        ctx.lineTo(firstPoint.x, this.height - bottomOffset);
+        ctx.closePath();
+        ctx.fill();
+      }
+    });
+    ctx.restore();
+  }
+
+  drawSeriesLine(ctx, series, minX, maxX, minY, maxY, rangeX, rangeY, lineColor, lineWidth, spotRadius, topOffset, height, seriesIndex) {
+    const points = [];
+    
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    
+    let lastWasNull = true;
+    
+    for (let i = 0; i < series.values.length; i++) {
+      if (series.yvalues[i] !== null) {
+        const x = ((series.xvalues[i] - minX) / rangeX) * this.width;
+        const y = topOffset + height - ((series.yvalues[i] - minY) / rangeY) * height;
+        
+        const point = { x, y, value: series.yvalues[i], index: i, seriesIndex };
+        points.push(point);
+        
+        // Store region for interaction
+        this.regions.push({
+          x: x - 5,
+          y: y - 5,
+          width: 10,
+          height: 10,
+          index: i,
+          value: series.yvalues[i],
+          seriesIndex: seriesIndex
+        });
+        
+        if (lastWasNull) {
+          ctx.moveTo(x, y);
+          lastWasNull = false;
+        } else {
+          ctx.lineTo(x, y);
+        }
+      } else {
+        lastWasNull = true;
+      }
+    }
+    
+    ctx.stroke();
+    
+    // Draw spots if specified
+    if (spotRadius > 0) {
+      ctx.fillStyle = lineColor;
+      points.forEach(point => {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, spotRadius, 0, 2 * Math.PI);
+        ctx.fill();
+      });
+    }
+    
+    return points;
+  }
+
   drawNormalRange(ctx, minY, maxY, rangeY, topOffset) {
     const { normalRangeMin, normalRangeMax, normalRangeColor } = this.options;
     
@@ -273,6 +602,26 @@ export class LineChart extends BaseChart {
 
   // Get nearest region to mouse cursor for smooth tooltip following
   getNearestRegion(x, y) {
+    // For multi-series, find nearest x-position across all series
+    if (this.isMultiSeries && this.multiSeriesPoints) {
+      let nearestIndex = null;
+      let nearestDistance = Infinity;
+      
+      // Find the nearest x-position across all series
+      this.multiSeriesPoints.forEach(seriesPoints => {
+        seriesPoints.points.forEach(point => {
+          const distance = Math.abs(point.x - x);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearestIndex = point.index;
+          }
+        });
+      });
+      
+      return nearestIndex;
+    }
+    
+    // Single series logic
     if (!this.points || this.points.length === 0) return null;
     
     let nearestIndex = null;
@@ -295,17 +644,76 @@ export class LineChart extends BaseChart {
 
   // Draw highlight for hovered point
   drawHighlight(regionIndex) {
+    const ctx = this.ctx;
+    const { highlightSpotColor, highlightLineColor, minSpotColor, maxSpotColor } = this.options;
+    
+    // Multi-series highlight - show all points at this index
+    if (this.isMultiSeries && this.multiSeriesPoints) {
+      let xPosition = null;
+      
+      this.multiSeriesPoints.forEach(seriesPoints => {
+        const point = seriesPoints.points.find(p => p.index === regionIndex);
+        if (point) {
+          xPosition = point.x;
+          
+          // Highlight spot for each series
+          // If highlightSpotColor is null, use the series color; otherwise use highlightSpotColor
+          let spotColor = highlightSpotColor === null ? seriesPoints.color : highlightSpotColor;
+          
+          // Check if this point is a min or max and use appropriate color if highlightSpotColor is null
+          if (highlightSpotColor === null && seriesPoints.minY !== undefined && seriesPoints.maxY !== undefined) {
+            if (point.value === seriesPoints.minY && minSpotColor) {
+              spotColor = minSpotColor;
+            } else if (point.value === seriesPoints.maxY && maxSpotColor) {
+              spotColor = maxSpotColor;
+            }
+          }
+          
+          if (spotColor) {
+            ctx.fillStyle = spotColor;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, (this.options.spotRadius || 1.5) + 1, 0, 2 * Math.PI);
+            ctx.fill();
+          }
+        }
+      });
+      
+      // Draw single vertical line at the x position
+      if (xPosition !== null && highlightLineColor) {
+        ctx.strokeStyle = highlightLineColor;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(xPosition, 0);
+        ctx.lineTo(xPosition, this.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      
+      return;
+    }
+    
+    // Single series highlight
     if (!this.points || regionIndex >= this.points.length) return;
     
     const point = this.points.find(p => p.index === regionIndex);
     if (!point) return;
-
-    const ctx = this.ctx;
-    const { highlightSpotColor, highlightLineColor } = this.options;
     
     // Highlight spot
-    if (highlightSpotColor) {
-      ctx.fillStyle = highlightSpotColor;
+    // If highlightSpotColor is null, use the spot color; otherwise use highlightSpotColor
+    let spotColor = highlightSpotColor === null ? this.options.spotColor : highlightSpotColor;
+    
+    // Check if this point is a min or max and use appropriate color if highlightSpotColor is null
+    if (highlightSpotColor === null && this.minY !== undefined && this.maxY !== undefined) {
+      if (point.value === this.minY && minSpotColor) {
+        spotColor = minSpotColor;
+      } else if (point.value === this.maxY && maxSpotColor) {
+        spotColor = maxSpotColor;
+      }
+    }
+    
+    if (spotColor) {
+      ctx.fillStyle = spotColor;
       ctx.beginPath();
       ctx.arc(point.x, point.y, (this.options.spotRadius || 1.5) + 1, 0, 2 * Math.PI);
       ctx.fill();
@@ -326,7 +734,34 @@ export class LineChart extends BaseChart {
 
   // Get tooltip content - override to use yvalues for bounds checking
   getTooltipContent(region) {
-    // For single-value tooltips, try to get color information
+    // Multi-series tooltip - show all series at this index
+    if (this.isMultiSeries && this.multiSeriesPoints && typeof region === 'number') {
+      const items = [];
+      const seriesNames = this.options.seriesNames || [];
+      // Use the colors that were actually used during drawing
+      const lineColors = this.multiSeriesLineColors || LineChart.DEFAULT_SERIES_COLORS;
+      
+      this.multiSeriesPoints.forEach((seriesPoints, idx) => {
+        const point = seriesPoints.points.find(p => p.index === region);
+        if (point) {
+          const seriesName = seriesNames[idx] || `Series ${idx + 1}`;
+          const value = point.value;
+          const formattedValue = this.formatTooltipValue(value, region);
+          const label = `${seriesName}: ${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
+          const color = lineColors[idx % lineColors.length];
+          
+          items.push({ label, color });
+        }
+      });
+      
+      if (items.length > 0) {
+        return { items };
+      }
+      
+      return null;
+    }
+    
+    // Single series tooltip
     const color = this.getRegionColor(region);
     if (color && typeof region === 'number' && region >= 0 && region < this.yvalues.length) {
       const value = this.yvalues[region];
@@ -423,13 +858,19 @@ export class LineChart extends BaseChart {
 
   // Get enhanced data for line chart tooltips
   getTooltipData(value, region) {
-    return {
+    const baseData = {
       ...super.getTooltipData(value, region),
-      x: this.xvalues[region],
       y: value,
       point: region + 1,
-      total: this.values.length
+      total: this.values?.length || 0
     };
+    
+    // Only add x if xvalues exists (single series)
+    if (this.xvalues && typeof region === 'number') {
+      baseData.x = this.xvalues[region];
+    }
+    
+    return baseData;
   }
 
   // Override getRegionFields for line chart compliance

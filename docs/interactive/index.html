@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -141,6 +142,55 @@
             padding: 0;
             cursor: pointer;
             border: 1px solid #a0a0a0;
+            box-sizing: border-box;
+        }
+
+        .property-field input[type="color"]:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .color-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+            margin: 1px 2px;
+            padding: 0;
+            vertical-align: bottom;
+            line-height: 1;
+        }
+
+        .color-input-wrapper input[type="color"] {
+            display: block;
+            width: 40px;
+            height: 20px;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 1px solid #a0a0a0;
+            box-sizing: border-box;
+        }
+
+        .color-null-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-linear-gradient(45deg,
+                    #ffffff,
+                    #ffffff 2px,
+                    #cccccc 2px,
+                    #cccccc 3px),
+                repeating-linear-gradient(-45deg,
+                    #ffffff,
+                    #ffffff 2px,
+                    #cccccc 2px,
+                    #cccccc 3px);
+            pointer-events: none;
+            border: 1px solid #a0a0a0;
+            box-sizing: border-box;
         }
 
         .property-field input[type="checkbox"] {
@@ -167,16 +217,142 @@
         .demo-result {
             background: #ffffff;
             border: 1px solid #a0a0a0;
-            padding: 20px;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .chart-label {
+        .chart-display {
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 0;
+            border: none;
+        }
+
+        .chart-display canvas {
+            display: block;
+            max-width: 100%;
+            border: none;
+        }
+
+        .code-display {
+            flex: 1;
+            overflow: auto;
+            background: #1e1e1e;
+            padding: 0;
+            border-top: 1px solid #d0d0d0;
+        }
+
+        .chart-label,
+        .code-label {
             font-weight: normal;
             color: #333333;
             margin-bottom: 15px;
             font-size: 0.8em;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .code-label {
+            color: #cccccc;
+            padding: 10px 15px;
+            margin: 0;
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-code-btn {
+            background: #0e639c;
+            color: #ffffff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background 0.2s;
+        }
+
+        .copy-code-btn:hover {
+            background: #1177bb;
+        }
+
+        .copy-code-btn:active {
+            background: #0d5a8f;
+        }
+
+        .copy-code-btn.copied {
+            background: #16825d;
+        }
+
+        .code-display pre {
+            margin: 0;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            background: #1e1e1e;
+        }
+
+        .code-display code {
+            display: inline-block;
+            min-width: 100%;
+            color: #e0e0e0;
+            white-space: pre;
+            background: transparent;
+        }
+
+        /* Syntax Highlighting - VS Code Dark Theme */
+        .token-tag {
+            color: #569cd6;
+        }
+
+        .token-attr-name {
+            color: #9cdcfe;
+        }
+
+        .token-attr-value {
+            color: #ce9178;
+        }
+
+        .token-js-expr {
+            color: #4ec9b0;
+        }
+
+        /* Cyan/teal for JS expressions in Vue attributes */
+        .token-punctuation {
+            color: #808080;
+        }
+
+        .token-comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+
+        .token-string {
+            color: #ce9178;
+        }
+
+        .token-number {
+            color: #b5cea8;
+        }
+
+        .token-keyword {
+            color: #c586c0;
+        }
+
+        .token-property {
+            color: #9cdcfe;
+        }
+
+        .token-bracket {
+            color: #ffd700;
         }
 
         .try-it-section {
@@ -200,20 +376,30 @@
                 grid-template-columns: 1fr;
                 gap: 15px;
             }
-            
+
             .interactive-demo {
                 grid-template-columns: 1fr;
                 gap: 20px;
                 padding: 10px;
             }
-            
+
+            .chart-display {
+                padding: 15px;
+            }
+
+            .code-display pre {
+                font-size: 0.75em;
+                padding: 10px;
+            }
+
             .property-field {
                 grid-template-columns: 150px 1fr;
                 gap: 0;
                 padding: 0;
-                min-height: 40px; /* Increased for better touch targets */
+                min-height: 40px;
+                /* Increased for better touch targets */
             }
-            
+
             .property-field label {
                 font-size: 12px;
                 padding: 8px 6px;
@@ -222,7 +408,8 @@
             .property-field input,
             .property-field select {
                 font-size: 14px;
-                height: 32px; /* Larger touch targets */
+                height: 32px;
+                /* Larger touch targets */
                 margin: 4px 2px;
                 padding: 4px 8px;
             }
@@ -272,14 +459,14 @@
                 gap: 5px;
                 padding: 5px;
             }
-            
+
             .property-field {
                 grid-template-columns: 1fr;
                 gap: 2px;
                 padding: 4px 4px;
                 min-height: 60px;
             }
-            
+
             .property-field label {
                 font-size: 14px;
                 padding: 4px 0;
@@ -290,7 +477,8 @@
             .property-field input,
             .property-field select {
                 height: 40px;
-                font-size: 16px; /* Prevents zoom on iOS */
+                font-size: 16px;
+                /* Prevents zoom on iOS */
                 padding: 8px 12px;
             }
 
@@ -305,8 +493,9 @@
                 margin: 8px 0;
             }
         }
-    </style>    
+    </style>
 </head>
+
 <body style="min-height: 100vh; display: flex; flex-direction: column; margin: 0;">
     <div class="outer-container" style="flex: 1;">
         <div class="container">
@@ -321,9 +510,11 @@
                     <a href="../comprehensive/">🎯 Comprehensive</a>
                     <a href="../interactive/" class="current">🎮 Interactive</a>
                     <a href="../performance/">🚀 Performance</a>
-                    <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
+                    <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer"
+                        class="github-link" title="View on GitHub">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                         </svg>
                     </a>
                 </div>
@@ -332,21 +523,34 @@
             <div class="content">
                 <div class="section">
                     <h2>🎮 Interactive Chart Demo</h2>
-                    <p>Customize any sparkline chart in real-time using the Visual Studio-style properties panel below. Change chart types, colors, dimensions, and various options to see how they affect the chart appearance and behavior.</p>
-                    
+                    <p>Customize any sparkline chart in real-time using the Visual Studio-style properties panel below.
+                        Change chart types, colors, dimensions, and various options to see how they affect the chart
+                        appearance and behavior.</p>
+
                     <div class="try-it-section">
                         <h3>🎮 Try It Out - Interactive Demo</h3>
-                        <p>Customize the chart below by changing the options. The chart updates automatically as you make changes!</p>
-                        
+                        <p>Customize the chart below by changing the options. The chart updates automatically as you
+                            make changes!</p>
+
                         <div class="interactive-demo">
 
                             <div class="demo-result">
-                                <div class="chart-label">Interactive Chart Result</div>
-                                <canvas id="interactive-chart" width="300" height="100"></canvas>
+                                <div class="chart-display">
+                                    <div class="chart-label">Interactive Chart Result</div>
+                                    <canvas id="interactive-chart" width="300" height="100"></canvas>
+                                </div>
+                                <div class="code-display">
+                                    <div class="code-label">
+                                        <span>Vue Component Code</span>
+                                        <button class="copy-code-btn" id="copy-code-btn"
+                                            title="Copy code to clipboard">Copy Code</button>
+                                    </div>
+                                    <pre><code id="vue-code" class="language-vue"></code></pre>
+                                </div>
                             </div>
 
                             <div class="property-panel" id="controls-container">
-                                
+
                                 <!-- Standard Properties -->
                                 <div class="property-group">
                                     <div class="property-header">Standard <span class="option-count">(4)</span></div>
@@ -355,6 +559,7 @@
                                             <label for="chart-type">Chart Type:</label>
                                             <select id="chart-type">
                                                 <option value="line">Line</option>
+                                                <option value="line-multi">Line (Multi-Series)</option>
                                                 <option value="bar">Bar</option>
                                                 <option value="pie">Pie</option>
                                                 <option value="discrete">Discrete</option>
@@ -363,17 +568,18 @@
                                                 <option value="box">Box</option>
                                             </select>
                                         </div>
-                                        
+
                                         <div class="property-field chart-type-group">
                                             <label for="chart-values">Values:</label>
-                                            <input type="text" id="chart-values" value="5,6,7,9,9,5,3,2,2,4,6,7" title="Comma-separated numbers">
+                                            <input type="text" id="chart-values" value="5,6,7,9,9,5,3,2,2,4,6,7"
+                                                title="Single series: 1,2,3,4 or Multi-series: [[1,2,3],[4,5,6],[7,8,9]]">
                                         </div>
-                                        
+
                                         <div class="property-field dimensions-group">
                                             <label for="chart-width">Width:</label>
                                             <input type="number" id="chart-width" value="300" min="50" max="600">
                                         </div>
-                                        
+
                                         <div class="property-field dimensions-group">
                                             <label for="chart-height">Height:</label>
                                             <input type="number" id="chart-height" value="100" min="20" max="600">
@@ -383,329 +589,31 @@
 
                                 <!-- Appearance Properties -->
                                 <div class="property-group">
-                                    <div class="property-header">Appearance <span class="option-count" id="appearance-count">(8)</span></div>
+                                    <div class="property-header">Appearance <span class="option-count"
+                                            id="appearance-count">(8)</span></div>
                                     <div class="property-content" style="max-height: 1000px;">
-                                        <div class="property-field">
-                                            <label for="line-color">Line Color:</label>
-                                            <input type="color" id="line-color" value="#0000f0">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="fill-color">Fill Color:</label>
-                                            <input type="color" id="fill-color" value="#c0d0f0">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="spot-color">Spot Color:</label>
-                                            <input type="color" id="spot-color" value="#f80000">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="min-spot-color">Min Spot Color:</label>
-                                            <input type="color" id="min-spot-color" value="#f44444">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="max-spot-color">Max Spot Color:</label>
-                                            <input type="color" id="max-spot-color" value="#44f444">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="line-width">Line Width:</label>
-                                            <input type="number" id="line-width" value="1" min="0.5" max="5" step="0.5">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="spot-radius">Spot Radius:</label>
-                                            <input type="number" id="spot-radius" value="1.5" min="0" max="10" step="0.5">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="highlight-lighten">Highlight Lighten:</label>
-                                            <input type="number" id="highlight-lighten" value="1.4" min="1.0" max="3.0" step="0.1">
-                                        </div>
+                                        <!-- Dynamically generated -->
                                     </div>
                                 </div>
 
                                 <!-- Layout Properties -->
                                 <div class="property-group">
-                                    <div class="property-header">Layout <span class="option-count" id="layout-count">(11)</span></div>
+                                    <div class="property-header">Layout <span class="option-count"
+                                            id="layout-count">(11)</span></div>
                                     <div class="property-content" style="max-height: 1000px;">
-                                        <div class="property-field">
-                                            <label for="chart-range-min">Range Min:</label>
-                                            <input type="number" id="chart-range-min" placeholder="Auto">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="chart-range-max">Range Max:</label>
-                                            <input type="number" id="chart-range-max" placeholder="Auto">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="normal-range-min">Normal Range Min:</label>
-                                            <input type="number" id="normal-range-min" placeholder="Optional">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="normal-range-max">Normal Range Max:</label>
-                                            <input type="number" id="normal-range-max" placeholder="Optional">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="normal-range-color">Normal Range Color:</label>
-                                            <input type="color" id="normal-range-color" value="#c0c0c0">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="top-padding">Top Padding:</label>
-                                            <input type="number" id="top-padding" value="3" min="0" max="20">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="bottom-padding">Bottom Padding:</label>
-                                            <input type="number" id="bottom-padding" value="3" min="0" max="20">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="disable-tooltips">Disable Tooltips:</label>
-                                            <input type="checkbox" id="disable-tooltips">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="tooltip-prefix">Tooltip Prefix:</label>
-                                            <input type="text" id="tooltip-prefix" placeholder="e.g., 'Value: '" value="">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="tooltip-suffix">Tooltip Suffix:</label>
-                                            <input type="text" id="tooltip-suffix" placeholder="e.g., ' units'" value="">
-                                        </div>
-                                        
-                                        <div class="property-field">
-                                            <label for="tooltip-format">Tooltip Format:</label>
-                                            <input type="text" id="tooltip-format" placeholder="e.g., '{{value}}' or '{{value.2}}'" value="{{value}}">
-                                        </div>
+                                        <!-- Dynamically generated -->
                                     </div>
                                 </div>
-                                
+
                                 <!-- Extended Properties - Hidden by default -->
                                 <div class="property-group" id="extended-options-group" style="display: none;">
-                                    <div class="property-header">Extended Options <span class="option-count" id="extended-count">(0)</span></div>
+                                    <div class="property-header">Extended Options <span class="option-count"
+                                            id="extended-count">(0)</span></div>
                                     <div class="property-content" style="max-height: 1000px;">
-                                        
-                                        <!-- Bar Chart Options -->
-                                        <div class="property-field bar-options" style="display: none;">
-                                            <label for="bar-color">Bar Color:</label>
-                                            <input type="color" id="bar-color" value="#4285f4">
-                                        </div>
-                                        
-                                        <div class="property-field bar-options" style="display: none;">
-                                            <label for="neg-bar-color">Negative Color:</label>
-                                            <input type="color" id="neg-bar-color" value="#db4437">
-                                        </div>
-                                        
-                                        <div class="property-field bar-options" style="display: none;">
-                                            <label for="zero-color">Zero Color:</label>
-                                            <input type="color" id="zero-color" value="#909090">
-                                        </div>
-                                        
-                                        <div class="property-field bar-options" style="display: none;">
-                                            <label for="null-color">Null Color:</label>
-                                            <input type="color" id="null-color" value="#cccccc">
-                                        </div>
-                                        
-                                        <div class="property-field bar-options" style="display: none;">
-                                            <label for="zero-axis">Zero Axis:</label>
-                                            <input type="checkbox" id="zero-axis" checked>
-                                        </div>
-                                        
-                                        <div class="property-field bar-options" style="display: none;">
-                                            <label for="chart-range-clip">Range Clipping:</label>
-                                            <input type="checkbox" id="chart-range-clip">
-                                        </div>
-                                        
-                                        <div class="property-field bar-options" style="display: none;">
-                                            <label for="bar-width">Bar Width:</label>
-                                            <select id="bar-width">
-                                                <option value="auto" selected>Auto (Default)</option>
-                                                <option value="fill">Fill Canvas</option>
-                                                <option value="2">2px</option>
-                                                <option value="4">4px</option>
-                                                <option value="6">6px</option>
-                                                <option value="8">8px</option>
-                                                <option value="10">10px</option>
-                                                <option value="15">15px</option>
-                                                <option value="20">20px</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="property-field bar-options" style="display: none;">
-                                            <label for="bar-spacing">Bar Spacing:</label>
-                                            <input type="number" id="bar-spacing" value="1" min="0" max="10">
-                                        </div>
-                                        
-                                        <!-- Pie Chart Options -->
-                                        <div class="property-field pie-options" style="display: none;">
-                                            <label for="pie-offset">Offset Angle:</label>
-                                            <input type="number" id="pie-offset" value="0" min="-180" max="180">
-                                        </div>
-                                        
-                                        <div class="property-field pie-options" style="display: none;">
-                                            <label for="pie-border-width">Border Width:</label>
-                                            <input type="number" id="pie-border-width" value="0" min="0" max="10">
-                                        </div>
-                                        
-                                        <div class="property-field pie-options" style="display: none;">
-                                            <label for="pie-border-color">Border Color:</label>
-                                            <input type="color" id="pie-border-color" value="#000000">
-                                        </div>
-                                        
-                                        <!-- Discrete Chart Options -->
-                                        <div class="property-field discrete-options" style="display: none;">
-                                            <label for="discrete-line-height">Line Height:</label>
-                                            <input type="number" id="discrete-line-height" value="30" min="10" max="100">
-                                        </div>
-                                        
-                                        <div class="property-field discrete-options" style="display: none;">
-                                            <label for="discrete-threshold-value">Threshold Value:</label>
-                                            <input type="number" id="discrete-threshold-value" placeholder="Optional">
-                                        </div>
-                                        
-                                        <div class="property-field discrete-options" style="display: none;">
-                                            <label for="discrete-threshold-color">Threshold Color:</label>
-                                            <input type="color" id="discrete-threshold-color" value="#ff0000">
-                                        </div>
-                                        
-                                        <div class="property-field discrete-options" style="display: none;">
-                                            <label for="discrete-line-width">Line Width:</label>
-                                            <select id="discrete-line-width">
-                                                <option value="auto" selected>Auto (Default)</option>
-                                                <option value="fill">Fill Canvas</option>
-                                                <option value="2">2px</option>
-                                                <option value="4">4px</option>
-                                                <option value="6">6px</option>
-                                                <option value="8">8px</option>
-                                                <option value="10">10px</option>
-                                                <option value="15">15px</option>
-                                                <option value="20">20px</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="property-field discrete-options" style="display: none;">
-                                            <label for="discrete-line-spacing">Line Spacing:</label>
-                                            <input type="number" id="discrete-line-spacing" value="1" min="0" max="10">
-                                        </div>
-                                        
-                                        <!-- Tristate Chart Options -->
-                                        <div class="property-field tristate-options" style="display: none;">
-                                            <label for="tristate-pos-color">Positive Color:</label>
-                                            <input type="color" id="tristate-pos-color" value="#00ff00">
-                                        </div>
-                                        
-                                        <div class="property-field tristate-options" style="display: none;">
-                                            <label for="tristate-neg-color">Negative Color:</label>
-                                            <input type="color" id="tristate-neg-color" value="#ff0000">
-                                        </div>
-                                        
-                                        <div class="property-field tristate-options" style="display: none;">
-                                            <label for="tristate-zero-color">Zero Color:</label>
-                                            <input type="color" id="tristate-zero-color" value="#999999">
-                                        </div>
-                                        
-                                        <div class="property-field tristate-options" style="display: none;">
-                                            <label for="tristate-bar-width">Bar Width:</label>
-                                            <select id="tristate-bar-width">
-                                                <option value="auto" selected>Auto (Default)</option>
-                                                <option value="fill">Fill Canvas</option>
-                                                <option value="2">2px</option>
-                                                <option value="4">4px</option>
-                                                <option value="6">6px</option>
-                                                <option value="8">8px</option>
-                                                <option value="10">10px</option>
-                                                <option value="15">15px</option>
-                                                <option value="20">20px</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="property-field tristate-options" style="display: none;">
-                                            <label for="tristate-bar-spacing">Bar Spacing:</label>
-                                            <input type="number" id="tristate-bar-spacing" value="1" min="0" max="10">
-                                        </div>
-                                        
-                                        <!-- Bullet Chart Options -->
-                                        <div class="property-field bullet-options" style="display: none;">
-                                            <label for="bullet-target-color">Target Color:</label>
-                                            <input type="color" id="bullet-target-color" value="#ff0000">
-                                        </div>
-                                        
-                                        <div class="property-field bullet-options" style="display: none;">
-                                            <label for="bullet-target-width">Target Width:</label>
-                                            <input type="number" id="bullet-target-width" value="3" min="1" max="10">
-                                        </div>
-                                        
-                                        <div class="property-field bullet-options" style="display: none;">
-                                            <label for="bullet-performance-color">Performance Color:</label>
-                                            <input type="color" id="bullet-performance-color" value="#3333ff">
-                                        </div>
-                                        
-                                        <!-- Box Chart Options -->
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-line-color">Box Line Color:</label>
-                                            <input type="color" id="box-line-color" value="#000000">
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-fill-color">Box Fill Color:</label>
-                                            <input type="color" id="box-fill-color" value="#ccddff">
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-median-color">Median Color:</label>
-                                            <input type="color" id="box-median-color" value="#ff0000">
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-whisker-color">Whisker Color:</label>
-                                            <input type="color" id="box-whisker-color" value="#000000">
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-outlier-line-color">Outlier Line:</label>
-                                            <input type="color" id="box-outlier-line-color" value="#333333">
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-outlier-fill-color">Outlier Fill:</label>
-                                            <input type="color" id="box-outlier-fill-color" value="#ffffff">
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-target-color">Target Color:</label>
-                                            <input type="color" id="box-target-color" value="#44aa22">
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-show-outliers">Show Outliers:</label>
-                                            <input type="checkbox" id="box-show-outliers" checked>
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-outlier-iqr">IQR Multiplier:</label>
-                                            <input type="number" id="box-outlier-iqr" value="1.5" min="0.5" max="5" step="0.1">
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-spot-radius">Spot Radius:</label>
-                                            <input type="number" id="box-spot-radius" value="1.5" min="0.5" max="10" step="0.1">
-                                        </div>
-                                        
-                                        <div class="property-field box-options" style="display: none;">
-                                            <label for="box-target">Target Value:</label>
-                                            <input type="number" id="box-target" placeholder="Optional">
-                                        </div>
+                                        <!-- Dynamically generated -->
                                     </div>
                                 </div>
-                            </div>                        
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -716,24 +624,132 @@
     <script type="module">
         import { createChart } from '../../renderers/chartFactory.js';
 
+        // Property Definitions Configuration
+        // This defines all properties that can be dynamically generated
+        const propertyDefinitions = {
+            // Common appearance properties
+            appearance: [
+                { id: 'line-color', label: 'Line Color', type: 'color', defaultValue: '#0000ff', checked: true, hasNull: true, visibleFor: ['line', 'discrete'] },
+                { id: 'fill-color', label: 'Fill Color', type: 'color', defaultValue: undefined, checked: false, hasNull: true, nullLabel: 'undefined', disabled: true, visibleFor: ['line'] },
+                { id: 'spot-color', label: 'Spot Color', type: 'color', defaultValue: '#ff8800', checked: true, hasNull: true, visibleFor: ['line'] },
+                { id: 'min-spot-color', label: 'Min Spot Color', type: 'color', defaultValue: '#ff4444', checked: true, visibleFor: ['line'] },
+                { id: 'max-spot-color', label: 'Max Spot Color', type: 'color', defaultValue: '#44ff44', checked: true, visibleFor: ['line'] },
+                { id: 'highlight-spot-color', label: 'Highlight Spot Color', type: 'color', defaultValue: null, checked: false, disabled: true, hasNullOverlay: true, visibleFor: ['line', 'line-multi'] },
+                { id: 'highlight-line-color', label: 'Highlight Line Color', type: 'color', defaultValue: '#555555', checked: true, hasNull: true, visibleFor: ['line', 'line-multi'] },
+                { id: 'line-width', label: 'Line Width', type: 'number', defaultValue: 1, min: 0.5, max: 5, step: 0.5, visibleFor: ['line'] },
+                { id: 'spot-radius', label: 'Spot Radius', type: 'number', defaultValue: 1.5, min: 0, max: 10, step: 0.5, visibleFor: ['line'] },
+                { id: 'highlight-lighten', label: 'Highlight Lighten', type: 'number', defaultValue: 1.4, min: 1, max: 3, step: 0.1, visibleFor: ['bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] }
+            ],
+            // Layout properties
+            layout: [
+                { id: 'chart-range-min', label: 'Chart Range Min', type: 'number', defaultValue: '', step: 'any', placeholder: 'Auto', visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'bullet'] },
+                { id: 'chart-range-max', label: 'Chart Range Max', type: 'number', defaultValue: '', step: 'any', placeholder: 'Auto', visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'bullet'] },
+                { id: 'normal-range-min', label: 'Normal Range Min', type: 'number', defaultValue: '', step: 'any', placeholder: 'Optional', visibleFor: ['line', 'line-multi'] },
+                { id: 'normal-range-max', label: 'Normal Range Max', type: 'number', defaultValue: '', step: 'any', placeholder: 'Optional', visibleFor: ['line', 'line-multi'] },
+                { id: 'normal-range-color', label: 'Normal Range Color', type: 'color', defaultValue: '#cccccc', checked: false, disabled: true, visibleFor: ['line', 'line-multi'] },
+                { id: 'top-padding', label: 'Top Padding', type: 'number', defaultValue: 3, min: 0, max: 20, visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'bottom-padding', label: 'Bottom Padding', type: 'number', defaultValue: 3, min: 0, max: 20, visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'disable-tooltips', label: 'Disable Tooltips', type: 'checkbox', defaultValue: false, visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'tooltip-prefix', label: 'Tooltip Prefix', type: 'text', defaultValue: '', placeholder: "e.g., 'Value: '", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'tooltip-suffix', label: 'Tooltip Suffix', type: 'text', defaultValue: '', placeholder: "e.g., ' units'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'tooltip-format', label: 'Tooltip Format', type: 'text', defaultValue: '{{value}}', placeholder: "e.g., '{{value}}' or '{{value.2}}'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] }
+            ],
+            // Chart-specific properties
+            bar: {
+                chartClass: 'bar-options',
+                properties: [
+                    { id: 'bar-color', label: 'Bar Color', type: 'color', defaultValue: '#3366cc', checked: false, disabled: true },
+                    { id: 'neg-bar-color', label: 'Negative Bar Color', type: 'color', defaultValue: '#ff4444', checked: false, disabled: true },
+                    { id: 'zero-color', label: 'Zero Color', type: 'color', defaultValue: '#909090', checked: false, disabled: true },
+                    { id: 'null-color', label: 'Null Color', type: 'color', defaultValue: undefined, checked: false, disabled: true, hasNullOverlay: true },
+                    { id: 'zero-axis', label: 'Zero Axis', type: 'checkbox', defaultValue: true },
+                    { id: 'chart-range-clip', label: 'Chart Range Clip', type: 'checkbox', defaultValue: false },
+                    { id: 'bar-width', label: 'Bar Width', type: 'text', defaultValue: 'auto', placeholder: 'auto, fill, or px value' },
+                    { id: 'bar-spacing', label: 'Bar Spacing', type: 'number', defaultValue: 1, min: 0, max: 10 }
+                ]
+            },
+            pie: {
+                chartClass: 'pie-options',
+                properties: [
+                    { id: 'pie-offset', label: 'Offset', type: 'number', defaultValue: 0, min: 0, max: 360 },
+                    { id: 'pie-border-width', label: 'Border Width', type: 'number', defaultValue: 0, min: 0, max: 10 },
+                    { id: 'pie-border-color', label: 'Border Color', type: 'color', defaultValue: '#000000', checked: false, disabled: true }
+                ]
+            },
+            tristate: {
+                chartClass: 'tristate-options',
+                properties: [
+                    { id: 'tristate-pos-color', label: 'Positive Color', type: 'color', defaultValue: '#00ff00', checked: false, disabled: true },
+                    { id: 'tristate-neg-color', label: 'Negative Color', type: 'color', defaultValue: '#ff0000', checked: false, disabled: true },
+                    { id: 'tristate-zero-color', label: 'Zero Color', type: 'color', defaultValue: '#999999', checked: false, disabled: true },
+                    { id: 'tristate-bar-width', label: 'Bar Width', type: 'text', defaultValue: 'auto', placeholder: 'auto, fill, or px value' },
+                    { id: 'tristate-bar-spacing', label: 'Bar Spacing', type: 'number', defaultValue: 1, min: 0, max: 10 }
+                ]
+            },
+            discrete: {
+                chartClass: 'discrete-options',
+                properties: [
+                    { id: 'discrete-line-height', label: 'Line Height', type: 'number', defaultValue: '', min: 1, max: 100, placeholder: 'Auto (30% of height)' },
+                    { id: 'discrete-threshold-value', label: 'Threshold Value', type: 'number', defaultValue: '', step: 'any', placeholder: 'Optional' },
+                    { id: 'discrete-threshold-color', label: 'Threshold Color', type: 'color', defaultValue: undefined, checked: false, disabled: true, hasNullOverlay: true },
+                    { id: 'discrete-line-width', label: 'Line Width', type: 'text', defaultValue: 'auto', placeholder: 'auto, fill, or px value' },
+                    { id: 'discrete-line-spacing', label: 'Line Spacing', type: 'number', defaultValue: 1, min: 0, max: 10 }
+                ]
+            },
+            bullet: {
+                chartClass: 'bullet-options',
+                properties: [
+                    { id: 'bullet-target-color', label: 'Target Color', type: 'color', defaultValue: '#ff3333', checked: false, disabled: true },
+                    { id: 'bullet-target-width', label: 'Target Width', type: 'number', defaultValue: 3, min: 1, max: 10 },
+                    { id: 'bullet-performance-color', label: 'Performance Color', type: 'color', defaultValue: '#3333ff', checked: false, disabled: true }
+                ]
+            },
+            'line-multi': {
+                chartClass: 'line-multi-options',
+                properties: [
+                    { id: 'series-names', label: 'Series Names', type: 'text', defaultValue: '', placeholder: 'Series 1, Series 2, Series 3' },
+                    { id: 'series-colors', label: 'Series Colors', type: 'text', defaultValue: '', placeholder: '#0000ff, #ff0000, #00ff00' },
+                    { id: 'series-fill-colors', label: 'Series Fill Colors', type: 'text', defaultValue: '', placeholder: 'transparent, transparent, transparent' },
+                    { id: 'series-line-widths', label: 'Series Line Widths', type: 'text', defaultValue: '', placeholder: '1, 1, 1' },
+                    { id: 'series-spot-radii', label: 'Series Spot Radii', type: 'text', defaultValue: '', placeholder: '0.5, 0.5, 0.5' }
+                ]
+            },
+            box: {
+                chartClass: 'box-options',
+                properties: [
+                    { id: 'box-line-color', label: 'Box Line Color', type: 'color', defaultValue: '#000000' },
+                    { id: 'box-fill-color', label: 'Box Fill Color', type: 'color', defaultValue: '#ccddff' },
+                    { id: 'box-median-color', label: 'Median Color', type: 'color', defaultValue: '#ff0000' },
+                    { id: 'box-whisker-color', label: 'Whisker Color', type: 'color', defaultValue: '#000000' },
+                    { id: 'box-outlier-line-color', label: 'Outlier Line Color', type: 'color', defaultValue: '#333333' },
+                    { id: 'box-outlier-fill-color', label: 'Outlier Fill Color', type: 'color', defaultValue: '#ffffff' },
+                    { id: 'box-target-color', label: 'Target Color', type: 'color', defaultValue: '#44aa22' },
+                    { id: 'box-show-outliers', label: 'Show Outliers', type: 'checkbox', defaultValue: true },
+                    { id: 'box-outlier-iqr', label: 'Outlier IQR', type: 'number', defaultValue: 1.5, min: 0, max: 5, step: 0.1 },
+                    { id: 'box-spot-radius', label: 'Spot Radius', type: 'number', defaultValue: 1.5, min: 0, max: 10, step: 0.5 },
+                    { id: 'box-target', label: 'Target', type: 'number', defaultValue: '', step: 'any', placeholder: 'Optional' }
+                ]
+            }
+        };
+
         // Sample data sets for different chart types
         const sampleData = {
-            line: [5,6,7,9,9,5,3,2,2,4,6,7],
-            bar: [5,6,7,9,9,5,3,2,2,4,6,7],
-            pie: [1,1,2],
-            discrete: [4,6,7,7,4,3,2,1,4,5,7,9],
-            tristate: [1,1,-1,1,-1,0,1,-1],
-            bullet: [10,12,12,9,7],
-            box: [4,27,34,52,54,59,61,68,78,82,85,87,91,93,100]
+            line: [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7],
+            bar: [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7],
+            pie: [1, 1, 2],
+            discrete: [4, 6, 7, 7, 4, 3, 2, 1, 4, 5, 7, 9],
+            tristate: [1, 1, -1, 1, -1, 0, 1, -1],
+            bullet: [10, 12, 12, 9, 7],
+            box: [4, 27, 34, 52, 54, 59, 61, 68, 78, 82, 85, 87, 91, 93, 100]
         };
 
         // Helper function to create a sparkline on canvas
         function createSparkline(canvas, data, type, options = {}) {
             if (!canvas || !data) return null;
-            
+
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             const props = {
                 data: data,
                 type: type,
@@ -741,7 +757,7 @@
                 height: canvas.height,
                 options: options
             };
-            
+
             const chart = createChart(type, ctx, props);
             if (chart) {
                 chart.draw();
@@ -753,121 +769,256 @@
         // Interactive demo functionality
         document.addEventListener('DOMContentLoaded', () => {
             let interactiveChart = null;
-            
-            // Get all control elements
+
+            // Function to generate property HTML from configuration
+            function generatePropertyHTML(propDef, chartClass = '') {
+                const isColor = propDef.type === 'color';
+                const hasCheckbox = isColor && propDef.checked !== undefined;
+                const fieldClass = chartClass ? `property-field ${chartClass}` : 'property-field';
+                const displayStyle = chartClass ? ' style="display: none;"' : '';
+                
+                let html = `<div class="${fieldClass}"${displayStyle}>`;
+                html += `<label for="${propDef.id}${hasCheckbox ? '-enable' : ''}">${propDef.label}:</label>`;
+                
+                if (propDef.type === 'checkbox') {
+                    html += `<input type="checkbox" id="${propDef.id}" ${propDef.defaultValue ? 'checked' : ''}>`;
+                } else if (isColor && hasCheckbox) {
+                    html += `<div style="display: flex; gap: 8px; align-items: center;">`;
+                    html += `<input type="checkbox" id="${propDef.id}-enable" class="color-enable-checkbox" style="width: auto;"`;
+                    if (propDef.checked) html += ' checked';
+                    html += ` title="Override default">`;
+                    
+                    // Use a fallback color for color inputs when default is null/undefined or string "undefined"
+                    const colorValue = (propDef.defaultValue && propDef.defaultValue !== 'undefined') ? propDef.defaultValue : '#000000';
+                    
+                    // Disable the color input if the checkbox is not checked
+                    const shouldDisable = !propDef.checked;
+                    
+                    if (propDef.hasNullOverlay) {
+                        html += `<div class="color-input-wrapper">`;
+                        html += `<input type="color" id="${propDef.id}" value="${colorValue}"`;
+                        if (shouldDisable) html += ' disabled';
+                        html += `>`;
+                        html += `<div class="color-null-overlay" id="${propDef.id}-null" style="display: block;"></div>`;
+                        html += `</div>`;
+                    } else {
+                        html += `<input type="color" id="${propDef.id}" value="${colorValue}"`;
+                        if (shouldDisable) html += ' disabled';
+                        html += `>`;
+                        
+                        if (propDef.hasNull) {
+                            html += `<label style="display: flex; align-items: center; gap: 4px; font-size: 0.9em; margin-left: 4px;">`;
+                            html += `<input type="checkbox" id="${propDef.id}-null" style="width: auto;"`;
+                            if (shouldDisable) html += ' disabled';
+                            html += `>`;
+                            html += `<span style="color: #666;">${propDef.nullLabel || 'undefined'}</span>`;
+                            html += `</label>`;
+                        }
+                    }
+                    html += `</div>`;
+                } else if (isColor && !hasCheckbox) {
+                    // Plain color input without checkbox (e.g., box chart colors)
+                    html += `<input type="color" id="${propDef.id}" value="${propDef.defaultValue}">`;
+                } else if (propDef.type === 'number') {
+                    html += `<input type="number" id="${propDef.id}" value="${propDef.defaultValue}"`;
+                    if (propDef.min !== undefined) html += ` min="${propDef.min}"`;
+                    if (propDef.max !== undefined) html += ` max="${propDef.max}"`;
+                    if (propDef.step !== undefined) html += ` step="${propDef.step}"`;
+                    if (propDef.placeholder) html += ` placeholder="${propDef.placeholder}"`;
+                    html += `>`;
+                } else if (propDef.type === 'text') {
+                    html += `<input type="text" id="${propDef.id}" value="${propDef.defaultValue}"`;
+                    if (propDef.placeholder) html += ` placeholder="${propDef.placeholder}"`;
+                    html += `>`;
+                }
+                
+                html += `</div>`;
+                return html;
+            }
+
+            // Helper to get properties array (handle both old array format and new {chartClass, properties} format)
+            function getPropertiesArray(groupDef) {
+                return Array.isArray(groupDef) ? groupDef : groupDef.properties;
+            }
+
+            // Helper to get chart class name from group definition
+            function getChartClass(groupKey, groupDef) {
+                if (!Array.isArray(groupDef) && groupDef.chartClass) {
+                    return groupDef.chartClass;
+                }
+                // Fallback for old array format
+                return groupKey + '-options';
+            }
+
+            // Function to populate property groups dynamically
+            function populatePropertyGroups() {
+                // Populate Appearance properties (2nd property group, after Standard)
+                const appearanceContent = document.querySelector('.property-group:nth-child(2) .property-content');
+                if (appearanceContent) {
+                    appearanceContent.innerHTML = propertyDefinitions.appearance
+                        .map(prop => generatePropertyHTML(prop))
+                        .join('');
+                }
+
+                // Populate Layout properties (3rd property group)
+                const layoutContent = document.querySelector('.property-group:nth-child(3) .property-content');
+                if (layoutContent) {
+                    layoutContent.innerHTML = propertyDefinitions.layout
+                        .map(prop => generatePropertyHTML(prop))
+                        .join('');
+                }
+
+                // Populate Extended Options (chart-specific properties)
+                const extendedContent = document.querySelector('#extended-options-group .property-content');
+                if (extendedContent) {
+                    const chartGroups = ['bar', 'pie', 'discrete', 'tristate', 'bullet', 'line-multi', 'box'];
+                    extendedContent.innerHTML = chartGroups
+                        .map(groupKey => {
+                            const groupDef = propertyDefinitions[groupKey];
+                            const properties = getPropertiesArray(groupDef);
+                            const chartClass = getChartClass(groupKey, groupDef);
+                            return properties.map(prop => generatePropertyHTML(prop, chartClass)).join('');
+                        })
+                        .join('');
+                }
+            }
+
+            // Populate all property groups on load
+            populatePropertyGroups();
+
+            // Build defaultColors and controls dynamically from propertyDefinitions
+            const defaultColors = {};
             const controls = {
+                // Standard controls (not in propertyDefinitions)
                 type: document.getElementById('chart-type'),
                 values: document.getElementById('chart-values'),
                 width: document.getElementById('chart-width'),
-                height: document.getElementById('chart-height'),
-                lineColor: document.getElementById('line-color'),
-                fillColor: document.getElementById('fill-color'),
-                spotColor: document.getElementById('spot-color'),
-                minSpotColor: document.getElementById('min-spot-color'),
-                maxSpotColor: document.getElementById('max-spot-color'),
-                lineWidth: document.getElementById('line-width'),
-                spotRadius: document.getElementById('spot-radius'),
-                highlightLighten: document.getElementById('highlight-lighten'),
-                chartRangeMin: document.getElementById('chart-range-min'),
-                chartRangeMax: document.getElementById('chart-range-max'),
-                normalRangeMin: document.getElementById('normal-range-min'),
-                normalRangeMax: document.getElementById('normal-range-max'),
-                normalRangeColor: document.getElementById('normal-range-color'),
-                topPadding: document.getElementById('top-padding'),
-                bottomPadding: document.getElementById('bottom-padding'),
-                disableTooltips: document.getElementById('disable-tooltips'),
-                tooltipPrefix: document.getElementById('tooltip-prefix'),
-                tooltipSuffix: document.getElementById('tooltip-suffix'),
-                tooltipFormat: document.getElementById('tooltip-format'),
-                
-                // Bar chart options
-                barColor: document.getElementById('bar-color'),
-                negBarColor: document.getElementById('neg-bar-color'),
-                zeroColor: document.getElementById('zero-color'),
-                nullColor: document.getElementById('null-color'),
-                zeroAxis: document.getElementById('zero-axis'),
-                chartRangeClip: document.getElementById('chart-range-clip'),
-                barWidth: document.getElementById('bar-width'),
-                barSpacing: document.getElementById('bar-spacing'),
-                
-                // Pie chart options
-                pieOffset: document.getElementById('pie-offset'),
-                pieBorderWidth: document.getElementById('pie-border-width'),
-                pieBorderColor: document.getElementById('pie-border-color'),
-                
-                // Discrete chart options
-                discreteLineHeight: document.getElementById('discrete-line-height'),
-                discreteThresholdValue: document.getElementById('discrete-threshold-value'),
-                discreteThresholdColor: document.getElementById('discrete-threshold-color'),
-                discreteLineWidth: document.getElementById('discrete-line-width'),
-                discreteLineSpacing: document.getElementById('discrete-line-spacing'),
-                
-                // Tristate chart options
-                tristatePos: document.getElementById('tristate-pos-color'),
-                tristateNeg: document.getElementById('tristate-neg-color'),
-                tristateZero: document.getElementById('tristate-zero-color'),
-                tristateBarWidth: document.getElementById('tristate-bar-width'),
-                tristateBarSpacing: document.getElementById('tristate-bar-spacing'),
-                
-                // Bullet chart options
-                bulletTargetColor: document.getElementById('bullet-target-color'),
-                bulletTargetWidth: document.getElementById('bullet-target-width'),
-                bulletPerformanceColor: document.getElementById('bullet-performance-color'),
-                
-                // Box chart options
-                boxLineColor: document.getElementById('box-line-color'),
-                boxFillColor: document.getElementById('box-fill-color'),
-                boxMedianColor: document.getElementById('box-median-color'),
-                boxWhiskerColor: document.getElementById('box-whisker-color'),
-                boxOutlierLineColor: document.getElementById('box-outlier-line-color'),
-                boxOutlierFillColor: document.getElementById('box-outlier-fill-color'),
-                boxTargetColor: document.getElementById('box-target-color'),
-                boxShowOutliers: document.getElementById('box-show-outliers'),
-                boxOutlierIqr: document.getElementById('box-outlier-iqr'),
-                boxSpotRadius: document.getElementById('box-spot-radius'),
-                boxTarget: document.getElementById('box-target')
+                height: document.getElementById('chart-height')
             };
+            
+            // Helper to process properties and build controls/defaults
+            function processProperties(properties) {
+                properties.forEach(prop => {
+                    // Add to defaultColors if it's a color
+                    if (prop.type === 'color') {
+                        defaultColors[prop.id] = prop.defaultValue;
+                    }
+                    
+                    // Add to controls object
+                    const isColorWithCheckbox = prop.type === 'color' && prop.checked !== undefined;
+                    
+                    if (isColorWithCheckbox) {
+                        // Convert kebab-case id to camelCase for control names
+                        const camelId = prop.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                        const enableKey = camelId + 'Enable';
+                        controls[enableKey] = document.getElementById(prop.id + '-enable');
+                        controls[camelId] = document.getElementById(prop.id);
+                        
+                        if (prop.hasNull) {
+                            controls[camelId + 'Null'] = document.getElementById(prop.id + '-null');
+                        }
+                    } else {
+                        // Convert kebab-case id to camelCase
+                        const camelId = prop.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                        controls[camelId] = document.getElementById(prop.id);
+                    }
+                });
+            }
+            
+            // Process all property groups
+            processProperties(propertyDefinitions.appearance);
+            processProperties(propertyDefinitions.layout);
+            
+            // Process chart-specific property groups
+            const chartGroupKeys = ['bar', 'pie', 'tristate', 'discrete', 'bullet', 'line-multi', 'box'];
+            chartGroupKeys.forEach(groupKey => {
+                const properties = getPropertiesArray(propertyDefinitions[groupKey]);
+                processProperties(properties);
+            });
+
+            // Build property map for color inputs (kebab-case id -> camelCase property name)
+            // This maps HTML element IDs to chart option property names
+            const propertyMap = {};
+            function buildPropertyMap(properties) {
+                // Special mappings for non-standard property names
+                const specialMappings = {
+                    'pie-border-color': 'borderColor',
+                    'tristate-pos-color': 'posBarColor',
+                    'tristate-neg-color': 'negBarColor',
+                    'tristate-zero-color': 'zeroBarColor'
+                };
+                
+                properties.forEach(prop => {
+                    if (prop.type === 'color') {
+                        // Use special mapping if exists, otherwise convert kebab-case to camelCase
+                        if (specialMappings[prop.id]) {
+                            propertyMap[prop.id] = specialMappings[prop.id];
+                        } else {
+                            const camelCase = prop.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                            propertyMap[prop.id] = camelCase;
+                        }
+                    }
+                });
+            }
+            
+            buildPropertyMap(propertyDefinitions.appearance);
+            buildPropertyMap(propertyDefinitions.layout);
+            
+            // Build property map for chart-specific groups
+            chartGroupKeys.forEach(groupKey => {
+                const properties = getPropertiesArray(propertyDefinitions[groupKey]);
+                buildPropertyMap(properties);
+            });
+
+            // Normalize hex colors to 6-digit format for comparison
+            // Converts #abc to #aabbcc, leaves #aabbcc unchanged
+            function normalizeHexColor(color) {
+                if (!color || typeof color !== 'string') return color;
+
+                // Remove # if present
+                let hex = color.startsWith('#') ? color.slice(1) : color;
+
+                // If 3 characters, expand to 6
+                if (hex.length === 3) {
+                    hex = hex.split('').map(char => char + char).join('');
+                }
+
+                // Return with # prefix, lowercase for consistent comparison
+                return hex.length === 6 ? '#' + hex.toLowerCase() : color;
+            }
+
+            // Get the actual default color value for the current chart type
+            function getActualDefaultColor(colorInputId) {
+                const type = controls.type?.value || 'line';
+
+                // Create a temporary canvas to instantiate a chart and read its defaults
+                const tempCanvas = document.createElement('canvas');
+                const ctx = tempCanvas.getContext('2d');
+
+                const props = {
+                    data: [1, 2, 3],
+                    type: type,
+                    width: 100,
+                    height: 50,
+                    options: {} // No options, so we get pure defaults
+                };
+
+                const chart = createChart(type, ctx, props);
+                if (!chart) return null;
+
+                // Use dynamic property map (kebab-case id -> camelCase property name)
+                const propertyName = propertyMap[colorInputId];
+                if (propertyName && chart.options && chart.options[propertyName] !== undefined) {
+                    return chart.options[propertyName];
+                }
+
+                // Return the default color, but ensure it's never undefined
+                const defaultColor = defaultColors[colorInputId];
+                return (defaultColor !== undefined && defaultColor !== null) ? defaultColor : null;
+            }
 
             // Function to show/hide options based on chart type
             function updateOptionVisibility(chartType) {
-                const chartOptions = {
-                    'line': {
-                        appearance: ['line-color', 'fill-color', 'spot-color', 'min-spot-color', 'max-spot-color', 'line-width', 'spot-radius', 'highlight-lighten'],
-                        layout: ['chart-range-min', 'chart-range-max', 'normal-range-min', 'normal-range-max', 'normal-range-color', 'top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
-                        specific: []
-                    },
-                    'bar': {
-                        appearance: ['highlight-lighten'],
-                        layout: ['chart-range-min', 'chart-range-max', 'top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
-                        specific: ['.bar-options']
-                    },
-                    'pie': {
-                        appearance: ['highlight-lighten'],
-                        layout: ['disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
-                        specific: ['.pie-options']
-                    },
-                    'discrete': {
-                        appearance: ['line-color', 'highlight-lighten'],
-                        layout: ['chart-range-min', 'chart-range-max', 'top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
-                        specific: ['.discrete-options']
-                    },
-                    'tristate': {
-                        appearance: ['highlight-lighten'],
-                        layout: ['top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
-                        specific: ['.tristate-options'],                        
-                    },
-                    'bullet': {
-                        appearance: ['highlight-lighten'],
-                        layout: ['chart-range-min', 'chart-range-max', 'top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
-                        specific: ['.bullet-options']
-                    },
-                    'box': {
-                        appearance: ['highlight-lighten'],
-                        layout: ['top-padding', 'bottom-padding', 'disable-tooltips', 'tooltip-prefix', 'tooltip-suffix', 'tooltip-format'],
-                        specific: ['.box-options']
-                    }
-                };
-
                 // Hide all options first
                 document.querySelectorAll('.property-field').forEach(el => {
                     if (!el.classList.contains('chart-type-group') && !el.classList.contains('dimensions-group')) {
@@ -875,46 +1026,58 @@
                     }
                 });
 
-                // Hide all specific option groups
-                document.querySelectorAll('.bar-options, .pie-options, .discrete-options, .tristate-options, .bullet-options, .box-options').forEach(el => {
-                    el.style.display = 'none';
+                let appearanceCount = 0;
+                let layoutCount = 0;
+                let specificCount = 0;
+
+                // Show appearance properties visible for this chart type
+                propertyDefinitions.appearance.forEach(prop => {
+                    if (prop.visibleFor && prop.visibleFor.includes(chartType)) {
+                        const elementId = prop.type === 'color' && prop.checked !== undefined 
+                            ? prop.id + '-enable' 
+                            : prop.id;
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            const propertyField = element.closest('.property-field');
+                            if (propertyField) {
+                                propertyField.style.display = 'grid';
+                                appearanceCount++;
+                            }
+                        }
+                    }
                 });
 
-                const currentOptions = chartOptions[chartType] || { appearance: [], layout: [], specific: [] };
-                
-                // Show relevant appearance options
-                let appearanceCount = 0;
-                currentOptions.appearance.forEach(optionId => {
-                    const element = document.getElementById(optionId);
-                    if (element) {
-                        const propertyField = element.closest('.property-field');
-                        if (propertyField) {
-                            propertyField.style.display = 'grid';
-                            appearanceCount++;
+                // Show layout properties visible for this chart type
+                propertyDefinitions.layout.forEach(prop => {
+                    if (prop.visibleFor && prop.visibleFor.includes(chartType)) {
+                        const elementId = prop.type === 'color' && prop.checked !== undefined 
+                            ? prop.id + '-enable' 
+                            : prop.id;
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            const propertyField = element.closest('.property-field');
+                            if (propertyField) {
+                                propertyField.style.display = 'grid';
+                                layoutCount++;
+                            }
                         }
                     }
                 });
-                
-                // Show relevant layout options
-                let layoutCount = 0;
-                currentOptions.layout.forEach(optionId => {
-                    const element = document.getElementById(optionId);
-                    if (element) {
-                        const propertyField = element.closest('.property-field');
-                        if (propertyField) {
-                            propertyField.style.display = 'grid';
-                            layoutCount++;
-                        }
+
+                // Show chart-specific options by matching chart type to group key
+                const chartGroupKeys = ['bar', 'pie', 'tristate', 'discrete', 'bullet', 'line-multi', 'box'];
+                chartGroupKeys.forEach(groupKey => {
+                    const groupDef = propertyDefinitions[groupKey];
+                    const chartClass = getChartClass(groupKey, groupDef);
+                    
+                    // Show this group's properties if chart type matches
+                    if (chartType === groupKey || (chartType === 'line' && groupKey === 'line-multi')) {
+                        const elements = document.querySelectorAll('.' + chartClass);
+                        elements.forEach(el => {
+                            el.style.display = 'grid';
+                            specificCount++;
+                        });
                     }
-                });
-                
-                // Show chart-specific options
-                let specificCount = 0;
-                currentOptions.specific.forEach(selector => {
-                    document.querySelectorAll(selector).forEach(el => {
-                        el.style.display = 'grid';
-                        specificCount++;
-                    });
                 });
 
                 // Update option counts in headers
@@ -922,10 +1085,10 @@
                 const layoutCount_el = document.getElementById('layout-count');
                 const extendedCount_el = document.getElementById('extended-count');
                 const extendedGroup = document.getElementById('extended-options-group');
-                
+
                 if (appearanceCount_el) appearanceCount_el.textContent = `(${appearanceCount})`;
                 if (layoutCount_el) layoutCount_el.textContent = `(${layoutCount})`;
-                
+
                 if (specificCount > 0) {
                     extendedGroup.style.display = 'block';
                     if (extendedCount_el) extendedCount_el.textContent = `(${specificCount})`;
@@ -938,14 +1101,13 @@
             // Function to get chart options from controls
             function getChartOptions() {
                 const type = controls.type?.value || 'line';
+                const valuesStr = controls.values?.value || '';
+
+                // Check if this is multi-series (either explicit or detected)
+                const isMultiSeries = type === 'line-multi' || (type === 'line' && valuesStr.trim().startsWith('[['));
+                
+                // Start with common options available to all chart types
                 const options = {
-                    lineColor: controls.lineColor?.value || '#0000f0',
-                    fillColor: controls.fillColor?.value || '#c0d0f0',
-                    spotColor: controls.spotColor?.value || '#f80000',
-                    minSpotColor: controls.minSpotColor?.value || '#f44444',
-                    maxSpotColor: controls.maxSpotColor?.value || '#44f444',
-                    lineWidth: parseFloat(controls.lineWidth?.value || '1'),
-                    spotRadius: parseFloat(controls.spotRadius?.value || '1.5'),
                     highlightLighten: parseFloat(controls.highlightLighten?.value || '1.4'),
                     topPadding: parseInt(controls.topPadding?.value || '3'),
                     bottomPadding: parseInt(controls.bottomPadding?.value || '3'),
@@ -955,20 +1117,109 @@
                     tooltipFormat: controls.tooltipFormat?.value || '{{value}}'
                 };
 
+                // Add line-specific options only for line charts
+                if (type === 'line' || isMultiSeries) {
+                    // For multi-series, don't set lineColor/fillColor here - they'll be set below
+                    // Only include color properties if they're being overridden (don't pass undefined)
+                    if (!isMultiSeries && controls.lineColorEnable?.checked) {
+                        options.lineColor = controls.lineColorNull?.checked ? null : controls.lineColor?.value;
+                    }
+                    if (isMultiSeries) {
+                        options.fillColor = 'transparent';
+                    } else if (controls.fillColorEnable?.checked) {
+                        options.fillColor = controls.fillColorNull?.checked ? null : controls.fillColor?.value;
+                    }
+                    if (!isMultiSeries && controls.spotColorEnable?.checked) {
+                        options.spotColor = controls.spotColorNull?.checked ? null : controls.spotColor?.value;
+                    }
+                    if (!isMultiSeries && controls.minSpotColorEnable?.checked) {
+                        options.minSpotColor = controls.minSpotColor?.value;
+                    }
+                    if (!isMultiSeries && controls.maxSpotColorEnable?.checked) {
+                        options.maxSpotColor = controls.maxSpotColor?.value;
+                    }
+                    if (controls.highlightSpotColorEnable?.checked) {
+                        options.highlightSpotColor = controls.highlightSpotColor?.value;
+                    }
+                    if (controls.highlightLineColorEnable?.checked) {
+                        options.highlightLineColor = controls.highlightLineColorNull?.checked ? null : controls.highlightLineColor?.value;
+                    }
+                    options.lineWidth = parseFloat(controls.lineWidth?.value || '1');
+                    options.spotRadius = parseFloat(controls.spotRadius?.value || '1.5');
+                }
+                
+                // Add discrete-specific lineColor option
+                if (type === 'discrete' && controls.lineColorEnable?.checked) {
+                    options.lineColor = controls.lineColorNull?.checked ? null : controls.lineColor?.value;
+                }
+
+                // For multi-series line charts, add series names and colors
+                if (isMultiSeries) {
+                    // Handle series names
+                    const seriesNamesValue = controls.seriesNames?.value?.trim();
+                    if (seriesNamesValue) {
+                        options.seriesNames = seriesNamesValue.split(',').map(name => name.trim());
+                    } else {
+                        // Auto-generate series names
+                        try {
+                            const parsed = JSON.parse(valuesStr);
+                            if (Array.isArray(parsed)) {
+                                const seriesCount = parsed.length;
+                                options.seriesNames = Array.from({ length: seriesCount }, (_, i) => `Series ${i + 1}`);
+                            }
+                        } catch (e) {
+                            // If parse fails, default to 3 series
+                            options.seriesNames = ['Series 1', 'Series 2', 'Series 3'];
+                        }
+                    }
+
+                    // Handle series colors
+                    const seriesColorsValue = controls.seriesColors?.value?.trim();
+                    if (seriesColorsValue) {
+                        options.lineColor = seriesColorsValue.split(',').map(color => color.trim());
+                    }
+
+                    // Handle series fill colors
+                    const seriesFillColorsValue = controls.seriesFillColors?.value?.trim();
+                    if (seriesFillColorsValue) {
+                        options.fillColor = seriesFillColorsValue.split(',').map(color => color.trim());
+                    }
+
+                    // Handle series line widths
+                    const seriesLineWidthsValue = controls.seriesLineWidths?.value?.trim();
+                    if (seriesLineWidthsValue) {
+                        options.lineWidth = seriesLineWidthsValue.split(',').map(w => parseFloat(w.trim()));
+                    }
+
+                    // Handle series spot radii
+                    const seriesSpotRadiiValue = controls.seriesSpotRadii?.value?.trim();
+                    if (seriesSpotRadiiValue) {
+                        options.spotRadius = seriesSpotRadiiValue.split(',').map(r => parseFloat(r.trim()));
+                    }
+                }
+
                 // Add range options
                 if (controls.chartRangeMin?.value) options.chartRangeMin = parseFloat(controls.chartRangeMin.value);
                 if (controls.chartRangeMax?.value) options.chartRangeMax = parseFloat(controls.chartRangeMax.value);
                 if (controls.normalRangeMin?.value) options.normalRangeMin = parseFloat(controls.normalRangeMin.value);
                 if (controls.normalRangeMax?.value) options.normalRangeMax = parseFloat(controls.normalRangeMax.value);
-                options.normalRangeColor = controls.normalRangeColor?.value || '#c0c0c0';
-                
+                options.normalRangeColor = controls.normalRangeColorEnable?.checked ? controls.normalRangeColor?.value : undefined;
+
                 // Add type-specific options
                 switch (type) {
                     case 'bar':
-                        options.barColor = controls.barColor?.value || '#4285f4';
-                        options.negBarColor = controls.negBarColor?.value || '#db4437';
-                        options.zeroColor = controls.zeroColor?.value || '#909090';
-                        options.nullColor = controls.nullColor?.value || '#cccccc';
+                        if (controls.barColorEnable?.checked) {
+                            options.barColor = controls.barColor?.value;
+                        }
+                        if (controls.negBarColorEnable?.checked) {
+                            options.negBarColor = controls.negBarColor?.value;
+                        }
+                        if (controls.zeroColorEnable?.checked) {
+                            options.zeroColor = controls.zeroColor?.value;
+                        }
+                        if (controls.nullColorEnable?.checked) {
+                            options.nullColor = controls.nullColor?.value;
+                        }
                         options.zeroAxis = controls.zeroAxis?.checked ?? true;
                         options.chartRangeClip = controls.chartRangeClip?.checked || false;
                         const barWidthValue = controls.barWidth?.value || 'auto';
@@ -982,7 +1233,9 @@
                     case 'pie':
                         options.offset = parseInt(controls.pieOffset?.value || '0');
                         options.borderWidth = parseInt(controls.pieBorderWidth?.value || '0');
-                        options.borderColor = controls.pieBorderColor?.value || '#000000';
+                        if (controls.pieBorderColorEnable?.checked) {
+                            options.borderColor = controls.pieBorderColor?.value;
+                        }
                         break;
                     case 'discrete':
                         if (controls.discreteLineHeight?.value) {
@@ -991,8 +1244,10 @@
                         if (controls.discreteThresholdValue?.value) {
                             options.thresholdValue = parseFloat(controls.discreteThresholdValue.value);
                         }
-                        options.thresholdColor = controls.discreteThresholdColor?.value || '#ff0000';
-                        
+                        if (controls.discreteThresholdColorEnable?.checked) {
+                            options.thresholdColor = controls.discreteThresholdColor?.value;
+                        }
+
                         const discreteLineWidthValue = controls.discreteLineWidth?.value || 'auto';
                         if (discreteLineWidthValue === 'auto' || discreteLineWidthValue === 'fill') {
                             options.lineWidth = discreteLineWidthValue;
@@ -1002,10 +1257,16 @@
                         options.lineSpacing = parseInt(controls.discreteLineSpacing?.value || '1');
                         break;
                     case 'tristate':
-                        options.posBarColor = controls.tristatePos?.value || '#00ff00';
-                        options.negBarColor = controls.tristateNeg?.value || '#ff0000';
-                        options.zeroBarColor = controls.tristateZero?.value || '#999999';
-                        
+                        if (controls.tristatePosColorEnable?.checked) {
+                            options.posBarColor = controls.tristatePosColor?.value;
+                        }
+                        if (controls.tristateNegColorEnable?.checked) {
+                            options.negBarColor = controls.tristateNegColor?.value;
+                        }
+                        if (controls.tristateZeroColorEnable?.checked) {
+                            options.zeroBarColor = controls.tristateZeroColor?.value;
+                        }
+
                         const tristateBarWidthValue = controls.tristateBarWidth?.value || 'auto';
                         if (tristateBarWidthValue === 'auto' || tristateBarWidthValue === 'fill') {
                             options.barWidth = tristateBarWidthValue;
@@ -1015,9 +1276,13 @@
                         options.barSpacing = parseInt(controls.tristateBarSpacing?.value || '1');
                         break;
                     case 'bullet':
-                        options.targetColor = controls.bulletTargetColor?.value || '#ff0000';
+                        if (controls.bulletTargetColorEnable?.checked) {
+                            options.targetColor = controls.bulletTargetColor?.value;
+                        }
                         options.targetWidth = parseInt(controls.bulletTargetWidth?.value || '3');
-                        options.performanceColor = controls.bulletPerformanceColor?.value || '#3333ff';
+                        if (controls.bulletPerformanceColorEnable?.checked) {
+                            options.performanceColor = controls.bulletPerformanceColor?.value;
+                        }
                         break;
                     case 'box':
                         options.boxLineColor = controls.boxLineColor?.value || '#000000';
@@ -1035,8 +1300,314 @@
                         }
                         break;
                 }
-                
+
                 return options;
+            }
+
+            // Function to generate Vue code with syntax highlighting
+            function generateVueCode(type, values, options, width, height, isMultiSeries) {
+                // Convert values to string representation
+                let dataStr;
+                if (isMultiSeries) {
+                    dataStr = JSON.stringify(values);
+                } else if (Array.isArray(values)) {
+                    dataStr = '[' + values.map(v => v === null ? 'null' : v).join(', ') + ']';
+                } else {
+                    dataStr = '[]';
+                }
+
+                // Build options object, excluding defaults
+                const optionParts = [];
+
+                // Helper function to check if value differs from default
+                function isDifferentFromDefault(value, defaultValue) {
+                    if (value === undefined || value === null) return false;
+                    if (defaultValue === undefined || defaultValue === null) return true;
+                    
+                    // For colors, normalize and compare
+                    if (typeof value === 'string' && typeof defaultValue === 'string') {
+                        if (value.startsWith('#') || defaultValue.startsWith('#')) {
+                            return normalizeHexColor(value) !== normalizeHexColor(defaultValue);
+                        }
+                    }
+                    
+                    return value !== defaultValue;
+                }
+
+                // Configuration for option properties
+                const optionConfig = [
+                    // Color options (support arrays)
+                    { prop: 'lineColor', defaultKey: 'line-color', isColor: true, supportsArray: true },
+                    { prop: 'fillColor', defaultKey: 'fill-color', isColor: true, supportsArray: true },
+                    { prop: 'spotColor', defaultKey: 'spot-color', isColor: true },
+                    { prop: 'minSpotColor', defaultKey: 'min-spot-color', isColor: true },
+                    { prop: 'maxSpotColor', defaultKey: 'max-spot-color', isColor: true },
+                    { prop: 'highlightSpotColor', defaultValue: null, isColor: true, includeIfNotNull: true },
+                    { prop: 'highlightLineColor', defaultKey: 'highlight-line-color', isColor: true },
+                    { prop: 'normalRangeColor', defaultKey: 'normal-range-color', isColor: true },
+                    
+                    // Numeric options (support arrays)
+                    { prop: 'lineWidth', defaultValue: 1, supportsArray: true },
+                    { prop: 'spotRadius', defaultValue: 1.5, supportsArray: true },
+                    { prop: 'highlightLighten', defaultValue: 1.4 },
+                    { prop: 'topPadding', defaultValue: 3 },
+                    { prop: 'bottomPadding', defaultValue: 3 },
+                    
+                    // Range options (always include if defined)
+                    { prop: 'chartRangeMin', alwaysInclude: true },
+                    { prop: 'chartRangeMax', alwaysInclude: true },
+                    { prop: 'normalRangeMin', alwaysInclude: true },
+                    { prop: 'normalRangeMax', alwaysInclude: true },
+                    
+                    // Boolean/string options
+                    { prop: 'disableTooltips', defaultValue: false },
+                    { prop: 'tooltipPrefix', defaultValue: '' },
+                    { prop: 'tooltipSuffix', defaultValue: '' },
+                    { prop: 'tooltipFormat', defaultValue: '{{value}}' },
+                    
+                    // Array option
+                    { prop: 'seriesNames', isArray: true }
+                ];
+
+                // Process all options based on configuration
+                optionConfig.forEach(config => {
+                    const value = options[config.prop];
+                    if (value === undefined) return;
+                    
+                    // Handle special cases
+                    if (config.excludeValue && value === config.excludeValue) return;
+                    if (config.includeIfNotNull && (value === null || value === undefined)) return;
+                    if (config.alwaysInclude) {
+                        // Always include these properties if defined
+                        optionParts.push(`${config.prop}: ${value}`);
+                        return;
+                    }
+                    
+                    // Get default value
+                    const defaultValue = config.defaultKey ? defaultColors[config.defaultKey] : config.defaultValue;
+                    
+                    // Check if value differs from default
+                    if (Array.isArray(value)) {
+                        // For arrays, always include (they're custom)
+                        if (config.isColor) {
+                            optionParts.push(`${config.prop}: [${value.map(v => `'${v}'`).join(', ')}]`);
+                        } else if (config.isArray) {
+                            optionParts.push(`${config.prop}: [${value.map(v => `'${v}'`).join(', ')}]`);
+                        } else {
+                            optionParts.push(`${config.prop}: [${value.join(', ')}]`);
+                        }
+                    } else if (config.isColor && isDifferentFromDefault(value, defaultValue)) {
+                        optionParts.push(`${config.prop}: '${value}'`);
+                    } else if (!config.isColor && value !== defaultValue) {
+                        if (typeof value === 'string') {
+                            optionParts.push(`${config.prop}: '${value}'`);
+                        } else if (typeof value === 'boolean') {
+                            optionParts.push(`${config.prop}: ${value}`);
+                        } else {
+                            optionParts.push(`${config.prop}: ${value}`);
+                        }
+                    }
+                });
+
+                // Type-specific option configurations
+                const typeSpecificConfig = {
+                    bar: [
+                        { prop: 'barColor', defaultKey: 'bar-color', isColor: true },
+                        { prop: 'negBarColor', defaultKey: 'neg-bar-color', isColor: true },
+                        { prop: 'zeroColor', defaultKey: 'zero-color', isColor: true },
+                        { prop: 'nullColor', defaultKey: 'null-color', isColor: true },
+                        { prop: 'zeroAxis', defaultValue: true },
+                        { prop: 'chartRangeClip', defaultValue: false },
+                        { prop: 'barWidth', defaultValue: 'auto', canBeString: true },
+                        { prop: 'barSpacing', defaultValue: 1 }
+                    ],
+                    pie: [
+                        { prop: 'offset', defaultValue: 0 },
+                        { prop: 'borderWidth', defaultValue: 0 },
+                        { prop: 'borderColor', defaultKey: 'pie-border-color', isColor: true }
+                    ],
+                    discrete: [
+                        { prop: 'lineHeight', alwaysInclude: true },
+                        { prop: 'thresholdValue', alwaysInclude: true },
+                        { prop: 'thresholdColor', defaultKey: 'discrete-threshold-color', isColor: true },
+                        { prop: 'lineWidth', defaultValue: 'auto', canBeString: true },
+                        { prop: 'lineSpacing', defaultValue: 1 }
+                    ],
+                    tristate: [
+                        { prop: 'posBarColor', defaultKey: 'tristate-pos-color', isColor: true },
+                        { prop: 'negBarColor', defaultKey: 'tristate-neg-color', isColor: true },
+                        { prop: 'zeroBarColor', defaultKey: 'tristate-zero-color', isColor: true },
+                        { prop: 'barWidth', defaultValue: 'auto', canBeString: true },
+                        { prop: 'barSpacing', defaultValue: 1 }
+                    ],
+                    bullet: [
+                        { prop: 'targetColor', defaultKey: 'bullet-target-color', isColor: true },
+                        { prop: 'targetWidth', defaultValue: 3 },
+                        { prop: 'performanceColor', defaultKey: 'bullet-performance-color', isColor: true }
+                    ],
+                    box: [
+                        { prop: 'boxLineColor', defaultValue: '#000000', isColor: true },
+                        { prop: 'boxFillColor', defaultValue: '#ccddff', isColor: true },
+                        { prop: 'medianColor', defaultValue: '#ff0000', isColor: true },
+                        { prop: 'whiskerColor', defaultValue: '#000000', isColor: true },
+                        { prop: 'outlierLineColor', defaultValue: '#333333', isColor: true },
+                        { prop: 'outlierFillColor', defaultValue: '#ffffff', isColor: true },
+                        { prop: 'targetColor', defaultValue: '#44aa22', isColor: true },
+                        { prop: 'showOutliers', defaultValue: true },
+                        { prop: 'outlierIQR', defaultValue: 1.5 },
+                        { prop: 'spotRadius', defaultValue: 1.5 },
+                        { prop: 'target', alwaysInclude: true }
+                    ]
+                };
+
+                // Process type-specific options
+                const typeConfig = typeSpecificConfig[type];
+                if (typeConfig) {
+                    typeConfig.forEach(config => {
+                        const value = options[config.prop];
+                        if (value === undefined) return;
+                        
+                        // Always include if specified
+                        if (config.alwaysInclude) {
+                            optionParts.push(`${config.prop}: ${value}`);
+                            return;
+                        }
+                        
+                        // Get default value
+                        const defaultValue = config.defaultKey ? defaultColors[config.defaultKey] : config.defaultValue;
+                        
+                        // Check if value differs from default
+                        if (config.isColor && isDifferentFromDefault(value, defaultValue)) {
+                            optionParts.push(`${config.prop}: '${value}'`);
+                        } else if (!config.isColor && value !== defaultValue) {
+                            if (config.canBeString && typeof value === 'string') {
+                                optionParts.push(`${config.prop}: '${value}'`);
+                            } else if (typeof value === 'string') {
+                                optionParts.push(`${config.prop}: '${value}'`);
+                            } else if (typeof value === 'boolean') {
+                                optionParts.push(`${config.prop}: ${value}`);
+                            } else {
+                                optionParts.push(`${config.prop}: ${value}`);
+                            }
+                        }
+                    });
+                }
+
+                // Build the template
+                const hasOptions = optionParts.length > 0;
+                const optionsStr = hasOptions ? '\n    :options="options"' : '';
+
+                const varName = isMultiSeries ? 'chartData' : 'data';
+
+                // Build script content
+                const scriptLines = [
+                    '  import { ref } from \'vue\';',
+                    '  import Sparkline from \'sparkline-vue\';',
+                    '',
+                    '  const ' + varName + ' = ref(' + dataStr + ');'
+                ];
+
+                if (hasOptions) {
+                    scriptLines.push('  const options = ref({');
+                    scriptLines.push('    ' + optionParts.join(',\n    '));
+                    scriptLines.push('  });');
+                }
+
+                const code = [
+                    '<template>',
+                    '  <Sparkline',
+                    '    :data="' + varName + '"',
+                    '    type="' + type + '"',
+                    '    :width="' + width + '"',
+                    '    :height="' + height + '"' + optionsStr,
+                    '  />',
+                    '</template>',
+                    '',
+                    '<' + 'script setup>',
+                    ...scriptLines,
+                    '</' + 'script>'
+                ].join('\n');
+
+                // Apply syntax highlighting
+                return highlightVueCode(code);
+            }
+
+            function highlightVueCode(code) {
+                // Use markers to prevent highlighting our own HTML
+                const MARKER_START = '\x00SPAN_';
+                const MARKER_END = '\x00ENDSPAN\x00';
+                let markerCounter = 0;
+
+                function createMarker(className, content) {
+                    const marker = MARKER_START + (markerCounter++) + MARKER_END;
+                    markers[marker] = '<span class="' + className + '">' + content + '</span>';
+                    return marker;
+                }
+
+                const markers = {};
+
+                // Escape HTML first
+                let html = code
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+
+                // Apply syntax highlighting using markers
+                // 1. Highlight tags
+                html = html.replace(/(&lt;\/\w+&gt;)/g, function (match) {
+                    return createMarker('token-tag', match);
+                });
+                html = html.replace(/(&lt;)(\w+)(?=\s|&gt;)/g, function (match, lt, tag) {
+                    return createMarker('token-tag', lt + tag);
+                });
+                html = html.replace(/(\/?&gt;)(?!\x00)/g, function (match) {
+                    return createMarker('token-tag', match);
+                });
+
+                // 2. Highlight Vue expression values
+                html = html.replace(/:(\w+)="([^"]+)"/g, function (match, attr, value) {
+                    const attrMarker = createMarker('token-attr-name', attr);
+                    const exprMarker = createMarker('token-js-expr', value);
+                    return ':' + attrMarker + '="' + exprMarker + '"';
+                });
+
+                // 3. Highlight regular attribute names
+                html = html.replace(/(\s)(\w+)=/g, function (match, space, attr) {
+                    return space + createMarker('token-attr-name', attr) + '=';
+                });
+
+                // 4. Highlight regular strings (now safe because markers don't contain quotes)
+                html = html.replace(/"([^"\x00]*)"/g, function (match, content) {
+                    return createMarker('token-attr-value', '"' + content + '"');
+                });
+                html = html.replace(/'([^'\x00]*)'/g, function (match, content) {
+                    return createMarker('token-attr-value', '\'' + content + '\'');
+                });
+
+                // 5. Highlight keywords
+                html = html.replace(/\b(import|from|const|ref|setup|let|var)\b/g, function (match) {
+                    return createMarker('token-keyword', match);
+                });
+
+                // 6. Highlight numbers
+                html = html.replace(/\b(\d+\.?\d*)\b/g, function (match) {
+                    return createMarker('token-number', match);
+                });
+
+                // 7. Highlight brackets and punctuation
+                html = html.replace(/([{}[\](),])/g, function (match) {
+                    return createMarker('token-bracket', match);
+                });
+                html = html.replace(/(?<!&\w{2})(?<!&\w{3});/g, function (match) {
+                    return createMarker('token-bracket', match);
+                });
+
+                // Replace all markers with actual HTML
+                for (const marker in markers) {
+                    html = html.replace(new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), markers[marker]);
+                }
+
+                return html;
             }
 
             // Function to update the chart
@@ -1046,16 +1617,35 @@
                     if (interactiveChart && typeof interactiveChart.destroy === 'function') {
                         interactiveChart.destroy();
                     }
-                    
+
                     const canvas = document.getElementById('interactive-chart');
-                    const type = controls.type?.value || 'line';
+                    let type = controls.type?.value || 'line';
                     const valuesStr = controls.values?.value || '5,6,7,9,9,5,3,2,2,4,6,7';
                     const width = parseInt(controls.width?.value || '300');
                     const height = parseInt(controls.height?.value || '100');
-                    
+
                     // Parse values
                     let values;
-                    if (type === 'bullet') {
+                    let isMultiSeries = false;
+
+                    if (type === 'line-multi') {
+                        // Multi-series format: [[1,2,3],[4,5,6]]
+                        type = 'line'; // Use line chart type
+                        isMultiSeries = true;
+
+                        // Try to parse as JSON array first
+                        try {
+                            values = JSON.parse(valuesStr);
+                            // Validate it's an array of arrays
+                            if (!Array.isArray(values) || !values.every(v => Array.isArray(v))) {
+                                throw new Error('Invalid multi-series format');
+                            }
+                        } catch (e) {
+                            // Fallback: show error in console and use default
+                            console.warn('Invalid multi-series format. Use [[1,2,3],[4,5,6]]');
+                            values = [[10, 15, 20, 18, 25, 30], [15, 18, 22, 20, 26, 28]];
+                        }
+                    } else if (type === 'bullet') {
                         values = valuesStr.split(',').map(v => parseFloat(v.trim()));
                     } else if (type === 'tristate') {
                         values = valuesStr.split(',').map(v => {
@@ -1063,27 +1653,125 @@
                             return num > 0 ? 1 : (num < 0 ? -1 : 0);
                         });
                     } else {
-                        values = valuesStr.split(',').map(v => parseFloat(v.trim()));
+                        // For regular line charts, try to detect multi-series format
+                        if (type === 'line' && valuesStr.trim().startsWith('[[')) {
+                            try {
+                                values = JSON.parse(valuesStr);
+                                if (Array.isArray(values) && values.length >= 2 && Array.isArray(values[0]) && Array.isArray(values[1])) {
+                                    isMultiSeries = true;
+                                }
+                            } catch (e) {
+                                // Not valid JSON, parse as single series
+                                values = valuesStr.split(',').map(v => {
+                                    const trimmed = v.trim();
+                                    return trimmed === '' || trimmed.toLowerCase() === 'null' ? null : parseFloat(trimmed);
+                                });
+                            }
+                        } else {
+                            values = valuesStr.split(',').map(v => {
+                                const trimmed = v.trim();
+                                return trimmed === '' || trimmed.toLowerCase() === 'null' ? null : parseFloat(trimmed);
+                            });
+                        }
                     }
-                    
+
                     // Update canvas dimensions
                     if (canvas) {
                         canvas.width = width;
                         canvas.height = height;
                     }
-                    
+
                     const options = getChartOptions();
                     interactiveChart = createSparkline(canvas, values, type, options);
-                    
+
+                    // Update the Vue code display
+                    const vueCodeElement = document.getElementById('vue-code');
+                    if (vueCodeElement) {
+                        vueCodeElement.innerHTML = generateVueCode(type, values, options, width, height, isMultiSeries);
+                    }
+
                     // Charts automatically include touch support when created
                     // No need for additional custom touch handling
                 } catch (error) {
-                    console.log('Error updating chart:', error);
+                    console.error('Error updating chart:', error);
                 }
             }
 
             // Array to store observers for cleanup
             const mutationObservers = [];
+
+            // Function to update displayed default colors when chart type changes
+            function updateDisplayedDefaults() {
+                document.querySelectorAll('.color-enable-checkbox').forEach(checkbox => {
+                    const colorInputId = checkbox.id.replace('-enable', '');
+                    const colorInput = document.getElementById(colorInputId);
+
+                    // Only update if checkbox is unchecked (showing default)
+                    if (colorInput && !checkbox.checked) {
+                        const actualDefault = getActualDefaultColor(colorInputId);
+                        if (actualDefault !== null && actualDefault !== undefined && actualDefault !== 'undefined') {
+                            colorInput.value = actualDefault;
+                        }
+                    }
+                });
+            }
+
+            // Function to check if color values match defaults and update override checkboxes
+            function updateOverrideCheckboxes() {
+                document.querySelectorAll('.color-enable-checkbox').forEach(checkbox => {
+                    const colorInputId = checkbox.id.replace('-enable', '');
+                    const colorInput = document.getElementById(colorInputId);
+                    
+                    // Skip chart-type-specific colors that aren't currently visible
+                    const isChartSpecific = ['tristate-pos-color', 'tristate-neg-color', 'tristate-zero-color', 
+                                             'bar-color', 'neg-bar-color', 'zero-color', 'null-color',
+                                             'pie-border-color', 'discrete-threshold-color',
+                                             'bullet-target-color', 'bullet-performance-color'].includes(colorInputId);
+                    if (isChartSpecific) {
+                        const propertyField = colorInput?.closest('.property-field');
+                        // Only process if the field is visible (display is not 'none')
+                        if (!propertyField || propertyField.style.display === 'none') {
+                            return;
+                        }
+                    }
+
+                    if (colorInput) {
+                        const actualDefault = getActualDefaultColor(colorInputId);
+                        const currentValue = colorInput.value;
+
+                        // Normalize colors for comparison (e.g., #00f === #0000ff)
+                        const normalizedDefault = normalizeHexColor(actualDefault);
+                        const normalizedCurrent = normalizeHexColor(currentValue);
+
+                        // If current value matches the default, uncheck the override checkbox
+                        // For null/undefined defaults, the checkbox should be unchecked (no override)
+                        const valuesMatch = normalizedDefault && normalizedDefault === normalizedCurrent;
+                        
+                        if (actualDefault === null || actualDefault === undefined || valuesMatch) {
+                            checkbox.checked = false;
+                            colorInput.disabled = true;
+
+                            // Special handling for fill-color null checkbox
+                            if (colorInputId === 'fill-color' && controls.fillColorNull) {
+                                controls.fillColorNull.checked = false;
+                                controls.fillColorNull.disabled = true;
+                            }
+                        } else {
+                            // Value is different from default, so override should be checked
+                            // But only if the difference is significant (not just null/undefined actualDefault)
+                            if (actualDefault !== null && actualDefault !== undefined) {
+                                checkbox.checked = true;
+                                colorInput.disabled = false;
+
+                                // Special handling for fill-color null checkbox
+                                if (colorInputId === 'fill-color' && controls.fillColorNull) {
+                                    controls.fillColorNull.disabled = false;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
 
             // Set up auto-update listeners
             Object.values(controls).forEach(control => {
@@ -1091,20 +1779,32 @@
                     const handleUpdate = () => {
                         if (control === controls.type) {
                             updateOptionVisibility(control.value);
-                            
+                            updateDisplayedDefaults(); // Update default colors when type changes
+                            updateOverrideCheckboxes(); // Update override checkboxes based on whether values match defaults
+
                             // Set appropriate default values for different chart types
-                            if (control.value === 'bullet') {
-                                controls.values.value = '10,12,12,9,7';
-                            } else if (control.value === 'tristate') {
-                                controls.values.value = '1,1,0,1,-1,-1,1,-1,0,0,1,1';
-                            } else if (control.value === 'pie') {
-                                controls.values.value = '1,1,2,3';
-                            } else if (control.value === 'box') {
-                                controls.values.value = '-50,1,4,27,34,52,54,59,61,68,78,82,85,87,91,93,100,200';
-                            } else if (control.value === 'discrete') {
-                                controls.values.value = '4,6,7,7,4,3,2,1,4,5,7,9';
-                            } else {
-                                controls.values.value = '5,6,7,9,9,5,3,2,2,4,6,7';
+                            if (controls.values) {
+                                if (control.value === 'line-multi') {
+                                    controls.values.value = '[[10,15,20,18,25,30],[15,18,22,20,26,28],[12,16,19,17,23,26]]';
+                                    // Set default multi-series options to showcase array properties
+                                    if (controls.seriesNames) controls.seriesNames.value = 'Revenue, Expenses, Profit';
+                                    if (controls.seriesColors) controls.seriesColors.value = '#0066cc, #ff6600, #00cc66';
+                                    if (controls.seriesFillColors) controls.seriesFillColors.value = 'transparent';
+                                    if (controls.seriesLineWidths) controls.seriesLineWidths.value = '0.7, 0.7, 0.7';
+                                    if (controls.seriesSpotRadii) controls.seriesSpotRadii.value = '0.5, 0.5, 0.5';
+                                } else if (control.value === 'bullet') {
+                                    controls.values.value = '10,12,12,9,7';
+                                } else if (control.value === 'tristate') {
+                                    controls.values.value = '1,1,0,1,-1,-1,1,-1,0,0,1,1';
+                                } else if (control.value === 'pie') {
+                                    controls.values.value = '1,1,2,3';
+                                } else if (control.value === 'box') {
+                                    controls.values.value = '-50,1,4,27,34,52,54,59,61,68,78,82,85,87,91,93,100,200';
+                                } else if (control.value === 'discrete') {
+                                    controls.values.value = '4,6,7,7,4,3,2,1,4,5,7,9';
+                                } else {
+                                    controls.values.value = '5,6,7,9,9,5,3,2,2,4,6,7';
+                                }
                             }
                         }
                         updateChart();
@@ -1114,33 +1814,33 @@
                         // For select elements, use multiple events to ensure mobile compatibility
                         control.addEventListener('change', handleUpdate);
                         control.addEventListener('input', handleUpdate);
-                        
+
                         // Add touchend for mobile devices with longer delay
                         control.addEventListener('touchend', () => {
                             setTimeout(() => {
                                 requestAnimationFrame(handleUpdate);
                             }, 100);
                         });
-                        
+
                         // Add click handler as fallback
                         control.addEventListener('click', () => {
                             setTimeout(() => {
                                 requestAnimationFrame(handleUpdate);
                             }, 150);
                         });
-                        
+
                         // Use MutationObserver to watch for value changes on mobile
                         if (window.MutationObserver) {
                             const observer = new MutationObserver(() => {
                                 requestAnimationFrame(handleUpdate);
                             });
-                            observer.observe(control, { 
-                                attributes: true, 
-                                attributeFilter: ['value'] 
+                            observer.observe(control, {
+                                attributes: true,
+                                attributeFilter: ['value']
                             });
                             mutationObservers.push(observer); // Store for cleanup
                         }
-                        
+
                     } else if (control.type === 'checkbox') {
                         control.addEventListener('change', handleUpdate);
                     } else {
@@ -1151,7 +1851,245 @@
 
             // Initialize the demo
             updateOptionVisibility(controls.type.value);
+            updateOverrideCheckboxes(); // Check if initial values match defaults
             updateChart();
+
+            // Handle all color enable checkboxes
+            document.querySelectorAll('.color-enable-checkbox').forEach(checkbox => {
+                const colorInputId = checkbox.id.replace('-enable', '');
+
+                // Skip colors that have special null checkbox handling
+                if (['fill-color', 'line-color', 'spot-color', 'highlight-line-color'].includes(colorInputId)) return;
+
+                const colorInput = document.getElementById(colorInputId);
+                const colorWrapper = colorInput?.parentElement;
+                const nullOverlay = document.getElementById(colorInputId + '-null');
+                const isNullDefault = defaultColors[colorInputId] === null;
+
+                if (colorInput) {
+                    // Get the actual default color for this chart type
+                    const actualDefault = getActualDefaultColor(colorInputId);
+                    
+                    // Store the current custom value (use actual default if input is disabled/unchecked)
+                    let customValue = checkbox.checked ? colorInput.value : (actualDefault || colorInput.value);
+
+                    // Set initial state
+                    if (isNullDefault) {
+                        // For null defaults, hide the color picker when unchecked
+                        colorInput.style.display = checkbox.checked ? '' : 'none';
+                        if (colorWrapper && colorWrapper.classList.contains('color-input-wrapper')) {
+                            colorWrapper.style.display = checkbox.checked ? '' : 'none';
+                        }
+                        if (nullOverlay) {
+                            nullOverlay.style.display = 'none';
+                        }
+                    } else {
+                        // For non-null defaults, disable and show default color when unchecked
+                        colorInput.disabled = !checkbox.checked;
+                        if (!checkbox.checked && actualDefault && actualDefault !== 'undefined') {
+                            colorInput.value = actualDefault;
+                        }
+                    }
+
+                    // Add change event listener
+                    checkbox.addEventListener('change', () => {
+                        if (checkbox.checked) {
+                            // When checked, restore custom value and enable color picker
+                            colorInput.value = customValue;
+                            colorInput.disabled = false;
+                            if (nullOverlay) {
+                                nullOverlay.style.display = 'none';
+                            }
+                            if (isNullDefault) {
+                                colorInput.style.display = '';
+                                if (colorWrapper && colorWrapper.classList.contains('color-input-wrapper')) {
+                                    colorWrapper.style.display = '';
+                                }
+                            }
+                        } else {
+                            // When unchecked, save current value
+                            customValue = colorInput.value;
+
+                            if (isNullDefault) {
+                                // Hide color picker for null defaults
+                                colorInput.style.display = 'none';
+                                if (colorWrapper && colorWrapper.classList.contains('color-input-wrapper')) {
+                                    colorWrapper.style.display = 'none';
+                                }
+                            } else {
+                                // Show actual default color from the chart type and disable
+                                // This will be determined by creating a chart instance and reading its default
+                                const actualDefault = getActualDefaultColor(colorInputId);
+                                if (actualDefault !== null && actualDefault !== undefined && actualDefault !== 'undefined') {
+                                    colorInput.value = actualDefault;
+                                }
+                                colorInput.disabled = true;
+                            }
+                        }
+                        updateChart();
+                    });
+
+                    // Update custom value when color picker changes
+                    colorInput.addEventListener('input', () => {
+                        if (checkbox.checked) {
+                            customValue = colorInput.value;
+                        }
+                    });
+                }
+            });
+
+            // Handle fill color null checkbox
+            if (controls.fillColorNull && controls.fillColor && controls.fillColorEnable) {
+                // Store the example/user override value
+                let fillColorOverride = controls.fillColor.value;
+
+                // Set initial state based on whether override checkbox is checked
+                controls.fillColorNull.disabled = !controls.fillColorEnable.checked;
+                controls.fillColor.disabled = !controls.fillColorEnable.checked;
+
+                // Null checkbox handler
+                controls.fillColorNull.addEventListener('change', () => {
+                    if (controls.fillColorNull.checked) {
+                        // When null is checked, disable color picker
+                        controls.fillColor.disabled = true;
+                        controls.fillColor.style.opacity = '0.5';
+                    } else {
+                        // When null is unchecked, enable color picker
+                        controls.fillColor.disabled = false;
+                        controls.fillColor.style.opacity = '1';
+                    }
+                    updateChart();
+                });
+
+                // Save override value when color changes
+                controls.fillColor.addEventListener('input', () => {
+                    if (controls.fillColorEnable.checked && !controls.fillColorNull.checked) {
+                        fillColorOverride = controls.fillColor.value;
+                    }
+                });
+
+                // Add handler for the fill color enable checkbox that runs AFTER the generic handler
+                controls.fillColorEnable.addEventListener('change', (e) => {
+                    if (!controls.fillColorEnable.checked) {
+                        // When override is unchecked:
+                        // - Save current override value (if it's not the chart default)
+                        const chartDefault = getActualDefaultColor('fill-color');
+                        if (controls.fillColor.value !== chartDefault) {
+                            fillColorOverride = controls.fillColor.value;
+                        }
+                        // - Show chart default in disabled picker
+                        controls.fillColor.value = chartDefault;
+                        controls.fillColor.disabled = true;
+                        // - Disable and uncheck null checkbox
+                        controls.fillColorNull.checked = false;
+                        controls.fillColorNull.disabled = true;
+                    } else {
+                        // When override is checked:
+                        // - Restore override value
+                        controls.fillColor.value = fillColorOverride;
+                        // - Enable null checkbox
+                        controls.fillColorNull.disabled = false;
+                        // - Enable color picker (unless null is checked)
+                        if (!controls.fillColorNull.checked) {
+                            controls.fillColor.disabled = false;
+                            controls.fillColor.style.opacity = '1';
+                        }
+                    }
+                    // Redraw the chart with the new fill color setting
+                    updateChart();
+                });
+            }
+
+            // Handle other color null checkboxes (line-color, spot-color, highlight-line-color)
+            const colorNullCheckboxes = [
+                { enableControl: controls.lineColorEnable, colorControl: controls.lineColor, nullControl: controls.lineColorNull, colorId: 'line-color' },
+                { enableControl: controls.spotColorEnable, colorControl: controls.spotColor, nullControl: controls.spotColorNull, colorId: 'spot-color' },
+                { enableControl: controls.highlightLineColorEnable, colorControl: controls.highlightLineColor, nullControl: controls.highlightLineColorNull, colorId: 'highlight-line-color' }
+            ];
+
+            colorNullCheckboxes.forEach(({ enableControl, colorControl, nullControl, colorId }) => {
+                if (!nullControl || !colorControl || !enableControl) return;
+
+                let colorOverride = colorControl.value;
+
+                // Set initial state based on whether override checkbox is checked
+                nullControl.disabled = !enableControl.checked;
+                colorControl.disabled = !enableControl.checked;
+
+                // Null checkbox handler
+                nullControl.addEventListener('change', () => {
+                    if (nullControl.checked) {
+                        colorControl.disabled = true;
+                        colorControl.style.opacity = '0.5';
+                    } else {
+                        colorControl.disabled = false;
+                        colorControl.style.opacity = '1';
+                    }
+                    updateChart();
+                });
+
+                // Save override value when color changes
+                colorControl.addEventListener('input', () => {
+                    if (enableControl.checked && !nullControl.checked) {
+                        colorOverride = colorControl.value;
+                    }
+                });
+
+                // Enable checkbox handler
+                enableControl.addEventListener('change', (e) => {
+                    if (!enableControl.checked) {
+                        const chartDefault = getActualDefaultColor(colorId);
+                        if (colorControl.value !== chartDefault) {
+                            colorOverride = colorControl.value;
+                        }
+                        colorControl.value = chartDefault;
+                        colorControl.disabled = true;
+                        nullControl.checked = false;
+                        nullControl.disabled = true;
+                    } else {
+                        colorControl.value = colorOverride;
+                        nullControl.disabled = false;
+                        if (!nullControl.checked) {
+                            colorControl.disabled = false;
+                            colorControl.style.opacity = '1';
+                        }
+                    }
+                    updateChart();
+                });
+            });
+
+            // Copy code button functionality
+            const copyCodeBtn = document.getElementById('copy-code-btn');
+            const vueCodeElement = document.getElementById('vue-code');
+
+            if (copyCodeBtn && vueCodeElement) {
+                copyCodeBtn.addEventListener('click', async () => {
+                    try {
+                        // Get the text content without HTML tags
+                        const codeText = vueCodeElement.textContent || vueCodeElement.innerText;
+
+                        // Copy to clipboard
+                        await navigator.clipboard.writeText(codeText);
+
+                        // Update button text and style
+                        const originalText = copyCodeBtn.textContent;
+                        copyCodeBtn.textContent = 'Copied!';
+                        copyCodeBtn.classList.add('copied');
+
+                        // Reset after 2 seconds
+                        setTimeout(() => {
+                            copyCodeBtn.textContent = originalText;
+                            copyCodeBtn.classList.remove('copied');
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy code:', err);
+                        copyCodeBtn.textContent = 'Failed';
+                        setTimeout(() => {
+                            copyCodeBtn.textContent = 'Copy Code';
+                        }, 2000);
+                    }
+                });
+            }
 
             // Mobile polling fallback - check for select value changes every 500ms
             let lastSelectValue = controls.type.value;
@@ -1162,7 +2100,7 @@
                     updateChart();
                 }
             }, 500);
-            
+
             // Cleanup interval when page is unloaded to prevent memory leaks
             window.addEventListener('beforeunload', () => {
                 if (mobilePollingInterval) {
@@ -1173,7 +2111,7 @@
                     observer.disconnect();
                 });
             });
-            
+
             // Also cleanup if user navigates away from the page
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && mobilePollingInterval) {
@@ -1186,14 +2124,16 @@
             });
         });
     </script>
-    
+
     <footer style="background: #2c3e50; color: #ecf0f1; padding: 30px 0; margin: 0; width: 100%; position: relative;">
         <div style="max-width: 1200px; margin: 0 auto; padding: 0 40px; text-align: center;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 20px;">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 20px;">
                 <div>
                     <h4 style="margin: 0 0 15px 0; color: #fff;">📝 Credits</h4>
                     <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
-                        Based on the original <strong>jQuery Sparklines</strong> library by <strong>Gareth Watts</strong><br>
+                        Based on the original <strong>jQuery Sparklines</strong> library by <strong>Gareth
+                            Watts</strong><br>
                         Vue.js adaptation and enhanced tooltips implementation
                     </p>
                 </div>
@@ -1207,9 +2147,11 @@
                 <div>
                     <h4 style="margin: 0 0 15px 0; color: #fff;">🔗 Links</h4>
                     <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
-                        <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer" style="color: #3498db; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        <a href="https://github.com/iclaxton/sparkline-vue" target="_blank" rel="noopener noreferrer"
+                            style="color: #3498db; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                <path
+                                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                             </svg>
                             View on GitHub
                         </a>
@@ -1226,4 +2168,5 @@
     <script type="module" src="../shared/mobile-menu.js"></script>
     <script type="module" src="../shared/back-to-top.js"></script>
 </body>
+
 </html>

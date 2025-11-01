@@ -99,7 +99,59 @@
                 </div>
 
                 <div class="section">
-                    <h2>📊 Bar Charts</h2>
+                    <h2>� Multi-Series Line Charts</h2>
+                    <div class="examples-grid">
+                        <div class="example-card">
+                            <div class="example-title">Two Series - Default Colors</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Actual vs Target <em>(hover to see all series)</em></div>
+                                <canvas id="multi-default" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[[10,15,20,18,25,30],[15,18,22,20,26,28]]" 
+    type="line" :options="{seriesNames: ['Actual','Target']}" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Three Series - Custom Colors</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Multi-region comparison <em>(hover for synchronized highlight)</em></div>
+                                <canvas id="multi-custom" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[[5,8,12,15,18],[10,12,15,18,20],[8,10,14,16,19]]" 
+    type="line" :options="{
+        seriesNames: ['North','South','West'],
+        lineColor: ['#e74c3c','#3498db','#2ecc71']
+    }" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Variable Line Widths</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Emphasize key series <em>(hover for tooltip)</em></div>
+                                <canvas id="multi-widths" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[[100,105,110,108,115],[95,98,102,100,106]]" 
+    type="line" :options="{
+        seriesNames: ['Primary','Secondary'],
+        lineWidth: [3,1],
+        spotRadius: [0,0]
+    }" /&gt;</div>
+                        </div>
+
+                        <div class="example-card">
+                            <div class="example-title">With Gaps (Nulls)</div>
+                            <div class="chart-display">
+                                <div class="chart-label">Incomplete data series</div>
+                                <canvas id="multi-nulls" width="200" height="50"></canvas>
+                            </div>
+                            <div class="code-block">&lt;Sparkline :data="[[10,15,null,25,30],[12,null,20,28,null]]" 
+    type="line" :options="{seriesNames: ['Dataset A','Dataset B']}" /&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>�📊 Bar Charts</h2>
                     <div class="examples-grid">
                         <div class="example-card">
                             <div class="example-title">Basic Bar Chart</div>
@@ -291,6 +343,19 @@
                         : `Value: ${value} (Outside normal range)`;
                 }
             }},
+
+            // Multi-series line charts
+            { id: 'multi-default', data: [[10,15,20,18,25,30],[15,18,22,20,26,28]], type: 'line', options: { seriesNames: ['Actual', 'Target'] }},
+            { id: 'multi-custom', data: [[5,8,12,15,18],[10,12,15,18,20],[8,10,14,16,19]], type: 'line', options: { 
+                seriesNames: ['North', 'South', 'West'],
+                lineColor: ['#e74c3c', '#3498db', '#2ecc71']
+            }},
+            { id: 'multi-widths', data: [[100,105,110,108,115],[95,98,102,100,106]], type: 'line', options: { 
+                seriesNames: ['Primary', 'Secondary'],
+                lineWidth: [3, 1],
+                spotRadius: [0, 0]
+            }},
+            { id: 'multi-nulls', data: [[10,15,null,25,30],[12,null,20,28,null]], type: 'line', options: { seriesNames: ['Dataset A', 'Dataset B'] }},
 
             // Bar charts
             { id: 'bar-basic', data: sampleData.bar, type: 'bar', options: {}},

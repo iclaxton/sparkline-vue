@@ -19,6 +19,7 @@ export class BaseChart {
     this.width = props.width;
     this.height = props.height;
     this.options = { ...this.getDefaults(), ...props.options };
+    this.normalizeColors(); // Normalize 3-char hex colors to 6-char format
     this.values = this.processValues(this.data);
     this.currentRegion = null;
     this.tooltip = null;
@@ -45,18 +46,18 @@ export class BaseChart {
 
   getDefaults() {
     return {
-      lineColor: '#00f',
-      fillColor: '#cdf',
-      spotColor: '#f80',
-      minSpotColor: '#f80',
-      maxSpotColor: '#f80',
+      lineColor: '#0000ff',
+      fillColor: undefined,
+      spotColor: '#ff8800',
+      minSpotColor: '#f44',
+      maxSpotColor: '#4f4',
       spotRadius: 1.5,
       lineWidth: 1,
-      highlightSpotColor: '#5f5',
-      highlightLineColor: '#f22',
+      highlightSpotColor: null,
+      highlightLineColor: '#555555',
       normalRangeMin: undefined,
       normalRangeMax: undefined,
-      normalRangeColor: '#ccc',
+      normalRangeColor: '#cccccc',
       drawNormalOnTop: false,
       chartRangeMin: undefined,
       chartRangeMax: undefined,
@@ -72,6 +73,57 @@ export class BaseChart {
       topPadding: 3,  // Add top padding for all charts
       bottomPadding: 3  // Add bottom padding for all charts
     };
+  }
+
+  // Normalize 3-character hex colors to 6-character format
+  // This prevents browser console warnings about invalid color formats
+  normalizeHexColor(color) {
+    if (!color || typeof color !== 'string') return color;
+    
+    // Remove # if present
+    let hex = color.startsWith('#') ? color.slice(1) : color;
+    
+    // If 3 characters, expand to 6
+    if (hex.length === 3) {
+      hex = hex.split('').map(char => char + char).join('');
+      return '#' + hex;
+    }
+    
+    // Return original if already 6 chars or invalid
+    return color;
+  }
+
+  // Normalize all color properties in options
+  normalizeColors() {
+    const colorProps = [
+      'lineColor', 'fillColor', 'spotColor', 'minSpotColor', 'maxSpotColor',
+      'highlightSpotColor', 'highlightLineColor', 'normalRangeColor',
+      'barColor', 'negBarColor', 'zeroColor', 'nullColor',
+      'borderColor', 'thresholdColor',
+      'posBarColor', 'zeroBarColor',
+      'targetColor', 'performanceColor',
+      'boxLineColor', 'boxFillColor', 'medianColor', 'whiskerColor',
+      'outlierLineColor', 'outlierFillColor'
+    ];
+
+    colorProps.forEach(prop => {
+      if (this.options[prop]) {
+        // Handle arrays of colors (for multi-series)
+        if (Array.isArray(this.options[prop])) {
+          this.options[prop] = this.options[prop].map(c => this.normalizeHexColor(c));
+        } else {
+          this.options[prop] = this.normalizeHexColor(this.options[prop]);
+        }
+      }
+    });
+
+    // Handle special array properties
+    if (this.options.sliceColors && Array.isArray(this.options.sliceColors)) {
+      this.options.sliceColors = this.options.sliceColors.map(c => this.normalizeHexColor(c));
+    }
+    if (this.options.rangeColors && Array.isArray(this.options.rangeColors)) {
+      this.options.rangeColors = this.options.rangeColors.map(c => this.normalizeHexColor(c));
+    }
   }
 
   // Get or create a persistent chart ID based on the canvas element

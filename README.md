@@ -91,6 +91,36 @@ Perfect for showing trends over time.
 />
 ```
 
+#### Multi-Series Line Charts
+Compare multiple data series on the same chart.
+
+```vue
+<Sparkline 
+  :data="[
+    [10, 15, 20, 18, 25, 30, 28],  // Series 1
+    [15, 18, 22, 20, 26, 28, 30],  // Series 2
+    [12, 17, 21, 19, 24, 29, 27]   // Series 3
+  ]"
+  type="line"
+  :width="300"
+  :height="100"
+  :options="{
+    seriesNames: ['Sales', 'Target', 'Forecast'],
+    lineColor: ['#0066cc', '#ff6600', '#00cc66'],
+    fillColor: ['rgba(0,102,204,0.15)', 'rgba(255,102,0,0.15)', 'rgba(0,204,102,0.15)'],
+    lineWidth: [2, 2, 2],
+    spotRadius: 0  // Hide spots for cleaner multi-series view
+  }"
+/>
+```
+
+**Features:**
+- Automatic high-contrast color palette when colors not specified
+- Tooltips show all series values at cursor position
+- Supports per-series customization (colors, widths, spot radii)
+- Series names displayed in tooltips
+- Maintains full interactivity (hover, click events)
+
 ### Bar Chart
 Great for comparing discrete values.
 
@@ -228,6 +258,73 @@ You can provide coordinate pairs for line charts:
   type="line"
 />
 ```
+
+### Multi-Series Line Charts
+
+Display multiple data series on a single line chart. Perfect for comparing trends, showing actual vs. target, or multi-region analysis.
+
+**Basic Multi-Series:**
+```vue
+<template>
+  <Sparkline 
+    :data="multiSeriesData"
+    type="line"
+    :width="300"
+    :height="100"
+    :options="multiSeriesOptions"
+  />
+</template>
+
+<script setup>
+import { ref } from 'vue'
+
+const multiSeriesData = ref([
+  [10, 15, 20, 18, 25, 30, 28],    // Actual sales
+  [15, 18, 22, 20, 26, 28, 30]     // Target sales
+])
+
+const multiSeriesOptions = {
+  seriesNames: ['Actual', 'Target'],
+  // Colors auto-assigned if not specified (high-contrast palette)
+  lineColor: ['#0066cc', '#ff6600'],
+  fillColor: ['rgba(0,102,204,0.15)', 'rgba(255,102,0,0.15)'],
+  lineWidth: [2, 2],
+  spotRadius: 0  // Optional: hide spots for cleaner look
+}
+</script>
+```
+
+**Auto Colors:**
+```vue
+<!-- Uses default high-contrast palette automatically -->
+<Sparkline 
+  :data="[[1,2,3], [4,5,6], [7,8,9]]"
+  type="line"
+  :options="{ seriesNames: ['A', 'B', 'C'] }"
+/>
+```
+
+**Per-Series Customization:**
+```vue
+<Sparkline 
+  :data="[series1, series2, series3]"
+  type="line"
+  :options="{
+    seriesNames: ['North', 'South', 'West'],
+    lineColor: ['#e74c3c', '#3498db', '#2ecc71'],  // Red, Blue, Green
+    lineWidth: [3, 2, 1],                           // Emphasize first series
+    spotRadius: [2, 0, 0]                           // Spots only on first series
+  }"
+/>
+```
+
+**Features:**
+- Automatic color assignment with 8 high-contrast colors
+- Tooltips show all series values at hover position
+- Single vertical line highlights all series simultaneously
+- Full support for null values and gaps
+- Maintains chart range across all series
+- Per-series customization for colors, widths, and spots
 
 ### Null Values
 Null values create gaps in line charts or are omitted in bar charts:

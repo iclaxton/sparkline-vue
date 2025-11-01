@@ -356,6 +356,149 @@ describe('Sparkline Component', () => {
     })
   })
 
+  describe('Multi-Series Line Charts', () => {
+    it('renders two series with default colors', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [
+            [10, 15, 20, 18, 25],
+            [15, 18, 22, 20, 26]
+          ],
+          type: 'line',
+          width: 200,
+          height: 100
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+      const canvas = wrapper.find('canvas').element
+      expect(canvas).toBeTruthy()
+    })
+
+    it('renders three series with custom colors', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [
+            [5, 8, 12, 15],
+            [10, 12, 15, 18],
+            [8, 10, 14, 16]
+          ],
+          type: 'line',
+          width: 200,
+          height: 100,
+          options: {
+            lineColor: ['#e74c3c', '#3498db', '#2ecc71'],
+            seriesNames: ['Series A', 'Series B', 'Series C']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('handles multi-series with null values', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [
+            [10, 15, null, 25, 30],
+            [12, null, 20, 28, null]
+          ],
+          type: 'line',
+          width: 200,
+          height: 100
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('supports per-series customization', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [
+            [1, 2, 3, 4],
+            [5, 6, 7, 8]
+          ],
+          type: 'line',
+          width: 200,
+          height: 100,
+          options: {
+            lineColor: ['#ff0000', '#00ff00'],
+            lineWidth: [2, 3],
+            spotRadius: [2, 0],
+            fillColor: ['rgba(255,0,0,0.1)', 'transparent']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('maintains backwards compatibility with single series', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, 2, 3, 4, 5],
+          type: 'line',
+          width: 200,
+          height: 100
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('distinguishes multi-series from coordinate pairs', () => {
+      // Coordinate pairs: [[x,y], [x,y]]
+      const coordWrapper = mount(Sparkline, {
+        props: {
+          data: [[1, 10], [2, 20], [3, 15]],
+          type: 'line',
+          width: 200,
+          height: 100
+        }
+      })
+      
+      expect(coordWrapper.exists()).toBe(true)
+      
+      // Multi-series: [[1,2,3], [4,5,6]]
+      const multiWrapper = mount(Sparkline, {
+        props: {
+          data: [[1, 2, 3], [4, 5, 6]],
+          type: 'line',
+          width: 200,
+          height: 100
+        }
+      })
+      
+      expect(multiWrapper.exists()).toBe(true)
+      
+      coordWrapper.unmount()
+      multiWrapper.unmount()
+    })
+
+    it('updates when multi-series data changes', async () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [
+            [1, 2, 3],
+            [4, 5, 6]
+          ],
+          type: 'line'
+        }
+      })
+      
+      await wrapper.setProps({
+        data: [
+          [10, 20, 30],
+          [40, 50, 60]
+        ]
+      })
+      
+      await wrapper.vm.$nextTick()
+      expect(wrapper.exists()).toBe(true)
+    })
+  })
+
   describe('Streaming Mode', () => {
     it('works in streaming mode', () => {
       wrapper = mount(Sparkline, {

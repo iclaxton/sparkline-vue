@@ -2,8 +2,11 @@ import { DefineComponent, App, Plugin } from 'vue'
 
 /**
  * Data type for sparkline charts
+ * - Single series: number | null | [x, y] pairs
+ * - Multi-series (line charts): Array of arrays [[1,2,3], [4,5,6]]
  */
 export type SparklineData = number | null | [number, number]
+export type SparklineMultiSeriesData = SparklineData[] | SparklineData[][]
 
 /**
  * Supported chart types
@@ -32,8 +35,12 @@ export interface SparklineRegionChangeEvent {
  * Props for the Sparkline component
  */
 export interface SparklineProps {
-  /** Array of numeric data points to visualize. Supports numbers, nulls, or [x,y] pairs */
-  data: SparklineData[]
+  /** 
+   * Array of numeric data points to visualize.
+   * - Single series: [1, 2, 3, 4] or [[x1,y1], [x2,y2]]
+   * - Multi-series (line charts): [[1,2,3], [4,5,6], [7,8,9]]
+   */
+  data: SparklineMultiSeriesData
   
   /** Chart type to render */
   type?: ChartType
@@ -69,15 +76,24 @@ export interface SparklineProps {
  */
 export interface SparklineOptions {
   // Common options
-  lineColor?: string
-  fillColor?: string
-  lineWidth?: number
+  /** Line color. For multi-series: array of colors per series or single color for all */
+  lineColor?: string | string[]
+  /** Fill color. For multi-series: array of colors per series or single color for all */
+  fillColor?: string | string[]
+  /** Line width. For multi-series: array of widths per series or single width for all */
+  lineWidth?: number | number[]
+  
+  // Multi-series options (line charts)
+  /** Names for each series in multi-series charts. Used in tooltips. */
+  seriesNames?: string[]
   
   // Spot options (line charts)
-  spotColor?: string
+  /** Spot color. For multi-series: array of colors per series or single color for all */
+  spotColor?: string | string[]
   minSpotColor?: string
   maxSpotColor?: string
-  spotRadius?: number
+  /** Spot radius. For multi-series: array of radii per series or single radius for all */
+  spotRadius?: number | number[]
   highlightSpotColor?: string
   highlightLineColor?: string
   
@@ -142,9 +158,6 @@ export interface SparklineOptions {
   // Padding
   topPadding?: number
   bottomPadding?: number
-  
-  // Composite charts
-  composite?: boolean
   
   // Additional custom options
   [key: string]: any
