@@ -46,19 +46,7 @@ export class BaseChart {
 
   getDefaults() {
     return {
-      lineColor: '#0000ff',
-      fillColor: undefined,
-      spotColor: '#ff8800',
-      minSpotColor: '#f44',
-      maxSpotColor: '#4f4',
-      spotRadius: 1.5,
-      lineWidth: 1,
-      highlightSpotColor: null,
-      highlightLineColor: '#555555',
-      normalRangeMin: undefined,
-      normalRangeMax: undefined,
-      normalRangeColor: '#cccccc',
-      drawNormalOnTop: false,
+      // Universal properties - applicable to all chart types
       chartRangeMin: undefined,
       chartRangeMax: undefined,
       defaultPixelsPerValue: 3,
@@ -70,8 +58,14 @@ export class BaseChart {
       tooltipFormat: '{{value}}',
       tooltipFormatter: null,
       highlightLighten: 1.4,
-      topPadding: 3,  // Add top padding for all charts
-      bottomPadding: 3  // Add bottom padding for all charts
+      highlightSpotColor: null,
+      highlightLineColor: '#555555',
+      normalRangeMin: undefined,
+      normalRangeMax: undefined,
+      normalRangeColor: '#cccccc',
+      drawNormalOnTop: false,
+      topPadding: 3,
+      bottomPadding: 3
     };
   }
 

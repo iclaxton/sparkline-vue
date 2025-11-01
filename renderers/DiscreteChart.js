@@ -8,6 +8,7 @@ export class DiscreteChart extends BaseChart {
     return {
       ...super.getDefaults(),
       type: 'discrete',
+      lineColor: '#0000ff',
       lineWidth: 'auto',
       lineSpacing: 1,
       lineHeight: '30%', // Defaults to 30% of graph height per jQuery Sparkline
@@ -295,17 +296,14 @@ export class DiscreteChart extends BaseChart {
     
     ctx.save();
     
-    // Draw a wider highlight background
-    const highlightWidth = Math.max(lineWidthFinal * 0.8, 8);
-    ctx.globalAlpha = 0.3;
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(centerX - highlightWidth/2, topOffset, highlightWidth, height);
+    // Get the base color and apply lighten effect
+    let baseColor = (thresholdColor && value < thresholdValue) ? thresholdColor : lineColor;
+    let highlightColor = this.lightenColor(baseColor, this.options.highlightLighten);
     
-    // Draw a thicker highlighted line
-    ctx.globalAlpha = 0.8;
-    let highlightColor = (thresholdColor && value < thresholdValue) ? thresholdColor : lineColor;
+    // Redraw the line with the same width but lightened color
     ctx.strokeStyle = highlightColor;
-    ctx.lineWidth = Math.max(3, Math.max(1, lineWidthFinal - 1) + 2); // Make it 2px thicker
+    ctx.lineWidth = Math.max(1, lineWidthFinal - 1); // Same as original draw logic
+    ctx.lineCap = 'butt';
     ctx.beginPath();
     ctx.moveTo(centerX, lineTop);
     ctx.lineTo(centerX, Math.min(lineBottom, this.height - bottomOffset));

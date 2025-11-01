@@ -31,9 +31,13 @@ export class LineChart extends BaseChart {
     return {
       ...super.getDefaults(),
       type: 'line',
+      lineColor: '#0000ff',
+      fillColor: undefined,
+      lineWidth: 1,
       spotColor: '#f80',
       minSpotColor: '#f44',
       maxSpotColor: '#4f4',
+      spotRadius: 1.5,
       valueSpots: {},
       chartRangeClip: false,
       chartRangeMinX: undefined,

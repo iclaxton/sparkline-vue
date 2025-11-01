@@ -626,108 +626,113 @@
 
         // Property Definitions Configuration
         // This defines all properties that can be dynamically generated
+        // Each property includes 'propertyName' which matches the actual chart property
+        // defaultValue can be:
+        //   - undefined: use chart class default
+        //   - a value: override chart class default for all chart types
+        //   - an object: chart-specific overrides (e.g., { line: '#ff0000', discrete: '#00ff00' })
         const propertyDefinitions = {
             // Common appearance properties
             appearance: [
-                { id: 'line-color', label: 'Line Color', type: 'color', defaultValue: '#0000ff', checked: true, hasNull: true, visibleFor: ['line', 'discrete'] },
-                { id: 'fill-color', label: 'Fill Color', type: 'color', defaultValue: undefined, checked: false, hasNull: true, nullLabel: 'undefined', disabled: true, visibleFor: ['line'] },
-                { id: 'spot-color', label: 'Spot Color', type: 'color', defaultValue: '#ff8800', checked: true, hasNull: true, visibleFor: ['line'] },
-                { id: 'min-spot-color', label: 'Min Spot Color', type: 'color', defaultValue: '#ff4444', checked: true, visibleFor: ['line'] },
-                { id: 'max-spot-color', label: 'Max Spot Color', type: 'color', defaultValue: '#44ff44', checked: true, visibleFor: ['line'] },
-                { id: 'highlight-spot-color', label: 'Highlight Spot Color', type: 'color', defaultValue: null, checked: false, disabled: true, hasNullOverlay: true, visibleFor: ['line', 'line-multi'] },
-                { id: 'highlight-line-color', label: 'Highlight Line Color', type: 'color', defaultValue: '#555555', checked: true, hasNull: true, visibleFor: ['line', 'line-multi'] },
-                { id: 'line-width', label: 'Line Width', type: 'number', defaultValue: 1, min: 0.5, max: 5, step: 0.5, visibleFor: ['line'] },
-                { id: 'spot-radius', label: 'Spot Radius', type: 'number', defaultValue: 1.5, min: 0, max: 10, step: 0.5, visibleFor: ['line'] },
-                { id: 'highlight-lighten', label: 'Highlight Lighten', type: 'number', defaultValue: 1.4, min: 1, max: 3, step: 0.1, visibleFor: ['bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] }
+                { id: 'line-color', propertyName: 'lineColor', label: 'Line Color', type: 'color', checked: true, hasNull: true, visibleFor: ['line', 'discrete'] },
+                { id: 'fill-color', propertyName: 'fillColor', label: 'Fill Color', type: 'color', checked: false, hasNull: true, nullLabel: 'undefined', disabled: true, visibleFor: ['line'] },
+                { id: 'spot-color', propertyName: 'spotColor', label: 'Spot Color', type: 'color', checked: true, hasNull: true, visibleFor: ['line'] },
+                { id: 'min-spot-color', propertyName: 'minSpotColor', label: 'Min Spot Color', type: 'color', checked: true, visibleFor: ['line'] },
+                { id: 'max-spot-color', propertyName: 'maxSpotColor', label: 'Max Spot Color', type: 'color', checked: true, visibleFor: ['line'] },
+                { id: 'highlight-spot-color', propertyName: 'highlightSpotColor', label: 'Highlight Spot Color', type: 'color', checked: false, disabled: true, hasNullOverlay: true, visibleFor: ['line', 'line-multi'] },
+                { id: 'highlight-line-color', propertyName: 'highlightLineColor', label: 'Highlight Line Color', type: 'color', checked: true, hasNull: true, visibleFor: ['line', 'line-multi'] },
+                { id: 'line-width', propertyName: 'lineWidth', label: 'Line Width', type: 'number', min: 0.5, max: 5, step: 0.5, visibleFor: ['line'] },
+                { id: 'spot-radius', propertyName: 'spotRadius', label: 'Spot Radius', type: 'number', min: 0, max: 10, step: 0.5, visibleFor: ['line'] },
+                { id: 'highlight-lighten', propertyName: 'highlightLighten', label: 'Highlight Lighten', type: 'number', min: 1, max: 3, step: 0.1, visibleFor: ['bar', 'pie', 'discrete', 'tristate', 'bullet'] }
             ],
             // Layout properties
             layout: [
-                { id: 'chart-range-min', label: 'Chart Range Min', type: 'number', defaultValue: '', step: 'any', placeholder: 'Auto', visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'bullet'] },
-                { id: 'chart-range-max', label: 'Chart Range Max', type: 'number', defaultValue: '', step: 'any', placeholder: 'Auto', visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'bullet'] },
-                { id: 'normal-range-min', label: 'Normal Range Min', type: 'number', defaultValue: '', step: 'any', placeholder: 'Optional', visibleFor: ['line', 'line-multi'] },
-                { id: 'normal-range-max', label: 'Normal Range Max', type: 'number', defaultValue: '', step: 'any', placeholder: 'Optional', visibleFor: ['line', 'line-multi'] },
-                { id: 'normal-range-color', label: 'Normal Range Color', type: 'color', defaultValue: '#cccccc', checked: false, disabled: true, visibleFor: ['line', 'line-multi'] },
-                { id: 'top-padding', label: 'Top Padding', type: 'number', defaultValue: 3, min: 0, max: 20, visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'tristate', 'bullet', 'box'] },
-                { id: 'bottom-padding', label: 'Bottom Padding', type: 'number', defaultValue: 3, min: 0, max: 20, visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'tristate', 'bullet', 'box'] },
-                { id: 'disable-tooltips', label: 'Disable Tooltips', type: 'checkbox', defaultValue: false, visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] },
-                { id: 'tooltip-prefix', label: 'Tooltip Prefix', type: 'text', defaultValue: '', placeholder: "e.g., 'Value: '", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] },
-                { id: 'tooltip-suffix', label: 'Tooltip Suffix', type: 'text', defaultValue: '', placeholder: "e.g., ' units'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] },
-                { id: 'tooltip-format', label: 'Tooltip Format', type: 'text', defaultValue: '{{value}}', placeholder: "e.g., '{{value}}' or '{{value.2}}'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] }
+                { id: 'chart-range-min', propertyName: 'chartRangeMin', label: 'Chart Range Min', type: 'number', step: 'any', placeholder: 'Auto', visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'bullet'] },
+                { id: 'chart-range-max', propertyName: 'chartRangeMax', label: 'Chart Range Max', type: 'number', step: 'any', placeholder: 'Auto', visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'bullet'] },
+                { id: 'normal-range-min', propertyName: 'normalRangeMin', label: 'Normal Range Min', type: 'number', step: 'any', placeholder: 'Optional', visibleFor: ['line', 'line-multi'] },
+                { id: 'normal-range-max', propertyName: 'normalRangeMax', label: 'Normal Range Max', type: 'number', step: 'any', placeholder: 'Optional', visibleFor: ['line', 'line-multi'] },
+                { id: 'normal-range-color', propertyName: 'normalRangeColor', label: 'Normal Range Color', type: 'color', checked: false, disabled: true, visibleFor: ['line', 'line-multi'] },
+                { id: 'top-padding', propertyName: 'topPadding', label: 'Top Padding', type: 'number', min: 0, max: 20, visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'bottom-padding', propertyName: 'bottomPadding', label: 'Bottom Padding', type: 'number', min: 0, max: 20, visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'disable-tooltips', propertyName: 'disableTooltips', label: 'Disable Tooltips', type: 'checkbox', visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'tooltip-prefix', propertyName: 'tooltipPrefix', label: 'Tooltip Prefix', type: 'text', placeholder: "e.g., 'Value: '", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'tooltip-suffix', propertyName: 'tooltipSuffix', label: 'Tooltip Suffix', type: 'text', placeholder: "e.g., ' units'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] },
+                { id: 'tooltip-format', propertyName: 'tooltipFormat', label: 'Tooltip Format', type: 'text', placeholder: "e.g., '{{value}}' or '{{value.2}}'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'] }
             ],
             // Chart-specific properties
             bar: {
                 chartClass: 'bar-options',
                 properties: [
-                    { id: 'bar-color', label: 'Bar Color', type: 'color', defaultValue: '#3366cc', checked: false, disabled: true },
-                    { id: 'neg-bar-color', label: 'Negative Bar Color', type: 'color', defaultValue: '#ff4444', checked: false, disabled: true },
-                    { id: 'zero-color', label: 'Zero Color', type: 'color', defaultValue: '#909090', checked: false, disabled: true },
-                    { id: 'null-color', label: 'Null Color', type: 'color', defaultValue: undefined, checked: false, disabled: true, hasNullOverlay: true },
-                    { id: 'zero-axis', label: 'Zero Axis', type: 'checkbox', defaultValue: true },
-                    { id: 'chart-range-clip', label: 'Chart Range Clip', type: 'checkbox', defaultValue: false },
-                    { id: 'bar-width', label: 'Bar Width', type: 'text', defaultValue: 'auto', placeholder: 'auto, fill, or px value' },
-                    { id: 'bar-spacing', label: 'Bar Spacing', type: 'number', defaultValue: 1, min: 0, max: 10 }
+                    { id: 'bar-color', propertyName: 'barColor', label: 'Bar Color', type: 'color', checked: false, disabled: true },
+                    { id: 'neg-bar-color', propertyName: 'negBarColor', label: 'Negative Bar Color', type: 'color', checked: false, disabled: true },
+                    { id: 'zero-color', propertyName: 'zeroColor', label: 'Zero Color', type: 'color', checked: false, disabled: true },
+                    { id: 'null-color', propertyName: 'nullColor', label: 'Null Color', type: 'color', checked: false, disabled: true, hasNullOverlay: true },
+                    { id: 'zero-axis', propertyName: 'zeroAxis', label: 'Zero Axis', type: 'checkbox' },
+                    { id: 'chart-range-clip', propertyName: 'chartRangeClip', label: 'Chart Range Clip', type: 'checkbox' },
+                    { id: 'bar-width', propertyName: 'barWidth', label: 'Bar Width', type: 'text', placeholder: 'auto, fill, or px value' },
+                    { id: 'bar-spacing', propertyName: 'barSpacing', label: 'Bar Spacing', type: 'number', min: 0, max: 10 }
                 ]
             },
             pie: {
                 chartClass: 'pie-options',
                 properties: [
-                    { id: 'pie-offset', label: 'Offset', type: 'number', defaultValue: 0, min: 0, max: 360 },
-                    { id: 'pie-border-width', label: 'Border Width', type: 'number', defaultValue: 0, min: 0, max: 10 },
-                    { id: 'pie-border-color', label: 'Border Color', type: 'color', defaultValue: '#000000', checked: false, disabled: true }
+                    { id: 'offset', propertyName: 'offset', label: 'Offset', type: 'number', min: 0, max: 360 },
+                    { id: 'border-width', propertyName: 'borderWidth', label: 'Border Width', type: 'number', min: 0, max: 10 },
+                    { id: 'border-color', propertyName: 'borderColor', label: 'Border Color', type: 'color', checked: false, disabled: true }
                 ]
             },
             tristate: {
                 chartClass: 'tristate-options',
                 properties: [
-                    { id: 'tristate-pos-color', label: 'Positive Color', type: 'color', defaultValue: '#00ff00', checked: false, disabled: true },
-                    { id: 'tristate-neg-color', label: 'Negative Color', type: 'color', defaultValue: '#ff0000', checked: false, disabled: true },
-                    { id: 'tristate-zero-color', label: 'Zero Color', type: 'color', defaultValue: '#999999', checked: false, disabled: true },
-                    { id: 'tristate-bar-width', label: 'Bar Width', type: 'text', defaultValue: 'auto', placeholder: 'auto, fill, or px value' },
-                    { id: 'tristate-bar-spacing', label: 'Bar Spacing', type: 'number', defaultValue: 1, min: 0, max: 10 }
+                    { id: 'tristate-pos-bar-color', propertyName: 'posBarColor', label: 'Positive Color', type: 'color', checked: false, disabled: true },
+                    { id: 'tristate-neg-bar-color', propertyName: 'negBarColor', label: 'Negative Color', type: 'color', checked: false, disabled: true },
+                    { id: 'tristate-zero-bar-color', propertyName: 'zeroBarColor', label: 'Zero Color', type: 'color', checked: false, disabled: true },
+                    { id: 'tristate-bar-width', propertyName: 'barWidth', label: 'Bar Width', type: 'text', placeholder: 'auto, fill, or px value' },
+                    { id: 'tristate-bar-spacing', propertyName: 'barSpacing', label: 'Bar Spacing', type: 'number', min: 0, max: 10 }
                 ]
             },
             discrete: {
                 chartClass: 'discrete-options',
                 properties: [
-                    { id: 'discrete-line-height', label: 'Line Height', type: 'number', defaultValue: '', min: 1, max: 100, placeholder: 'Auto (30% of height)' },
-                    { id: 'discrete-threshold-value', label: 'Threshold Value', type: 'number', defaultValue: '', step: 'any', placeholder: 'Optional' },
-                    { id: 'discrete-threshold-color', label: 'Threshold Color', type: 'color', defaultValue: undefined, checked: false, disabled: true, hasNullOverlay: true },
-                    { id: 'discrete-line-width', label: 'Line Width', type: 'text', defaultValue: 'auto', placeholder: 'auto, fill, or px value' },
-                    { id: 'discrete-line-spacing', label: 'Line Spacing', type: 'number', defaultValue: 1, min: 0, max: 10 }
+                    { id: 'discrete-line-height', propertyName: 'lineHeight', label: 'Line Height', type: 'number', min: 1, max: 100, placeholder: 'Auto (30% of height)' },
+                    { id: 'discrete-threshold-value', propertyName: 'thresholdValue', label: 'Threshold Value', type: 'number', step: 'any', placeholder: 'Optional' },
+                    { id: 'discrete-threshold-color', propertyName: 'thresholdColor', label: 'Threshold Color', type: 'color', checked: false, disabled: true, hasNullOverlay: true },
+                    { id: 'discrete-line-width', propertyName: 'lineWidth', label: 'Line Width', type: 'text', placeholder: 'auto, fill, or px value' },
+                    { id: 'discrete-line-spacing', propertyName: 'lineSpacing', label: 'Line Spacing', type: 'number', min: 0, max: 10 }
                 ]
             },
             bullet: {
                 chartClass: 'bullet-options',
                 properties: [
-                    { id: 'bullet-target-color', label: 'Target Color', type: 'color', defaultValue: '#ff3333', checked: false, disabled: true },
-                    { id: 'bullet-target-width', label: 'Target Width', type: 'number', defaultValue: 3, min: 1, max: 10 },
-                    { id: 'bullet-performance-color', label: 'Performance Color', type: 'color', defaultValue: '#3333ff', checked: false, disabled: true }
+                    { id: 'bullet-target-color', propertyName: 'targetColor', label: 'Target Color', type: 'color', checked: false, disabled: true },
+                    { id: 'bullet-target-width', propertyName: 'targetWidth', label: 'Target Width', type: 'number', min: 1, max: 10 },
+                    { id: 'bullet-performance-color', propertyName: 'performanceColor', label: 'Performance Color', type: 'color', checked: false, disabled: true }
                 ]
             },
             'line-multi': {
                 chartClass: 'line-multi-options',
                 properties: [
-                    { id: 'series-names', label: 'Series Names', type: 'text', defaultValue: '', placeholder: 'Series 1, Series 2, Series 3' },
-                    { id: 'series-colors', label: 'Series Colors', type: 'text', defaultValue: '', placeholder: '#0000ff, #ff0000, #00ff00' },
-                    { id: 'series-fill-colors', label: 'Series Fill Colors', type: 'text', defaultValue: '', placeholder: 'transparent, transparent, transparent' },
-                    { id: 'series-line-widths', label: 'Series Line Widths', type: 'text', defaultValue: '', placeholder: '1, 1, 1' },
-                    { id: 'series-spot-radii', label: 'Series Spot Radii', type: 'text', defaultValue: '', placeholder: '0.5, 0.5, 0.5' }
+                    { id: 'series-names', propertyName: 'seriesNames', label: 'Series Names', type: 'text', placeholder: 'Series 1, Series 2, Series 3' },
+                    { id: 'series-colors', propertyName: 'lineColor', label: 'Series Colors', type: 'text', placeholder: '#0000ff, #ff0000, #00ff00' },
+                    { id: 'series-fill-colors', propertyName: 'fillColor', label: 'Series Fill Colors', type: 'text', placeholder: 'transparent, transparent, transparent' },
+                    { id: 'series-line-widths', propertyName: 'lineWidth', label: 'Series Line Widths', type: 'text', placeholder: '1, 1, 1' },
+                    { id: 'series-spot-radii', propertyName: 'spotRadius', label: 'Series Spot Radii', type: 'text', placeholder: '0.5, 0.5, 0.5' }
                 ]
             },
             box: {
                 chartClass: 'box-options',
                 properties: [
-                    { id: 'box-line-color', label: 'Box Line Color', type: 'color', defaultValue: '#000000' },
-                    { id: 'box-fill-color', label: 'Box Fill Color', type: 'color', defaultValue: '#ccddff' },
-                    { id: 'box-median-color', label: 'Median Color', type: 'color', defaultValue: '#ff0000' },
-                    { id: 'box-whisker-color', label: 'Whisker Color', type: 'color', defaultValue: '#000000' },
-                    { id: 'box-outlier-line-color', label: 'Outlier Line Color', type: 'color', defaultValue: '#333333' },
-                    { id: 'box-outlier-fill-color', label: 'Outlier Fill Color', type: 'color', defaultValue: '#ffffff' },
-                    { id: 'box-target-color', label: 'Target Color', type: 'color', defaultValue: '#44aa22' },
-                    { id: 'box-show-outliers', label: 'Show Outliers', type: 'checkbox', defaultValue: true },
-                    { id: 'box-outlier-iqr', label: 'Outlier IQR', type: 'number', defaultValue: 1.5, min: 0, max: 5, step: 0.1 },
-                    { id: 'box-spot-radius', label: 'Spot Radius', type: 'number', defaultValue: 1.5, min: 0, max: 10, step: 0.5 },
-                    { id: 'box-target', label: 'Target', type: 'number', defaultValue: '', step: 'any', placeholder: 'Optional' }
+                    { id: 'box-line-color', propertyName: 'boxLineColor', label: 'Box Line Color', type: 'color' },
+                    { id: 'box-fill-color', propertyName: 'boxFillColor', label: 'Box Fill Color', type: 'color' },
+                    { id: 'box-median-color', propertyName: 'medianColor', label: 'Median Color', type: 'color' },
+                    { id: 'box-whisker-color', propertyName: 'whiskerColor', label: 'Whisker Color', type: 'color' },
+                    { id: 'box-outlier-line-color', propertyName: 'outlierLineColor', label: 'Outlier Line Color', type: 'color' },
+                    { id: 'box-outlier-fill-color', propertyName: 'outlierFillColor', label: 'Outlier Fill Color', type: 'color' },
+                    { id: 'box-target-color', propertyName: 'targetColor', label: 'Target Color', type: 'color' },
+                    { id: 'box-show-outliers', propertyName: 'showOutliers', label: 'Show Outliers', type: 'checkbox' },
+                    { id: 'box-outlier-i-q-r', propertyName: 'outlierIQR', label: 'Outlier IQR', type: 'number', min: 0, max: 5, step: 0.1 },
+                    { id: 'box-spot-radius', propertyName: 'spotRadius', label: 'Spot Radius', type: 'number', min: 0, max: 10, step: 0.5 },
+                    { id: 'box-target', propertyName: 'target', label: 'Target', type: 'number', step: 'any', placeholder: 'Optional' }
                 ]
             }
         };
@@ -736,12 +741,155 @@
         const sampleData = {
             line: [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7],
             bar: [5, 6, 7, 9, 9, 5, 3, 2, 2, 4, 6, 7],
-            pie: [1, 1, 2],
+            pie: [1, 1, 1, 2],
             discrete: [4, 6, 7, 7, 4, 3, 2, 1, 4, 5, 7, 9],
             tristate: [1, 1, -1, 1, -1, 0, 1, -1],
             bullet: [10, 12, 12, 9, 7],
-            box: [4, 27, 34, 52, 54, 59, 61, 68, 78, 82, 85, 87, 91, 93, 100]
+            box: [4, 27, 34, 52, 54, 59, 61, 68, 78, 82, 85, 87, 91, 93, 100],
+            'line-multi': [[5,6,7],[9,5,3],[2,4,6]]
         };
+
+        // Function to get chart defaults from the actual chart class
+        function getChartDefaults(chartType) {
+            const tempCanvas = document.createElement('canvas');
+            const ctx = tempCanvas.getContext('2d');
+
+            // Map line-multi to line since they use the same chart class
+            const actualChartType = chartType === 'line-multi' ? 'line' : chartType;
+
+            const props = {
+                data: [1, 2, 3],
+                type: actualChartType,
+                width: 100,
+                height: 50,
+                options: {} // No options, so we get pure defaults
+            };
+
+            const chart = createChart(actualChartType, ctx, props);
+            if (!chart || !chart.options) {
+                return {};
+            }
+
+            const defaults = { ...chart.options };
+            
+            // Clean up temp chart
+            if (chart.destroy) {
+                chart.destroy();
+            }
+            
+            return defaults;
+        }
+
+        // Helper to get properties array (handle both old array format and new {chartClass, properties} format)
+        function getPropertiesArray(groupDef) {
+            return Array.isArray(groupDef) ? groupDef : groupDef.properties;
+        }
+
+        // Function to reset controls to their default values based on chart type
+        function resetControlsToDefaults(chartType) {
+            // Get actual defaults from the chart class
+            const chartDefaults = getChartDefaults(chartType);
+            
+            // Reset chart values to sample data for this chart type
+            if (sampleData[chartType]) {
+                const valuesControl = document.getElementById('chart-values');
+                if (valuesControl) {
+                    valuesControl.value = sampleData[chartType].join(',');
+                }
+            }
+
+            // Reset all properties to their default values
+            const allProperties = [
+                ...propertyDefinitions.appearance,
+                ...propertyDefinitions.layout
+            ];
+
+            // Add chart-specific properties
+            const chartGroups = ['bar', 'pie', 'tristate', 'discrete', 'bullet', 'line-multi', 'box'];
+            chartGroups.forEach(groupKey => {
+                const groupDef = propertyDefinitions[groupKey];
+                const properties = getPropertiesArray(groupDef);
+                allProperties.push(...properties);
+            });
+
+            // Reset each property to its default (property definition overrides chart defaults)
+            allProperties.forEach(prop => {
+                const element = document.getElementById(prop.id);
+                if (!element) return;
+
+                // Priority: property definition defaultValue > chart-specific default > chart class default
+                let actualDefault;
+                
+                // Check for chart-specific default first (e.g., defaultValue: { line: '#ff0000', discrete: '#00ff00' })
+                if (prop.defaultValue && typeof prop.defaultValue === 'object' && !Array.isArray(prop.defaultValue)) {
+                    actualDefault = prop.defaultValue[chartType];
+                }
+                
+                // If no chart-specific default, use the simple defaultValue if present
+                if (actualDefault === undefined && prop.defaultValue !== undefined && typeof prop.defaultValue !== 'object') {
+                    actualDefault = prop.defaultValue;
+                }
+                
+                // Finally, fall back to chart class default
+                if (actualDefault === undefined && prop.propertyName && chartDefaults.hasOwnProperty(prop.propertyName)) {
+                    actualDefault = chartDefaults[prop.propertyName];
+                }
+
+                if (prop.type === 'checkbox') {
+                    element.checked = actualDefault !== undefined ? actualDefault : false;
+                } else if (prop.type === 'color' && prop.checked !== undefined) {
+                    // Handle color inputs with enable checkboxes
+                    const enableCheckbox = document.getElementById(prop.id + '-enable');
+                    if (enableCheckbox) {
+                        // When resetting to defaults, the override checkbox should be UNCHECKED
+                        // (user is not overriding, they're using the default)
+                        enableCheckbox.checked = false;
+                        element.disabled = true;
+                        
+                        // Set the color value to the default
+                        const colorValue = (actualDefault && actualDefault !== 'undefined') ? actualDefault : '#000000';
+                        element.value = colorValue;
+                        
+                        // Handle null checkboxes
+                        const nullCheckbox = document.getElementById(prop.id + '-null');
+                        if (nullCheckbox) {
+                            nullCheckbox.checked = false;
+                            nullCheckbox.disabled = true;
+                        }
+                    }
+                } else if (prop.type === 'color') {
+                    // Plain color input without checkbox
+                    element.value = actualDefault || '#000000';
+                } else if (prop.type === 'number' || prop.type === 'text') {
+                    // For numbers and text, leave value empty and use placeholder to show the default/behavior
+                    element.value = '';
+                    
+                    // Determine what placeholder to show
+                    let placeholderText = '';
+                    
+                    if (prop.placeholder) {
+                        // If there's an explicit placeholder defined, use it
+                        placeholderText = prop.placeholder;
+                    } else if (actualDefault !== undefined && actualDefault !== null) {
+                        // Show the actual default value
+                        placeholderText = `Default: ${actualDefault}`;
+                    } else if (prop.propertyName) {
+                        // For properties without defaults, try to determine if Auto or Optional
+                        const autoProperties = ['barWidth', 'lineWidth', 'lineHeight', 'chartRangeMin', 'chartRangeMax'];
+                        const optionalProperties = ['normalRangeMin', 'normalRangeMax', 'thresholdValue', 'target', 
+                                                   'tooltipPrefix', 'tooltipSuffix', 'tooltipFormat', 'seriesNames'];
+                        
+                        if (autoProperties.includes(prop.propertyName)) {
+                            placeholderText = 'Auto';
+                        } else if (optionalProperties.includes(prop.propertyName)) {
+                            placeholderText = 'Optional';
+                        }
+                    }
+                    
+                    element.placeholder = placeholderText;
+                }
+            });
+        }
 
         // Helper function to create a sparkline on canvas
         function createSparkline(canvas, data, type, options = {}) {
@@ -781,7 +929,8 @@
                 html += `<label for="${propDef.id}${hasCheckbox ? '-enable' : ''}">${propDef.label}:</label>`;
                 
                 if (propDef.type === 'checkbox') {
-                    html += `<input type="checkbox" id="${propDef.id}" ${propDef.defaultValue ? 'checked' : ''}>`;
+                    // Only check by default if defaultValue is explicitly true
+                    html += `<input type="checkbox" id="${propDef.id}" ${propDef.defaultValue === true ? 'checked' : ''}>`;
                 } else if (isColor && hasCheckbox) {
                     html += `<div style="display: flex; gap: 8px; align-items: center;">`;
                     html += `<input type="checkbox" id="${propDef.id}-enable" class="color-enable-checkbox" style="width: auto;"`;
@@ -818,27 +967,27 @@
                     html += `</div>`;
                 } else if (isColor && !hasCheckbox) {
                     // Plain color input without checkbox (e.g., box chart colors)
-                    html += `<input type="color" id="${propDef.id}" value="${propDef.defaultValue}">`;
+                    // Will be populated from chart defaults
+                    html += `<input type="color" id="${propDef.id}" value="#000000">`;
                 } else if (propDef.type === 'number') {
-                    html += `<input type="number" id="${propDef.id}" value="${propDef.defaultValue}"`;
+                    // Use defaultValue if present, otherwise empty (will be populated from chart defaults)
+                    const value = propDef.defaultValue !== undefined ? propDef.defaultValue : '';
+                    html += `<input type="number" id="${propDef.id}" value="${value}"`;
                     if (propDef.min !== undefined) html += ` min="${propDef.min}"`;
                     if (propDef.max !== undefined) html += ` max="${propDef.max}"`;
                     if (propDef.step !== undefined) html += ` step="${propDef.step}"`;
                     if (propDef.placeholder) html += ` placeholder="${propDef.placeholder}"`;
                     html += `>`;
                 } else if (propDef.type === 'text') {
-                    html += `<input type="text" id="${propDef.id}" value="${propDef.defaultValue}"`;
+                    // Use defaultValue if present, otherwise empty (will be populated from chart defaults)
+                    const value = propDef.defaultValue !== undefined ? propDef.defaultValue : '';
+                    html += `<input type="text" id="${propDef.id}" value="${value}"`;
                     if (propDef.placeholder) html += ` placeholder="${propDef.placeholder}"`;
                     html += `>`;
                 }
                 
                 html += `</div>`;
                 return html;
-            }
-
-            // Helper to get properties array (handle both old array format and new {chartClass, properties} format)
-            function getPropertiesArray(groupDef) {
-                return Array.isArray(groupDef) ? groupDef : groupDef.properties;
             }
 
             // Helper to get chart class name from group definition
@@ -936,40 +1085,6 @@
                 processProperties(properties);
             });
 
-            // Build property map for color inputs (kebab-case id -> camelCase property name)
-            // This maps HTML element IDs to chart option property names
-            const propertyMap = {};
-            function buildPropertyMap(properties) {
-                // Special mappings for non-standard property names
-                const specialMappings = {
-                    'pie-border-color': 'borderColor',
-                    'tristate-pos-color': 'posBarColor',
-                    'tristate-neg-color': 'negBarColor',
-                    'tristate-zero-color': 'zeroBarColor'
-                };
-                
-                properties.forEach(prop => {
-                    if (prop.type === 'color') {
-                        // Use special mapping if exists, otherwise convert kebab-case to camelCase
-                        if (specialMappings[prop.id]) {
-                            propertyMap[prop.id] = specialMappings[prop.id];
-                        } else {
-                            const camelCase = prop.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-                            propertyMap[prop.id] = camelCase;
-                        }
-                    }
-                });
-            }
-            
-            buildPropertyMap(propertyDefinitions.appearance);
-            buildPropertyMap(propertyDefinitions.layout);
-            
-            // Build property map for chart-specific groups
-            chartGroupKeys.forEach(groupKey => {
-                const properties = getPropertiesArray(propertyDefinitions[groupKey]);
-                buildPropertyMap(properties);
-            });
-
             // Normalize hex colors to 6-digit format for comparison
             // Converts #abc to #aabbcc, leaves #aabbcc unchanged
             function normalizeHexColor(color) {
@@ -1006,10 +1121,18 @@
                 const chart = createChart(type, ctx, props);
                 if (!chart) return null;
 
-                // Use dynamic property map (kebab-case id -> camelCase property name)
-                const propertyName = propertyMap[colorInputId];
-                if (propertyName && chart.options && chart.options[propertyName] !== undefined) {
-                    return chart.options[propertyName];
+                // Find the property definition and use its propertyName
+                const allProps = [
+                    ...propertyDefinitions.appearance,
+                    ...propertyDefinitions.layout,
+                    ...Object.values(propertyDefinitions)
+                        .filter(def => typeof def === 'object' && def.properties)
+                        .flatMap(def => def.properties)
+                ];
+                
+                const propDef = allProps.find(p => p.id === colorInputId);
+                if (propDef && propDef.propertyName && chart.options && chart.options[propDef.propertyName] !== undefined) {
+                    return chart.options[propDef.propertyName];
                 }
 
                 // Return the default color, but ensure it's never undefined
@@ -1108,14 +1231,25 @@
                 
                 // Start with common options available to all chart types
                 const options = {
-                    highlightLighten: parseFloat(controls.highlightLighten?.value || '1.4'),
-                    topPadding: parseInt(controls.topPadding?.value || '3'),
-                    bottomPadding: parseInt(controls.bottomPadding?.value || '3'),
                     disableTooltips: controls.disableTooltips?.checked || false,
                     tooltipPrefix: controls.tooltipPrefix?.value || '',
                     tooltipSuffix: controls.tooltipSuffix?.value || '',
                     tooltipFormat: controls.tooltipFormat?.value || '{{value}}'
                 };
+
+                // Add padding options only if user specified values
+                if (controls.topPadding?.value) {
+                    options.topPadding = parseInt(controls.topPadding.value);
+                }
+                if (controls.bottomPadding?.value) {
+                    options.bottomPadding = parseInt(controls.bottomPadding.value);
+                }
+
+                // Add highlightLighten only for chart types that use it and only if user specified a value
+                const highlightChartTypes = ['bar', 'pie', 'discrete', 'tristate', 'bullet'];
+                if (highlightChartTypes.includes(type) && controls.highlightLighten?.value) {
+                    options.highlightLighten = parseFloat(controls.highlightLighten.value);
+                }
 
                 // Add line-specific options only for line charts
                 if (type === 'line' || isMultiSeries) {
@@ -1231,10 +1365,10 @@
                         options.barSpacing = parseInt(controls.barSpacing?.value || '1');
                         break;
                     case 'pie':
-                        options.offset = parseInt(controls.pieOffset?.value || '0');
-                        options.borderWidth = parseInt(controls.pieBorderWidth?.value || '0');
-                        if (controls.pieBorderColorEnable?.checked) {
-                            options.borderColor = controls.pieBorderColor?.value;
+                        options.offset = parseInt(controls.offset?.value || '0');
+                        options.borderWidth = parseInt(controls.borderWidth?.value || '0');
+                        if (controls.borderColorEnable?.checked) {
+                            options.borderColor = controls.borderColor?.value;
                         }
                         break;
                     case 'discrete':
@@ -1257,14 +1391,14 @@
                         options.lineSpacing = parseInt(controls.discreteLineSpacing?.value || '1');
                         break;
                     case 'tristate':
-                        if (controls.tristatePosColorEnable?.checked) {
-                            options.posBarColor = controls.tristatePosColor?.value;
+                        if (controls.tristatePosBarColorEnable?.checked) {
+                            options.posBarColor = controls.tristatePosBarColor?.value;
                         }
-                        if (controls.tristateNegColorEnable?.checked) {
-                            options.negBarColor = controls.tristateNegColor?.value;
+                        if (controls.tristateNegBarColorEnable?.checked) {
+                            options.negBarColor = controls.tristateNegBarColor?.value;
                         }
-                        if (controls.tristateZeroColorEnable?.checked) {
-                            options.zeroBarColor = controls.tristateZeroColor?.value;
+                        if (controls.tristateZeroBarColorEnable?.checked) {
+                            options.zeroBarColor = controls.tristateZeroBarColor?.value;
                         }
 
                         const tristateBarWidthValue = controls.tristateBarWidth?.value || 'auto';
@@ -1293,7 +1427,7 @@
                         options.outlierFillColor = controls.boxOutlierFillColor?.value || '#ffffff';
                         options.targetColor = controls.boxTargetColor?.value || '#44aa22';
                         options.showOutliers = controls.boxShowOutliers?.checked ?? true;
-                        options.outlierIQR = parseFloat(controls.boxOutlierIqr?.value || '1.5');
+                        options.outlierIQR = parseFloat(controls.boxOutlierIQR?.value || '1.5');
                         options.spotRadius = parseFloat(controls.boxSpotRadius?.value || '1.5');
                         if (controls.boxTarget?.value && controls.boxTarget.value.trim() !== '') {
                             options.target = parseFloat(controls.boxTarget.value);
@@ -1424,7 +1558,7 @@
                     pie: [
                         { prop: 'offset', defaultValue: 0 },
                         { prop: 'borderWidth', defaultValue: 0 },
-                        { prop: 'borderColor', defaultKey: 'pie-border-color', isColor: true }
+                        { prop: 'borderColor', defaultKey: 'border-color', isColor: true }
                     ],
                     discrete: [
                         { prop: 'lineHeight', alwaysInclude: true },
@@ -1434,9 +1568,9 @@
                         { prop: 'lineSpacing', defaultValue: 1 }
                     ],
                     tristate: [
-                        { prop: 'posBarColor', defaultKey: 'tristate-pos-color', isColor: true },
-                        { prop: 'negBarColor', defaultKey: 'tristate-neg-color', isColor: true },
-                        { prop: 'zeroBarColor', defaultKey: 'tristate-zero-color', isColor: true },
+                        { prop: 'posBarColor', defaultKey: 'tristate-pos-bar-color', isColor: true },
+                        { prop: 'negBarColor', defaultKey: 'tristate-neg-bar-color', isColor: true },
+                        { prop: 'zeroBarColor', defaultKey: 'tristate-zero-bar-color', isColor: true },
                         { prop: 'barWidth', defaultValue: 'auto', canBeString: true },
                         { prop: 'barSpacing', defaultValue: 1 }
                     ],
@@ -1723,7 +1857,7 @@
                     const colorInput = document.getElementById(colorInputId);
                     
                     // Skip chart-type-specific colors that aren't currently visible
-                    const isChartSpecific = ['tristate-pos-color', 'tristate-neg-color', 'tristate-zero-color', 
+                    const isChartSpecific = ['tristate-pos-bar-color', 'tristate-neg-bar-color', 'tristate-zero-bar-color', 
                                              'bar-color', 'neg-bar-color', 'zero-color', 'null-color',
                                              'pie-border-color', 'discrete-threshold-color',
                                              'bullet-target-color', 'bullet-performance-color'].includes(colorInputId);
@@ -1851,6 +1985,7 @@
 
             // Initialize the demo
             updateOptionVisibility(controls.type.value);
+            resetControlsToDefaults('line'); // Load defaults for initial chart type
             updateOverrideCheckboxes(); // Check if initial values match defaults
             updateChart();
 
@@ -1870,8 +2005,8 @@
                     // Get the actual default color for this chart type
                     const actualDefault = getActualDefaultColor(colorInputId);
                     
-                    // Store the current custom value (use actual default if input is disabled/unchecked)
-                    let customValue = checkbox.checked ? colorInput.value : (actualDefault || colorInput.value);
+                    // Store the current custom value only if checkbox is currently checked
+                    let customValue = checkbox.checked ? colorInput.value : (actualDefault || '#000000');
 
                     // Set initial state
                     if (isNullDefault) {
@@ -1894,8 +2029,11 @@
                     // Add change event listener
                     checkbox.addEventListener('change', () => {
                         if (checkbox.checked) {
-                            // When checked, restore custom value and enable color picker
-                            colorInput.value = customValue;
+                            // When checked, set to current default value (recalculate for current chart type)
+                            const currentDefault = getActualDefaultColor(colorInputId);
+                            const defaultToUse = currentDefault || customValue || '#000000';
+                            colorInput.value = defaultToUse;
+                            customValue = defaultToUse; // Initialize customValue to the default
                             colorInput.disabled = false;
                             if (nullOverlay) {
                                 nullOverlay.style.display = 'none';
@@ -2096,6 +2234,7 @@
             const mobilePollingInterval = setInterval(() => {
                 if (controls.type.value !== lastSelectValue) {
                     lastSelectValue = controls.type.value;
+                    resetControlsToDefaults(controls.type.value);
                     updateOptionVisibility(controls.type.value);
                     updateChart();
                 }

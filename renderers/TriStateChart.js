@@ -366,9 +366,20 @@ export class TriStateChart extends BaseChart {
     }
 
     ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.fillStyle = '#fff';
+    
+    // Apply lighten effect to the bar color
+    const barColor = this.getBarColor(value);
+    const highlightColor = this.lightenColor(barColor, this.options.highlightLighten);
+    
+    // Redraw the bar with lightened color (replacing the original)
+    ctx.fillStyle = highlightColor;
     ctx.fillRect(x, y, barWidthFinal, currentBarHeight);
+    
+    // Optional: Add a subtle border to make the highlight more visible
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(x, y, barWidthFinal, currentBarHeight);
+    
     ctx.restore();
   }
 }
