@@ -331,6 +331,43 @@
     &lt;Sparkline :data="profitData" type="bar" :options="profitOptions" /&gt;
                             </div>
                         </div>
+
+                        <div class="example-card">
+                            <div class="example-title">Multi-Series on Single Chart</div>
+                            <div class="example-description">
+                                Display multiple data series on a single line chart with automatic color differentiation and synchronized tooltips.
+                            </div>
+                            <div class="chart-display">
+                                <div class="chart-label">Quarterly Performance by Region</div>
+                                <Sparkline 
+                                    :data="multiSeriesData" 
+                                    type="line" 
+                                    :width="300" 
+                                    :height="100"
+                                    :options="multiSeriesOptions"
+                                    @region-change="handleMultiSeriesRegionChange"
+                                />
+                            </div>
+                            <div class="info-display">
+                                North: [{{ multiSeriesData[0].join(', ') }}]<br>
+                                South: [{{ multiSeriesData[1].join(', ') }}]<br>
+                                West: [{{ multiSeriesData[2].join(', ') }}]<br>
+                                <span v-if="multiSeriesHoveredIndex !== null">
+                                    <strong>Hovered Index:</strong> {{ multiSeriesHoveredIndex }}
+                                </span>
+                            </div>
+                            <div class="code-block">
+    &lt;Sparkline 
+        :data="[[30,35,40,38,45,50,48], [25,28,32,30,36,38,40], [20,22,25,28,30,33,35]]"
+        type="line"
+        :options="{
+            seriesNames: ['North', 'South', 'West'],
+            lineColor: ['#e74c3c', '#3498db', '#2ecc71'],
+            lineWidth: [2, 2, 2]
+        }"
+    /&gt;
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -616,6 +653,20 @@
                     chartRangeMax: 100
                 });
                 
+                // Multi-series on single chart
+                const multiSeriesData = ref([
+                    [30, 35, 40, 38, 45, 50, 48],  // North
+                    [25, 28, 32, 30, 36, 38, 40],  // South
+                    [20, 22, 25, 28, 30, 33, 35]   // West
+                ]);
+                const multiSeriesHoveredIndex = ref(null);
+                const multiSeriesOptions = ref({
+                    seriesNames: ['North', 'South', 'West'],
+                    lineColor: ['#e74c3c', '#3498db', '#2ecc71'],
+                    lineWidth: [2, 2, 2],
+                    spotRadius: [0, 0, 0]
+                });
+                
                 // Live data
                 const liveData = ref(Array.from({length: 15}, () => Math.random() * 80 + 10));
                 const liveStatus = ref('status-stopped');
@@ -798,6 +849,12 @@
                     currentThemeName.value = theme;
                 };
                 
+                const handleMultiSeriesRegionChange = (event) => {
+                    if (event && event.detail) {
+                        multiSeriesHoveredIndex.value = event.detail.region;
+                    }
+                };
+                
                 onUnmounted(() => {
                     if (liveDataInterval) {
                         clearInterval(liveDataInterval);
@@ -827,6 +884,10 @@
                     revenueOptions,
                     costsOptions,
                     profitOptions,
+                    multiSeriesData,
+                    multiSeriesHoveredIndex,
+                    multiSeriesOptions,
+                    handleMultiSeriesRegionChange,
                     
                     // Live data
                     liveData,

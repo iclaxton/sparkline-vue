@@ -3,7 +3,16 @@
 
 import { BaseChart } from './BaseChart.js';
 
+/**
+ * BulletChart renderer for sparkline bullet charts
+ * Renders target, performance bar, and qualitative ranges for KPI visualization
+ * @extends BaseChart
+ */
 export class BulletChart extends BaseChart {
+  /**
+   * Get default options for bullet chart
+   * @returns {Object} Default options object
+   */
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -16,6 +25,10 @@ export class BulletChart extends BaseChart {
     };
   }
 
+  /**
+   * Draw the bullet chart with target, performance bar, and qualitative ranges
+   * Values expected: [target, performance, range1, range2, range3, ...]
+   */
   draw() {
     if (this.values.length === 0) return;
 
@@ -80,7 +93,11 @@ export class BulletChart extends BaseChart {
     ctx.fillRect(targetX - targetWidth / 2, targetY, targetWidth, targetHeight);
   }
 
-  // Get color for a specific region  
+  /**
+   * Get the color for a specific bullet chart region
+   * @param {number} region - Region index (0=target, 1=performance, 2+=ranges)
+   * @returns {string|null} Color hex code or null
+   */
   getRegionColor(region) {
     if (typeof region === 'number') {
       const { targetColor, performanceColor, rangeColors } = this.options;
@@ -94,6 +111,13 @@ export class BulletChart extends BaseChart {
     return null;
   }
 
+  /**
+   * Get the region at a specific point for interaction detection
+   * Returns object with type (target/performance/range) and value
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {Object|null} Region object with type, index, value, fieldkey
+   */
   getRegionAtPoint(x, y) {
     // For bullet charts, we can detect hover over different components
     if (this.values.length < 2) return null;
@@ -151,7 +175,12 @@ export class BulletChart extends BaseChart {
     return null;
   }
 
-  // Get nearest region to mouse cursor for smooth tooltip following
+  /**
+   * Get the nearest bullet chart component to the mouse cursor
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {Object|null} Nearest region object or null
+   */
   getNearestRegion(x, y) {
     // For bullet charts, find the nearest component
     if (this.values.length < 2) return null;
@@ -205,7 +234,12 @@ export class BulletChart extends BaseChart {
     return nearest;
   }
 
-  // Override formatTooltipValue to ensure bullet chart always uses custom formatting
+  /**
+   * Format tooltip value with bullet chart specific formatting
+   * @param {number} value - Value to format
+   * @param {Object} region - Region object with type and value
+   * @returns {string} Formatted tooltip text
+   */
   formatTooltipValue(value, region) {
     if (value === null) return 'null';
     
@@ -218,7 +252,12 @@ export class BulletChart extends BaseChart {
     return this.getDefaultTooltipFormat(value, region);
   }
 
-  // Override tooltip formatting for bullet chart components
+  /**
+   * Default tooltip formatting for bullet chart components
+   * @param {number} value - Value to format
+   * @param {Object} region - Region object with type information
+   * @returns {string} Formatted tooltip text (e.g., "target: 85.00")
+   */
   getDefaultTooltipFormat(value, region) {
     if (!region || typeof region !== 'object') {
       return typeof value === 'number' ? value.toFixed(2) : value.toString();
@@ -242,7 +281,12 @@ export class BulletChart extends BaseChart {
     }
   }
 
-  // Override tooltip data for bullet chart
+  /**
+   * Get enhanced tooltip data for bullet chart
+   * @param {number} value - Value of the region
+   * @param {Object} region - Region object
+   * @returns {Object} Enhanced tooltip data object
+   */
   getTooltipData(value, region) {
     if (!region || typeof region !== 'object') {
       return super.getTooltipData(value, region);
@@ -260,7 +304,11 @@ export class BulletChart extends BaseChart {
     };
   }
 
-  // Draw highlight for hovered component
+  /**
+   * Draw highlight overlay for the hovered bullet chart component
+   * Different highlight styles for target, performance, and ranges
+   * @param {Object} region - Region object with type information
+   */
   drawHighlight(region) {
     if (!region || typeof region !== 'object') return;
     
@@ -348,7 +396,11 @@ export class BulletChart extends BaseChart {
     ctx.restore();
   }
 
-  // Override updateTooltip to handle bullet chart's object-based regions
+  /**
+   * Update tooltip with bullet chart specific handling for object-based regions
+   * @param {MouseEvent} event - Mouse event
+   * @param {Object} region - Region object with type and value
+   */
   updateTooltip(event, region) {
     if (this.options.disableTooltips || region === null) {
       this.hideTooltip();
@@ -378,7 +430,11 @@ export class BulletChart extends BaseChart {
     this.tooltip.style.display = 'block';
   }
 
-  // Override getRegionFields for bullet chart compliance
+  /**
+   * Get standardized fields for a bullet chart region (sparkline.js compliance)
+   * @param {Object} region - Region object with type and value
+   * @returns {Object} Region fields object with all bullet chart data
+   */
   getRegionFields(region) {
     if (typeof region === 'object' && region !== null) {
       return {

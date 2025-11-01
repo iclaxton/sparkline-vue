@@ -3,7 +3,16 @@
 
 import { BaseChart } from './BaseChart.js';
 
+/**
+ * PieChart renderer for sparkline pie charts
+ * Renders values as colored slices sorted by size (largest first)
+ * @extends BaseChart
+ */
 export class PieChart extends BaseChart {
+  /**
+   * Get default options for pie chart
+   * @returns {Object} Default options object
+   */
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -12,10 +21,17 @@ export class PieChart extends BaseChart {
       sliceColors: ['#3366cc', '#dc3912', '#ff9900', '#109618', '#66aa00',
                     '#dd4477', '#0099c6', '#990099'],
       borderWidth: 0,
-      borderColor: '#000'
+      borderColor: '#000',
+      highlightLighten: 1,
+      glowIntensity: 5,        // Glow blur intensity for highlighted slices (0 = no glow)
+      dataLabels: undefined,   // Optional array of labels for pie slices (mapped to original unsorted data indices)
+      getPointDataLabel: undefined  // Alternative: callback function(index) => label for high-performance scenarios
     };
   }
 
+  /**
+   * Draw the pie chart with sorted slices (largest to smallest)
+   */
   draw() {
     if (this.values.length === 0) return;
 
@@ -29,11 +45,15 @@ export class PieChart extends BaseChart {
       sliceColors, borderWidth, borderColor, offset 
     } = this.options;
 
-    // Calculate total and filter out null values
-    const validValues = this.values.filter(v => v !== null && v > 0);
-    if (validValues.length === 0) return;
+    // Calculate total and filter out null values, then sort descending
+    const validValuesWithIndices = this.values
+      .map((v, i) => ({ value: v, index: i }))
+      .filter(item => item.value !== null && item.value > 0)
+      .sort((a, b) => b.value - a.value); // Sort descending (largest first)
+    
+    if (validValuesWithIndices.length === 0) return;
 
-    const total = validValues.reduce((sum, val) => sum + val, 0);
+    const total = validValuesWithIndices.reduce((sum, item) => sum + item.value, 0);
     if (total <= 0) return;
 
     // Calculate center and radius - adjust center for padding
@@ -44,10 +64,10 @@ export class PieChart extends BaseChart {
     // Starting angle (with offset)
     let currentAngle = (-Math.PI / 2) + (offset * Math.PI / 180); // Start at top, apply offset
 
-    // Draw slices
-    validValues.forEach((value, index) => {
-      const sliceAngle = (value / total) * 2 * Math.PI;
-      const color = sliceColors[index % sliceColors.length];
+    // Draw slices (sorted by size, largest first)
+    validValuesWithIndices.forEach((item, sortedIndex) => {
+      const sliceAngle = (item.value / total) * 2 * Math.PI;
+      const color = sliceColors[sortedIndex % sliceColors.length];
 
       // Draw slice
       ctx.fillStyle = color;
@@ -68,7 +88,11 @@ export class PieChart extends BaseChart {
     });
   }
 
-  // Get color for a specific region
+  /**
+   * Get the color for a specific pie slice region
+   * @param {number} region - Region index
+   * @returns {string|null} Color hex code or null
+   */
   getRegionColor(region) {
     if (typeof region === 'number') {
       const { sliceColors } = this.options;
@@ -77,6 +101,13 @@ export class PieChart extends BaseChart {
     return null;
   }
 
+  /**
+   * Get the pie slice region at a specific point for interaction detection
+   * Calculates angular position to determine which slice is under the cursor
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Region index (original data index) or null
+   */
   getRegionAtPoint(x, y) {
     const { width, height, topOffset, bottomOffset } = this.getDrawingDimensions();
     const { borderWidth } = this.options;
@@ -105,31 +136,24 @@ export class PieChart extends BaseChart {
     const offset = (this.options.offset * Math.PI / 180);
     angle = (angle - offset + 2 * Math.PI) % (2 * Math.PI);
     
-    // Filter valid values and calculate which slice the point is in
-    const validValues = this.values.filter(v => v !== null && v > 0);
-    if (validValues.length === 0) return null;
+    // Get sorted valid values with their original indices
+    const validValuesWithIndices = this.values
+      .map((v, i) => ({ value: v, index: i }))
+      .filter(item => item.value !== null && item.value > 0)
+      .sort((a, b) => b.value - a.value);
     
-    const total = validValues.reduce((sum, val) => sum + val, 0);
+    if (validValuesWithIndices.length === 0) return null;
+    
+    const total = validValuesWithIndices.reduce((sum, item) => sum + item.value, 0);
     if (total <= 0) return null;
     
     let currentAngle = 0;
-    for (let i = 0; i < validValues.length; i++) {
-      const sliceAngle = (validValues[i] / total) * 2 * Math.PI;
+    for (let i = 0; i < validValuesWithIndices.length; i++) {
+      const sliceAngle = (validValuesWithIndices[i].value / total) * 2 * Math.PI;
       
       if (angle >= currentAngle && angle < currentAngle + sliceAngle) {
-        // Find the original index of this valid value
-        let originalIndex = 0;
-        let validIndex = 0;
-        for (let j = 0; j < this.values.length; j++) {
-          if (this.values[j] !== null && this.values[j] > 0) {
-            if (validIndex === i) {
-              originalIndex = j;
-              break;
-            }
-            validIndex++;
-          }
-        }
-        return originalIndex;
+        // Return the original index from the data array
+        return validValuesWithIndices[i].index;
       }
       
       currentAngle += sliceAngle;
@@ -138,14 +162,23 @@ export class PieChart extends BaseChart {
     return null;
   }
 
-  // Get nearest region to mouse cursor for smooth tooltip following
+  /**
+   * Get the nearest region to the mouse cursor for smooth tooltip following
+   * For pie charts, uses same logic as getRegionAtPoint (angular-based)
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Nearest region index or null
+   */
   getNearestRegion(x, y) {
     // For pie charts, we'll use the same logic as getRegionAtPoint
     // since pie chart interaction is based on angular position
     return this.getRegionAtPoint(x, y);
   }
 
-  // Draw highlight for hovered pie slice
+  /**
+   * Draw highlight overlay with glow effect for the hovered pie slice
+   * @param {number} region - Region index to highlight
+   */
   drawHighlight(region) {
     if (region === null || region === undefined) return;
     
@@ -155,11 +188,15 @@ export class PieChart extends BaseChart {
       sliceColors, borderWidth, borderColor, offset 
     } = this.options;
 
-    // Filter valid values
-    const validValues = this.values.filter(v => v !== null && v > 0);
-    if (validValues.length === 0 || region >= this.values.length) return;
+    // Get sorted valid values with their original indices
+    const validValuesWithIndices = this.values
+      .map((v, i) => ({ value: v, index: i }))
+      .filter(item => item.value !== null && item.value > 0)
+      .sort((a, b) => b.value - a.value);
+    
+    if (validValuesWithIndices.length === 0 || region >= this.values.length) return;
 
-    const total = validValues.reduce((sum, val) => sum + val, 0);
+    const total = validValuesWithIndices.reduce((sum, item) => sum + item.value, 0);
     if (total <= 0) return;
 
     // Calculate center and radius
@@ -167,89 +204,131 @@ export class PieChart extends BaseChart {
     const centerY = topOffset + height / 2;
     const radius = Math.min(this.width, height) / 2 - borderWidth;
     
-    // Find which valid slice this region corresponds to
-    let validIndex = -1;
-    let currentValidIndex = 0;
-    for (let i = 0; i <= region; i++) {
-      if (this.values[i] !== null && this.values[i] > 0) {
-        if (i === region) {
-          validIndex = currentValidIndex;
-          break;
-        }
-        currentValidIndex++;
+    // Find which sorted slice corresponds to this region (original index)
+    let sortedIndex = -1;
+    for (let i = 0; i < validValuesWithIndices.length; i++) {
+      if (validValuesWithIndices[i].index === region) {
+        sortedIndex = i;
+        break;
       }
     }
     
-    if (validIndex === -1) return;
+    if (sortedIndex === -1) return;
 
     // Calculate the angle for this slice
     let currentAngle = (-Math.PI / 2) + (offset * Math.PI / 180);
-    for (let i = 0; i < validIndex; i++) {
-      const sliceAngle = (validValues[i] / total) * 2 * Math.PI;
+    for (let i = 0; i < sortedIndex; i++) {
+      const sliceAngle = (validValuesWithIndices[i].value / total) * 2 * Math.PI;
       currentAngle += sliceAngle;
     }
     
-    const sliceAngle = (validValues[validIndex] / total) * 2 * Math.PI;
-    const sliceColor = sliceColors[validIndex % sliceColors.length];
+    const sliceAngle = (validValuesWithIndices[sortedIndex].value / total) * 2 * Math.PI;
+    const sliceColor = sliceColors[sortedIndex % sliceColors.length];
     
     // Save current style
     ctx.save();
     
-    // Save current style
-    ctx.save();
+    // Apply lighten effect to the slice color
+    const highlightColor = this.lightenColor(sliceColor, this.options.highlightLighten);
     
     // Draw subtle glow effect around the slice
-    ctx.shadowColor = sliceColor;
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = sliceColor;
+    ctx.shadowColor = highlightColor;
+    ctx.shadowBlur = this.options.glowIntensity;
+    ctx.fillStyle = highlightColor;
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
     ctx.closePath();
     ctx.fill();
     
-    // Reset shadow and draw the original slice on top
+    // Reset shadow and draw the highlighted slice on top
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
-    ctx.fillStyle = sliceColor;
+    ctx.fillStyle = highlightColor;
     ctx.fill();
+    
+    // Draw border if specified
+    if (borderWidth > 0) {
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = borderWidth;
+      ctx.stroke();
+    }
     
     // Restore style
     ctx.restore();
   }
-  
-  // Helper method to lighten a color
-  lightenColor(color, percent) {
-    // Convert hex to RGB
-    const hex = color.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    
-    // Lighten each component
-    const lightenAmount = percent / 100;
-    const newR = Math.min(255, Math.round(r + (255 - r) * lightenAmount));
-    const newG = Math.min(255, Math.round(g + (255 - g) * lightenAmount));
-    const newB = Math.min(255, Math.round(b + (255 - b) * lightenAmount));
-    
-    // Convert back to hex
-    return '#' + [newR, newG, newB].map(x => x.toString(16).padStart(2, '0')).join('');
+
+  /**
+   * Get label for a data point (pie slice) - uses callback, array, or default
+   * @param {number} index - Original data index (not sorted position)
+   * @returns {string} Label for the point
+   */
+  getPointLabel(index) {
+    // Priority: callback > array > default
+    if (this.options.getPointDataLabel) {
+      return this.options.getPointDataLabel(index);
+    }
+    if (this.options.dataLabels && this.options.dataLabels[index] !== undefined) {
+      return this.options.dataLabels[index];
+    }
+    return `Slice ${index + 1}`;
   }
 
-  // Override getRegionFields for pie chart compliance
+  /**
+   * Generate tooltip content for a pie slice
+   * Returns consistent title + items structure for tooltip display
+   * @param {number} region - Original data index of the slice
+   * @returns {Object} Tooltip content with title and items array
+   */
+  getTooltipContent(region) {
+    const pointLabel = this.getPointLabel(region);
+    const fields = this.getRegionFields(region);
+    
+    if (fields.isNull) {
+      return { title: pointLabel, items: [{ label: 'No data', color: null }] };
+    }
+    
+    return {
+      title: pointLabel,
+      items: [{
+        label: `${fields.value} (${fields.percent.toFixed(1)}%)`,
+        color: fields.color
+      }]
+    };
+  }
+
+  /**
+   * Get standardized fields for a pie slice region (sparkline.js compliance)
+   * Includes percentage calculation and sorted color assignment
+   * @param {number} region - Region index
+   * @returns {Object} Region fields object with percent and color
+   */
   getRegionFields(region) {
     if (typeof region === 'number') {
       const value = this.values[region];
       const total = this.values.reduce((sum, v) => sum + v, 0);
       const { sliceColors } = this.options;
-      const validIndex = this.values.slice(0, region + 1).filter(v => v > 0).length - 1;
+      
+      // Find the sorted position of this region for color assignment
+      const validValuesWithIndices = this.values
+        .map((v, i) => ({ value: v, index: i }))
+        .filter(item => item.value !== null && item.value > 0)
+        .sort((a, b) => b.value - a.value);
+      
+      let sortedIndex = -1;
+      for (let i = 0; i < validValuesWithIndices.length; i++) {
+        if (validValuesWithIndices[i].index === region) {
+          sortedIndex = i;
+          break;
+        }
+      }
       
       return {
         isNull: value === null || value <= 0,
         value: value,
         index: region,
         percent: total > 0 ? (value / total * 100) : 0,
-        color: sliceColors[validIndex % sliceColors.length],
+        color: sortedIndex >= 0 ? sliceColors[sortedIndex % sliceColors.length] : sliceColors[0],
         offset: region
       };
     }

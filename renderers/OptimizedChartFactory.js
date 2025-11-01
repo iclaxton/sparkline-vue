@@ -1,6 +1,11 @@
 // OptimizedChartFactory.js
 // High-performance factory with object pooling and shared resources for handling large numbers of sparklines
 
+/**
+ * @fileoverview Optimized chart factory with object pooling, caching, and shared resources
+ * for high-performance rendering of large numbers of sparklines
+ */
+
 import { BaseChart } from './BaseChart.js';
 import { LineChart } from './LineChart.js';
 import { BarChart } from './BarChart.js';
@@ -137,24 +142,40 @@ function returnToPool(chart, type) {
   }
 }
 
-// Optimized chart factory
+/**
+ * Create an optimized chart instance with pooling and caching
+ * @param {string} type - Chart type (line, bar, tristate, discrete, bullet, pie, box)
+ * @param {CanvasRenderingContext2D} ctx - Canvas rendering context
+ * @param {Object} props - Chart properties
+ * @returns {BaseChart|null} Chart instance or null if type not supported
+ */
 export function createChart(type, ctx, props) {
   return getPooledChart(type, ctx, props);
 }
 
-// Enhanced destroy function for pooling
+/**
+ * Destroy chart and return to pool for reuse
+ * @param {BaseChart} chart - Chart instance to destroy
+ * @param {string} type - Chart type
+ */
 export function destroyChart(chart, type) {
   returnToPool(chart, type);
 }
 
-// Force immediate cleanup without pooling (for DOM removal scenarios)
+/**
+ * Force immediate cleanup without pooling (for DOM removal scenarios)
+ * @param {BaseChart} chart - Chart instance to destroy
+ */
 export function destroyChartImmediately(chart) {
   if (chart && typeof chart.destroy === 'function') {
     chart.destroy(); // Complete cleanup including all event handlers
   }
 }
 
-// Utility functions for memory management
+/**
+ * Utility object for memory management and optimization
+ * @namespace ChartOptimizer
+ */
 export const ChartOptimizer = {
   // Clear all caches
   clearCaches() {

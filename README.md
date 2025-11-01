@@ -91,6 +91,36 @@ Perfect for showing trends over time.
 />
 ```
 
+#### Multi-Series Line Charts
+Compare multiple data series on the same chart.
+
+```vue
+<Sparkline 
+  :data="[
+    [10, 15, 20, 18, 25, 30, 28],  // Series 1
+    [15, 18, 22, 20, 26, 28, 30],  // Series 2
+    [12, 17, 21, 19, 24, 29, 27]   // Series 3
+  ]"
+  type="line"
+  :width="300"
+  :height="100"
+  :options="{
+    seriesNames: ['Sales', 'Target', 'Forecast'],
+    lineColor: ['#0066cc', '#ff6600', '#00cc66'],
+    fillColor: ['rgba(0,102,204,0.15)', 'rgba(255,102,0,0.15)', 'rgba(0,204,102,0.15)'],
+    lineWidth: [2, 2, 2],
+    spotRadius: 0  // Hide spots for cleaner multi-series view
+  }"
+/>
+```
+
+**Features:**
+- Automatic high-contrast color palette when colors not specified
+- Tooltips show all series values at cursor position
+- Supports per-series customization (colors, widths, spot radii)
+- Series names displayed in tooltips
+- Maintains full interactivity (hover, click events)
+
 ### Bar Chart
 Great for comparing discrete values.
 
@@ -205,6 +235,9 @@ All chart types support these options:
 | `normalRangeMin` | Number | undefined | Lower bound of normal range |
 | `normalRangeMax` | Number | undefined | Upper bound of normal range |
 | `normalRangeColor` | String | '#ccc' | Color of normal range |
+| `dataLabels` | Array<string> | undefined | Labels for each data point (e.g., ['Jan', 'Feb', 'Mar']) |
+| `getPointDataLabel` | Function | undefined | Callback function to generate labels: `(index) => string` |
+| `seriesNames` | Array<string> | undefined | Names for each series in multi-series charts |
 
 ### Bar Chart Options
 
@@ -216,6 +249,67 @@ All chart types support these options:
 | `barWidth` | Number | 4 | Width of each bar |
 | `barSpacing` | Number | 1 | Space between bars |
 | `zeroAxis` | Boolean | true | Whether to center around zero |
+| `dataLabels` | Array<string> | undefined | Labels for each data point (e.g., ['Q1', 'Q2', 'Q3']) |
+| `getPointDataLabel` | Function | undefined | Callback function to generate labels: `(index) => string` |
+| `seriesNames` | Array<string> | undefined | Names for each segment in stacked bar charts |
+
+### Tristate Chart Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `posBarColor` | String | '#6f6' | Color for positive values |
+| `negBarColor` | String | '#f44' | Color for negative values |
+| `zeroBarColor` | String | '#999' | Color for zero values |
+| `barWidth` | Number | 4 | Width of each bar |
+| `barSpacing` | Number | 1 | Space between bars |
+| `dataLabels` | Array<string> | undefined | Labels for each data point (e.g., ['Game 1', 'Game 2']) |
+| `getPointDataLabel` | Function | undefined | Callback function to generate labels: `(index) => string` |
+
+### Discrete Chart Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `lineColor` | String | '#00f' | Default line color |
+| `lineHeight` | Number | 'auto' | Height of lines |
+| `thresholdColor` | String | undefined | Color for values above threshold |
+| `thresholdValue` | Number | 0 | Threshold value |
+| `dataLabels` | Array<string> | undefined | Labels for each data point (e.g., ['Mon', 'Tue', 'Wed']) |
+| `getPointDataLabel` | Function | undefined | Callback function to generate labels: `(index) => string` |
+
+### Pie Chart Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `sliceColors` | Array<string> | ['#3366cc', '#dc3912', ...] | Colors for pie slices |
+| `borderWidth` | Number | 0 | Width of slice borders |
+| `borderColor` | String | '#000' | Color of slice borders |
+| `offset` | Number | 0 | Angle offset in degrees |
+| `dataLabels` | Array<string> | undefined | Labels for each slice (e.g., ['Category A', 'Category B']) |
+| `getPointDataLabel` | Function | undefined | Callback function to generate labels: `(index) => string` |
+| `glowIntensity` | Number | 5 | Intensity of highlight glow effect (0 to disable) |
+
+### Bullet Chart Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `targetColor` | String | '#f33' | Color of target marker |
+| `performanceColor` | String | '#33f' | Color of performance bar |
+| `rangeColors` | Array<string> | ['#d3dafe', '#a8b6ff', '#7f94ff'] | Colors for range bands |
+| `targetWidth` | Number | 3 | Width of target line |
+
+### Box Plot Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `boxLineColor` | String | '#000' | Color of box outline |
+| `boxFillColor` | String | '#cdf' | Fill color of box |
+| `whiskerColor` | String | '#000' | Color of whiskers |
+| `outlierLineColor` | String | '#333' | Color of outlier markers |
+| `outlierFillColor` | String | '#fff' | Fill color of outlier markers |
+| `medianColor` | String | '#f00' | Color of median line |
+| `showOutliers` | Boolean | true | Whether to show outliers |
+| `target` | Number | undefined | Target value to display |
+| `targetColor` | String | '#4a2' | Color of target marker |
 
 ## Advanced Usage
 
@@ -228,6 +322,73 @@ You can provide coordinate pairs for line charts:
   type="line"
 />
 ```
+
+### Multi-Series Line Charts
+
+Display multiple data series on a single line chart. Perfect for comparing trends, showing actual vs. target, or multi-region analysis.
+
+**Basic Multi-Series:**
+```vue
+<template>
+  <Sparkline 
+    :data="multiSeriesData"
+    type="line"
+    :width="300"
+    :height="100"
+    :options="multiSeriesOptions"
+  />
+</template>
+
+<script setup>
+import { ref } from 'vue'
+
+const multiSeriesData = ref([
+  [10, 15, 20, 18, 25, 30, 28],    // Actual sales
+  [15, 18, 22, 20, 26, 28, 30]     // Target sales
+])
+
+const multiSeriesOptions = {
+  seriesNames: ['Actual', 'Target'],
+  // Colors auto-assigned if not specified (high-contrast palette)
+  lineColor: ['#0066cc', '#ff6600'],
+  fillColor: ['rgba(0,102,204,0.15)', 'rgba(255,102,0,0.15)'],
+  lineWidth: [2, 2],
+  spotRadius: 0  // Optional: hide spots for cleaner look
+}
+</script>
+```
+
+**Auto Colors:**
+```vue
+<!-- Uses default high-contrast palette automatically -->
+<Sparkline 
+  :data="[[1,2,3], [4,5,6], [7,8,9]]"
+  type="line"
+  :options="{ seriesNames: ['A', 'B', 'C'] }"
+/>
+```
+
+**Per-Series Customization:**
+```vue
+<Sparkline 
+  :data="[series1, series2, series3]"
+  type="line"
+  :options="{
+    seriesNames: ['North', 'South', 'West'],
+    lineColor: ['#e74c3c', '#3498db', '#2ecc71'],  // Red, Blue, Green
+    lineWidth: [3, 2, 1],                           // Emphasize first series
+    spotRadius: [2, 0, 0]                           // Spots only on first series
+  }"
+/>
+```
+
+**Features:**
+- Automatic color assignment with 8 high-contrast colors
+- Tooltips show all series values at hover position
+- Single vertical line highlights all series simultaneously
+- Full support for null values and gaps
+- Maintains chart range across all series
+- Per-series customization for colors, widths, and spots
 
 ### Null Values
 Null values create gaps in line charts or are omitted in bar charts:

@@ -1,6 +1,10 @@
 // chartFactory.js
 // Factory for creating different chart types
 
+/**
+ * @fileoverview Simple chart factory for creating chart instances by type
+ */
+
 import { LineChart } from './LineChart.js';
 import { BarChart } from './BarChart.js';
 import { TriStateChart } from './TriStateChart.js';
@@ -19,6 +23,17 @@ const chartTypes = {
   box: BoxChart
 };
 
+/**
+ * Create a chart instance of the specified type
+ * @param {string} type - Chart type (line, bar, tristate, discrete, bullet, pie, box)
+ * @param {CanvasRenderingContext2D} ctx - Canvas rendering context
+ * @param {Object} props - Chart properties
+ * @param {Array} props.data - Chart data
+ * @param {number} props.width - Chart width
+ * @param {number} props.height - Chart height
+ * @param {Object} props.options - Chart options
+ * @returns {BaseChart|null} Chart instance or null if type not supported
+ */
 export function createChart(type, ctx, props) {
   const ChartClass = chartTypes[type];
   if (!ChartClass) {
