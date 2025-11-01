@@ -3,7 +3,16 @@
 
 import { BaseChart } from './BaseChart.js';
 
+/**
+ * TriStateChart renderer for win/loss/draw sparkline charts
+ * Renders three-state values (positive, negative, zero) as colored bars
+ * @extends BaseChart
+ */
 export class TriStateChart extends BaseChart {
+  /**
+   * Get default options for tristate chart
+   * @returns {Object} Default options object
+   */
   getDefaults() {
     return {
       ...super.getDefaults(),
@@ -13,10 +22,15 @@ export class TriStateChart extends BaseChart {
       posBarColor: '#0f0',
       negBarColor: '#f00',
       zeroBarColor: '#999',
-      colorMap: {}
+      colorMap: {},
+      dataLabels: undefined,   // Optional array of labels OR callback function(index) => label for data points (shown in tooltips)
+      getPointDataLabel: undefined  // Alternative: callback function(index) => label for high-performance scenarios
     };
   }
 
+  /**
+   * Draw the tristate chart with win/loss/draw bars centered on zero line
+   */
   draw() {
     if (this.values.length === 0) return;
 
@@ -110,6 +124,12 @@ export class TriStateChart extends BaseChart {
     });
   }
 
+  /**
+   * Get the region at a specific point for interaction detection
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Region index or null
+   */
   getRegionAtPoint(x, y) {
     if (this.values.length === 0) return null;
     
@@ -152,7 +172,12 @@ export class TriStateChart extends BaseChart {
     return null;
   }
 
-  // Get nearest region to mouse cursor for smooth tooltip following
+  /**
+   * Get the nearest region to the mouse cursor for smooth tooltip following
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|null} Nearest region index or null
+   */
   getNearestRegion(x, y) {
     if (this.values.length === 0) return null;
     
@@ -202,6 +227,11 @@ export class TriStateChart extends BaseChart {
     return nearestIndex >= 0 ? nearestIndex : null;
   }
 
+  /**
+   * Get standardized fields for a region (sparkline.js compliance)
+   * @param {number} region - Region index
+   * @returns {Object} Region fields object
+   */
   getRegionFields(region) {
     if (typeof region === 'number') {
       const value = this.values[region];
@@ -219,7 +249,11 @@ export class TriStateChart extends BaseChart {
     return super.getRegionFields(region);
   }
 
-  // Get color for a specific region
+  /**
+   * Get the color for a specific region based on its tristate value
+   * @param {number} region - Region index
+   * @returns {string|null} Color hex code or null
+   */
   getRegionColor(region) {
     if (typeof region === 'number') {
       const value = this.values[region];
@@ -228,7 +262,36 @@ export class TriStateChart extends BaseChart {
     return null;
   }
 
-  // Override getTooltipContent for tristate charts to show win/loss/draw summary
+  /**
+   * Get data label for a specific point index
+   * Supports both array (dataLabels) and callback (getPointDataLabel)
+   * @param {number} index - The data point index
+   * @returns {string|null} The label for this point, or null if none
+   */
+  getPointLabel(index) {
+    // Priority 1: callback function (for performance)
+    if (this.options.getPointDataLabel && typeof this.options.getPointDataLabel === 'function') {
+      try {
+        return this.options.getPointDataLabel(index);
+      } catch (error) {
+        console.warn('Error in getPointDataLabel callback:', error);
+      }
+    }
+    
+    // Priority 2: array of labels
+    if (Array.isArray(this.options.dataLabels) && index < this.options.dataLabels.length) {
+      return this.options.dataLabels[index];
+    }
+    
+    // Default: "Point {n}"
+    return `Point ${index + 1}`;
+  }
+
+  /**
+   * Get tooltip content with current state and win/loss/draw summary
+   * @param {number} region - Region index
+   * @returns {Object|null} Tooltip content with items array
+   */
   getTooltipContent(region) {
     // For tristate charts, we can show a summary of all states when hovering over any bar
     const wins = this.values.filter(v => v > 0).length;
@@ -237,55 +300,69 @@ export class TriStateChart extends BaseChart {
     
     if (typeof region === 'number') {
       const currentValue = this.values[region];
+      const pointLabel = this.getPointLabel(region);
       const items = [];
       
       // Add current state info
       if (currentValue > 0) {
         items.push({
-          label: `Current: Win`,
+          label: `Win`,
           color: this.options.posBarColor
         });
       } else if (currentValue < 0) {
         items.push({
-          label: `Current: Loss`,
+          label: `Loss`,
           color: this.options.negBarColor
         });
       } else {
         items.push({
-          label: `Current: Draw`,
+          label: `Draw`,
           color: this.options.zeroBarColor
         });
       }
       
+      // Add separator before summary stats
+      items.push({
+        isSeparator: true
+      });
+      
       // Add summary stats
       if (wins > 0) {
         items.push({
-          label: `Wins: ${wins}`,
+          label: `Total Wins: ${wins}`,
           color: this.options.posBarColor
         });
       }
       
       if (losses > 0) {
         items.push({
-          label: `Losses: ${losses}`,
+          label: `Total Losses: ${losses}`,
           color: this.options.negBarColor
         });
       }
       
       if (draws > 0) {
         items.push({
-          label: `Draws: ${draws}`,
+          label: `Total Draws: ${draws}`,
           color: this.options.zeroBarColor
         });
       }
       
-      return { items };
+      return { 
+        title: pointLabel,
+        items 
+      };
     }
     
     return null;
   }
 
-  // Custom tooltip formatting for tristate charts
+  /**
+   * Custom tooltip formatting for tristate charts (Win/Loss/Draw)
+   * @param {number} value - Value to format (1=Win, 0=Draw, -1=Loss)
+   * @param {number} region - Region index
+   * @returns {string} Formatted tooltip text
+   */
   getDefaultTooltipFormat(value, region) {
     // Force the custom tooltip format
     if (value === 1) return 'Win';
@@ -294,11 +371,22 @@ export class TriStateChart extends BaseChart {
     return `Tristate: ${value}`; // Fallback that shows it's working
   }
 
-  // Also override formatTooltipValue to ensure our custom format is used
+  /**
+   * Format tooltip value using custom tristate format
+   * @param {number} value - Value to format
+   * @param {number} region - Region index
+   * @returns {string} Formatted tooltip text
+   */
   formatTooltipValue(value, region) {
     return this.getDefaultTooltipFormat(value, region);
   }
 
+  /**
+   * Get bar color based on tristate value and colorMap
+   * @param {number} value - Bar value (positive/negative/zero)
+   * @returns {string} Color hex code
+   * @private
+   */
   getBarColor(value) {
     const { posBarColor, negBarColor, zeroBarColor, colorMap } = this.options;
     
@@ -313,6 +401,10 @@ export class TriStateChart extends BaseChart {
     }
   }
 
+  /**
+   * Draw highlight overlay for the hovered tristate bar
+   * @param {number} region - Region index to highlight
+   */
   drawHighlight(region) {
     if (typeof region !== 'number' || this.values[region] === null) return;
     
@@ -366,9 +458,20 @@ export class TriStateChart extends BaseChart {
     }
 
     ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.fillStyle = '#fff';
+    
+    // Apply lighten effect to the bar color
+    const barColor = this.getBarColor(value);
+    const highlightColor = this.lightenColor(barColor, this.options.highlightLighten);
+    
+    // Redraw the bar with lightened color (replacing the original)
+    ctx.fillStyle = highlightColor;
     ctx.fillRect(x, y, barWidthFinal, currentBarHeight);
+    
+    // Optional: Add a subtle border to make the highlight more visible
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(x, y, barWidthFinal, currentBarHeight);
+    
     ctx.restore();
   }
 }

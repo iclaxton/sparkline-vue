@@ -1,17 +1,34 @@
 // BaseChart.js
 // Base class for all chart types
 
+/**
+ * BaseChart - Base class for all sparkline chart types
+ * Provides common functionality for rendering, interaction, tooltips, and state management
+ */
 export class BaseChart {
-  // Touch interaction constants
+  /** @type {number} Touch tooltip offset to clear finger */
   static TOUCH_OFFSET = 25;        // Offset to clear finger without being excessive
+  /** @type {number} Safety buffer for touch interactions */
   static TOUCH_SAFETY_BUFFER = 5;  // Small buffer for comfortable viewing
+  /** @type {number} Maximum movement in pixels for tap detection */
   static TOUCH_TAP_THRESHOLD = 10; // Maximum movement for tap detection
+  /** @type {number} Maximum duration in ms for tap detection */
   static TOUCH_TAP_DURATION = 300; // Maximum duration for tap detection
+  /** @type {number} Delay in ms before hiding tooltip on touch end */
   static TOUCH_TOOLTIP_DELAY = 150; // Delay before hiding tooltip on touch end
 
-  // Mouse interaction constants
+  /** @type {number} Mouse tooltip offset */
   static MOUSE_OFFSET = 15;        // Offset for mouse tooltip positioning
 
+  /**
+   * Constructor for BaseChart
+   * @param {CanvasRenderingContext2D} ctx - Canvas rendering context
+   * @param {Object} props - Chart properties
+   * @param {Array} props.data - Chart data values
+   * @param {number} props.width - Chart width
+   * @param {number} props.height - Chart height
+   * @param {Object} props.options - Chart options
+   */
   constructor(ctx, props) {
     this.ctx = ctx;
     this.canvas = ctx.canvas;
@@ -19,6 +36,7 @@ export class BaseChart {
     this.width = props.width;
     this.height = props.height;
     this.options = { ...this.getDefaults(), ...props.options };
+    this.normalizeColors(); // Normalize 3-char hex colors to 6-char format
     this.values = this.processValues(this.data);
     this.currentRegion = null;
     this.tooltip = null;
@@ -43,21 +61,13 @@ export class BaseChart {
     this.setupInteractions();
   }
 
+  /**
+   * Get default options for all chart types
+   * @returns {Object} Default options object
+   */
   getDefaults() {
     return {
-      lineColor: '#00f',
-      fillColor: '#cdf',
-      spotColor: '#f80',
-      minSpotColor: '#f80',
-      maxSpotColor: '#f80',
-      spotRadius: 1.5,
-      lineWidth: 1,
-      highlightSpotColor: '#5f5',
-      highlightLineColor: '#f22',
-      normalRangeMin: undefined,
-      normalRangeMax: undefined,
-      normalRangeColor: '#ccc',
-      drawNormalOnTop: false,
+      // Universal properties - applicable to all chart types
       chartRangeMin: undefined,
       chartRangeMax: undefined,
       defaultPixelsPerValue: 3,
@@ -69,12 +79,83 @@ export class BaseChart {
       tooltipFormat: '{{value}}',
       tooltipFormatter: null,
       highlightLighten: 1.4,
-      topPadding: 3,  // Add top padding for all charts
-      bottomPadding: 3  // Add bottom padding for all charts
+      highlightSpotColor: null,
+      highlightLineColor: '#555555',
+      normalRangeMin: undefined,
+      normalRangeMax: undefined,
+      normalRangeColor: '#cccccc',
+      drawNormalOnTop: false,
+      topPadding: 3,
+      bottomPadding: 3
     };
   }
 
-  // Get or create a persistent chart ID based on the canvas element
+  /**
+   * Normalize 3-character hex colors to 6-character format
+   * Prevents browser console warnings about invalid color formats
+   * @param {string} color - Color value to normalize
+   * @returns {string} Normalized color value
+   * @private
+   */
+  normalizeHexColor(color) {
+    if (!color || typeof color !== 'string') return color;
+    
+    // Remove # if present
+    let hex = color.startsWith('#') ? color.slice(1) : color;
+    
+    // If 3 characters, expand to 6
+    if (hex.length === 3) {
+      hex = hex.split('').map(char => char + char).join('');
+      return '#' + hex;
+    }
+    
+    // Return original if already 6 chars or invalid
+    return color;
+  }
+
+  /**
+   * Normalize all color properties in options to prevent browser warnings
+   * @private
+   */
+  normalizeColors() {
+    const colorProps = [
+      'lineColor', 'fillColor', 'spotColor', 'minSpotColor', 'maxSpotColor',
+      'highlightSpotColor', 'highlightLineColor', 'normalRangeColor',
+      'barColor', 'negBarColor', 'zeroColor', 'nullColor',
+      'borderColor', 'thresholdColor',
+      'posBarColor', 'zeroBarColor',
+      'targetColor', 'performanceColor',
+      'boxLineColor', 'boxFillColor', 'medianColor', 'whiskerColor',
+      'outlierLineColor', 'outlierFillColor'
+    ];
+
+    colorProps.forEach(prop => {
+      if (this.options[prop]) {
+        // Handle arrays of colors (for multi-series)
+        if (Array.isArray(this.options[prop])) {
+          this.options[prop] = this.options[prop].map(c => this.normalizeHexColor(c));
+        } else {
+          this.options[prop] = this.normalizeHexColor(this.options[prop]);
+        }
+      }
+    });
+
+    // Handle special array properties
+    if (this.options.sliceColors && Array.isArray(this.options.sliceColors)) {
+      this.options.sliceColors = this.options.sliceColors.map(c => this.normalizeHexColor(c));
+    }
+    if (this.options.rangeColors && Array.isArray(this.options.rangeColors)) {
+      this.options.rangeColors = this.options.rangeColors.map(c => this.normalizeHexColor(c));
+    }
+  }
+
+  /**
+   * Get or create a persistent chart ID based on the canvas element
+   * Used to track tooltip ownership across redraws
+   * @param {HTMLCanvasElement} canvas - Canvas element
+   * @returns {string} Persistent chart ID
+   * @private
+   */
   getPersistentChartId(canvas) {
     // Try to get existing ID from canvas data attribute
     if (canvas.dataset.sparklineChartId) {
@@ -88,6 +169,11 @@ export class BaseChart {
     return persistentId;
   }
 
+  /**
+   * Process raw data values into chart-ready format
+   * @param {Array} data - Raw data array
+   * @returns {Array} Processed values array
+   */
   processValues(data) {
     if (!Array.isArray(data)) return [];
 
@@ -101,6 +187,11 @@ export class BaseChart {
     });
   }
 
+  /**
+   * Get minimum and maximum values from data
+   * @param {Array} [values=this.values] - Values to analyze
+   * @returns {Object} Object with min and max properties
+   */
   getMinMax(values = this.values) {
     const nums = values.filter(v => v !== null && !Array.isArray(v));
     if (nums.length === 0) return { min: 0, max: 0 };
@@ -111,7 +202,10 @@ export class BaseChart {
     };
   }
 
-  // Update chart data without destroying the instance
+  /**
+   * Update chart data without destroying the instance
+   * @param {Array} newData - New data values
+   */
   updateData(newData) {
     this.data = newData;
     this.values = this.processValues(newData);
@@ -122,18 +216,30 @@ export class BaseChart {
     this.maxValue = max;
   }
 
-  // Update chart options without destroying the instance
+  /**
+   * Update chart options without destroying the instance
+   * @param {Object} newOptions - New options object
+   */
   updateOptions(newOptions) {
     this.options = { ...this.getDefaults(), ...newOptions };
   }
 
-  // Update chart dimensions without destroying the instance
+  /**
+   * Update chart dimensions without destroying the instance
+   * @param {number} width - New width
+   * @param {number} height - New height
+   */
   updateDimensions(width, height) {
     this.width = width;
     this.height = height;
   }
 
-  // Utility method for color manipulation
+  /**
+   * Lighten or darken a color by blending with white
+   * @param {string} color - Color hex code
+   * @param {number} factor - Factor > 1 lightens, < 1 darkens
+   * @returns {string} Modified color hex code
+   */
   lightenColor(color, factor) {
     if (!color || typeof color !== 'string') return color;
 
@@ -141,16 +247,28 @@ export class BaseChart {
     if (color.startsWith('#')) {
       const hex = color.slice(1);
       const num = parseInt(hex, 16);
-      const r = Math.min(255, Math.floor((num >> 16) * factor));
-      const g = Math.min(255, Math.floor(((num >> 8) & 0x00FF) * factor));
-      const b = Math.min(255, Math.floor((num & 0x0000FF) * factor));
-      return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+      const r = (num >> 16) & 0xFF;
+      const g = (num >> 8) & 0xFF;
+      const b = num & 0xFF;
+      
+      // Blend with white to lighten (proper lightening)
+      // factor > 1 means lighter, factor < 1 means darker
+      // Formula: color + (255 - color) * (factor - 1)
+      const amount = factor - 1;
+      const newR = Math.min(255, Math.max(0, Math.floor(r + (255 - r) * amount)));
+      const newG = Math.min(255, Math.max(0, Math.floor(g + (255 - g) * amount)));
+      const newB = Math.min(255, Math.max(0, Math.floor(b + (255 - b) * amount)));
+      
+      return `#${((newR << 16) | (newG << 8) | newB).toString(16).padStart(6, '0')}`;
     }
 
     return color;
   }
 
-  // Get effective drawing dimensions accounting for padding
+  /**
+   * Get effective drawing dimensions accounting for padding
+   * @returns {Object} Object with width, height, topOffset, bottomOffset
+   */
   getDrawingDimensions() {
     return {
       width: this.width,
@@ -160,12 +278,18 @@ export class BaseChart {
     };
   }
 
-  // Abstract method to be implemented by subclasses
+  /**
+   * Draw the chart (abstract method - must be implemented by subclasses)
+   * @abstract
+   */
   draw() {
     throw new Error('draw() method must be implemented by subclass');
   }
 
-  // Setup mouse interactions
+  /**
+   * Setup mouse and touch interactions for the chart
+   * @private
+   */
   setupInteractions() {
     if (this.options.disableInteraction) return;
 
@@ -186,7 +310,10 @@ export class BaseChart {
     this.setupTouchSupport();
   }
 
-  // Setup touch support for mobile devices (only if touch is supported)
+  /**
+   * Setup touch support for mobile devices
+   * @private
+   */
   setupTouchSupport() {
     if (this.options.disableInteraction || this.options.disableTooltips) return;
 
@@ -207,8 +334,6 @@ export class BaseChart {
       this.isTouch = true;
       touchStartTime = Date.now();
 
-      // Touch state tracking for proper event handling
-
       const touch = event.touches[0];
       touchStartPos = { x: touch.clientX, y: touch.clientY };
 
@@ -221,8 +346,6 @@ export class BaseChart {
         target: this.canvas,
         isTouchEvent: true // Mark as touch event for proper positioning
       };
-
-      // Create synthetic mouse event for unified handling
 
       // Use the chart's built-in mouse move handler
       this.handleMouseMove(syntheticEvent);
@@ -250,8 +373,6 @@ export class BaseChart {
             target: this.canvas,
             isTouchEvent: true // Mark as touch event for proper positioning
           };
-
-          // Process touch movement with synthetic events
 
           // Use the chart's built-in mouse move handler - this should show tooltips
           this.handleMouseMove(syntheticEvent);
@@ -359,7 +480,10 @@ export class BaseChart {
     }
   }
 
-  // Handle mouse leave events
+  /**
+   * Handle mouse leave events
+   * @private
+   */
   handleMouseLeave() {
     this.lastMouseEvent = null; // Clear stored mouse event
     if (this.currentRegion !== null) {
@@ -371,7 +495,11 @@ export class BaseChart {
     }
   }
 
-  // Preserve current tooltip state before data updates
+  /**
+   * Preserve current tooltip state before data updates
+   * Stores position, region, and touch state for restoration
+   * @private
+   */
   preserveTooltipState() {
     this.preservedState.wasTooltipVisible = this.currentRegion !== null;
     this.preservedState.lastRegion = this.currentRegion;
@@ -407,7 +535,11 @@ export class BaseChart {
     }
   }
 
-  // Restore tooltip state after data updates
+  /**
+   * Restore tooltip state after data updates
+   * @returns {boolean} True if successfully restored
+   * @private
+   */
   restoreTooltipState() {
     if (!this.preservedState.wasTooltipVisible ||
       !this.preservedState.lastRelativePosition ||
@@ -471,7 +603,10 @@ export class BaseChart {
     return false;
   }
 
-  // Refresh tooltip after Vue updates (maintains state)
+  /**
+   * Refresh tooltip after Vue updates (maintains state)
+   * @returns {boolean} True if successfully refreshed
+   */
   refreshTooltip() {
     if (this.currentRegion !== null && this.lastMouseEvent) {
       // Re-trigger tooltip display with stored mouse event
@@ -483,7 +618,10 @@ export class BaseChart {
     }
   }
 
-  // Smart tooltip restoration - finds closest data point after chart updates
+  /**
+   * Smart tooltip restoration - finds closest data point after chart updates
+   * @returns {boolean} True if successfully restored
+   */
   restoreTooltipSmart() {
     if (!this.preservedState.wasTooltipVisible) {
       return false;
@@ -593,7 +731,10 @@ export class BaseChart {
     return false;
   }
 
-  // Clear preserved tooltip state (call when tooltip is intentionally hidden)
+  /**
+   * Clear preserved tooltip state
+   * @private
+   */
   clearPreservedState() {
     this.preservedState.wasTooltipVisible = false;
     this.preservedState.lastRegion = null;
@@ -602,7 +743,11 @@ export class BaseChart {
     this.preservedState.wasTouch = false; // Clear touch state
   }
 
-  // Handle click events
+  /**
+   * Handle click events
+   * @param {MouseEvent} event - Click event
+   * @private
+   */
   handleClick(event) {
     const rect = this.canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -621,18 +766,32 @@ export class BaseChart {
     }
   }
 
-  // Get region at specific point - to be implemented by subclasses
+  /**
+   * Get region at specific point (abstract - implemented by subclasses)
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|Object|null} Region identifier or null
+   */
   getRegionAtPoint(x, y) {
     return null;
   }
 
-  // Get nearest region to mouse cursor - to be implemented by subclasses  
+  /**
+   * Get nearest region to mouse cursor (can be overridden by subclasses)
+   * @param {number} x - Mouse x coordinate
+   * @param {number} y - Mouse y coordinate
+   * @returns {number|Object|null} Region identifier or null
+   */
   getNearestRegion(x, y) {
     // Default fallback to original behavior
     return this.getRegionAtPoint(x, y);
   }
 
-  // Get tooltip content - can be overridden for multi-value tooltips
+  /**
+   * Get tooltip content (can be overridden for multi-value tooltips)
+   * @param {number|Object} region - Region identifier
+   * @returns {Object|null} Tooltip content with items array or null
+   */
   getTooltipContent(region) {
     // Default implementation returns null, but we can enhance single-value tooltips with colors
     // Subclasses can override this to return { items: [...] } for multi-value tooltips
@@ -662,7 +821,12 @@ export class BaseChart {
     return null;
   }
 
-  // Get or create shared tooltip element (Vue-safe version)
+  /**
+   * Get or create shared tooltip element (Vue-safe version)
+   * @returns {HTMLElement} Shared tooltip element
+   * @static
+   * @private
+   */
   static getSharedTooltip() {
     if (!BaseChart.sharedTooltip || !document.body.contains(BaseChart.sharedTooltip)) {
       BaseChart.sharedTooltip = document.createElement('div');
@@ -731,14 +895,22 @@ export class BaseChart {
     });
   }
 
-  // Create tooltip element (simple version)
+  /**
+   * Create tooltip element
+   * @private
+   */
   createTooltip() {
     this.tooltip = BaseChart.getSharedTooltip();
     this.tooltip._owner = this.chartId;
     return this.tooltip;
   }
 
-  // Update tooltip (simple version)
+  /**
+   * Update tooltip content and position
+   * @param {MouseEvent} event - Mouse or touch event
+   * @param {number|Object} region - Region identifier
+   * @private
+   */
   updateTooltip(event, region) {
     if (this.options.disableTooltips || region === null) {
       this.hideTooltip();
@@ -761,8 +933,25 @@ export class BaseChart {
 
     if (tooltipContent && typeof tooltipContent === 'object' && tooltipContent.items) {
       // Multi-value tooltip with color spots - use DOM manipulation
+      
+      // Add title if present (e.g., date/month label for multi-series or stacked charts)
+      if (tooltipContent.title) {
+        const titleDiv = document.createElement('div');
+        titleDiv.style.cssText = 'font-weight: bold; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.3);';
+        titleDiv.textContent = tooltipContent.title;
+        tooltip.appendChild(titleDiv);
+      }
+      
       tooltipContent.items.forEach(item => {
         const itemDiv = document.createElement('div');
+        
+        // Handle separator items specially
+        if (item.isSeparator) {
+          itemDiv.style.cssText = 'font-weight: bold; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.3);';
+          tooltip.appendChild(itemDiv);
+          return;
+        }
+        
         itemDiv.style.cssText = 'display: flex; align-items: center; margin: 2px 0; gap: 6px;';
 
         if (item.color) {
@@ -792,7 +981,11 @@ export class BaseChart {
     this.updateTooltipPosition(event);
   }
 
-  // Update tooltip position
+  /**
+   * Update tooltip position based on mouse/touch event
+   * @param {MouseEvent} event - Mouse or touch event
+   * @private
+   */
   updateTooltipPosition(event) {
     const tooltip = BaseChart.getSharedTooltip();
     if (!tooltip || tooltip.style.display === 'none' || !event) return;
@@ -904,8 +1097,44 @@ export class BaseChart {
     return { left, top };
   }
 
-  // Hide tooltip (simple version)
-  // Hide tooltip (simple version)
+  /**
+   * Calculate tooltip position with edge detection
+   * @param {number} pageX - Page X coordinate
+   * @param {number} pageY - Page Y coordinate
+   * @param {number} tooltipWidth - Tooltip width
+   * @param {number} tooltipHeight - Tooltip height
+   * @param {number} viewportWidth - Viewport width
+   * @param {number} viewportHeight - Viewport height
+   * @returns {Object} Object with left and top properties
+   */
+  calculateTooltipPosition(pageX, pageY, tooltipWidth, tooltipHeight, viewportWidth, viewportHeight) {
+    // Default position: bottom-left corner of tooltip northeast of cursor
+    let left = pageX + BaseChart.MOUSE_OFFSET;
+    let top = pageY - (tooltipHeight + BaseChart.MOUSE_OFFSET);
+
+    // Check if tooltip would go off the right edge
+    if (left + tooltipWidth > viewportWidth - 10) {
+      // Flip to northwest: bottom-right corner of tooltip northwest of cursor
+      left = pageX - (tooltipWidth + BaseChart.MOUSE_OFFSET);
+    }
+
+    // Check if tooltip would go off the top edge
+    if (top < 10) {
+      // Move below cursor: top-left corner southeast of cursor
+      top = pageY + BaseChart.MOUSE_OFFSET;
+    }
+
+    // Final boundary checks
+    left = Math.max(10, left);
+    top = Math.max(10, top);
+
+    return { left, top };
+  }
+
+  /**
+   * Hide tooltip
+   * @private
+   */
   hideTooltip() {
     const tooltip = BaseChart.getSharedTooltip();
     if (!tooltip) return;
@@ -917,7 +1146,12 @@ export class BaseChart {
     }
   }
 
-  // Format tooltip value
+  /**
+   * Format tooltip value using formatter function or format string
+   * @param {*} value - Value to format
+   * @param {number|Object} region - Region identifier
+   * @returns {string} Formatted value string
+   */
   formatTooltipValue(value, region) {
     if (value === null) return 'null';
 
@@ -963,7 +1197,35 @@ export class BaseChart {
     });
   }
 
-  // Get data object for tooltip templating
+  /**
+   * Format tooltip using template string with placeholders
+   * @param {string} format - Format string with {{placeholder}} syntax
+   * @param {*} value - Value to format
+   * @param {number|Object} region - Region identifier
+   * @returns {string} Formatted string
+   * @private
+   */
+  formatTooltipString(format, value, region) {
+    const data = this.getTooltipData(value, region);
+
+    return format.replace(/\{\{(\w+)(?:\.(\d+))?\}\}/g, (match, key, precision) => {
+      let val = data[key];
+      if (val === undefined) return match;
+
+      if (typeof val === 'number' && precision !== undefined) {
+        val = val.toFixed(parseInt(precision));
+      }
+
+      return val;
+    });
+  }
+
+  /**
+   * Get data object for tooltip templating
+   * @param {*} value - Value
+   * @param {number|Object} region - Region identifier
+   * @returns {Object} Data object with value, index, x, y properties
+   */
   getTooltipData(value, region) {
     return {
       value: value,
@@ -973,12 +1235,22 @@ export class BaseChart {
     };
   }
 
-  // Default tooltip format - can be overridden by subclasses
+  /**
+   * Default tooltip format (can be overridden by subclasses)
+   * @param {*} value - Value to format
+   * @param {number|Object} region - Region identifier
+   * @returns {string} Formatted string
+   */
   getDefaultTooltipFormat(value, region) {
     return typeof value === 'number' ? value.toFixed(2) : value.toString();
   }
 
-  // Sanitize tooltip content to prevent XSS - only allow plain text strings
+  /**
+   * Sanitize tooltip content to prevent XSS
+   * @param {*} content - Content to sanitize
+   * @returns {string} Sanitized string
+   * @private
+   */
   sanitizeTooltipContent(content) {
     // Convert to string and strip any HTML/script content
     const str = String(content);
@@ -993,14 +1265,22 @@ export class BaseChart {
       .substring(0, 500); // Limit length to prevent excessive tooltips
   }
 
-  // Escape HTML for safe innerHTML usage
+  /**
+   * Escape HTML for safe innerHTML usage
+   * @param {string} text - Text to escape
+   * @returns {string} Escaped HTML
+   * @private
+   */
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
-  // Redraw with highlight
+  /**
+   * Redraw chart with highlight overlay
+   * @private
+   */
   redrawWithHighlight() {
     // Ensure we have a clean canvas
     this.ctx.save();
@@ -1021,19 +1301,29 @@ export class BaseChart {
     }
   }
 
-  // Draw highlight - to be implemented by subclasses
+  /**
+   * Draw highlight (can be overridden by subclasses)
+   * @param {number|Object} region - Region identifier
+   */
   drawHighlight(region) {
     // Default implementation - can be overridden
   }
 
-  // Get current region fields (jQuery Sparkline compatible)
+  /**
+   * Get current region fields (jQuery Sparkline compatible)
+   * @returns {Object|null} Region fields object or null
+   */
   getCurrentRegionFields() {
     if (this.currentRegion === null) return null;
 
     return this.getRegionFields(this.currentRegion);
   }
 
-  // Get region fields for a specific region (to be overridden by subclasses)
+  /**
+   * Get region fields for a specific region (can be overridden by subclasses)
+   * @param {number|Object} region - Region identifier
+   * @returns {Object|null} Region fields object or null
+   */
   getRegionFields(region) {
     if (typeof region === 'number') {
       // Standard numeric region
@@ -1060,7 +1350,12 @@ export class BaseChart {
     return null;
   }
 
-  // Helper method to get value from region
+  /**
+   * Helper method to get value from region
+   * @param {number|Object} region - Region identifier
+   * @returns {*} Value or null
+   * @private
+   */
   getValueFromRegion(region) {
     if (typeof region === 'number') {
       return this.values[region];
@@ -1071,7 +1366,9 @@ export class BaseChart {
     return null;
   }
 
-  // Cleanup method
+  /**
+   * Cleanup chart instance and remove event listeners
+   */
   destroy() {
     // Add defensive null check for canvas
     if (!this.canvas) return;
@@ -1132,7 +1429,11 @@ export class BaseChart {
     this.clearPreservedState();
   }
 
-  // Reinitialize for object pooling (performance optimization)
+  /**
+   * Reinitialize chart for object pooling (performance optimization)
+   * @param {CanvasRenderingContext2D} ctx - Canvas rendering context
+   * @param {Object} props - Chart properties
+   */
   reinitialize(ctx, props) {
     // Update core properties
     this.ctx = ctx;
@@ -1151,7 +1452,9 @@ export class BaseChart {
     this.setupInteractions();
   }
 
-  // Reset chart state for object pooling (lightweight cleanup)
+  /**
+   * Reset chart state for object pooling (lightweight cleanup)
+   */
   reset() {
     // Add defensive null check for canvas
     if (!this.canvas) return;
@@ -1201,7 +1504,11 @@ export class BaseChart {
     }
   }
 
-  // Static method to clean up persistent chart ID from canvas (call when canvas is being removed)
+  /**
+   * Clean up persistent chart ID from canvas (call when canvas is being removed)
+   * @param {HTMLCanvasElement} canvas - Canvas element
+   * @static
+   */
   static cleanupCanvasChartId(canvas) {
     if (canvas && canvas.dataset) {
       delete canvas.dataset.sparklineChartId;
