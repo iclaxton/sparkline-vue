@@ -26,36 +26,20 @@ export class LineChart extends BaseChart {
   ];
 
   /**
-   * Default transparent fills for multi-series charts
-   * @type {string[]}
-   * @static
-   */
-  static DEFAULT_SERIES_FILLS = [
-    'transparent',   // Blue
-    'transparent',   // Orange
-    'transparent',   // Green
-    'transparent',   // Magenta
-    'transparent',   // Brown
-    'transparent',   // Cyan
-    'transparent',   // Pink
-    'transparent'    // Lime
-  ];
-
-  /**
    * Get default options for line charts
    * @returns {Object} Default options object
    */
-  getDefaults() {
+  static getDefaults(isMulti = false) {
     return {
       ...super.getDefaults(),
       type: 'line',
-      lineColor: '#0000ff',
+      lineColor: !isMulti ? '#0000ff' : LineChart.DEFAULT_SERIES_COLORS,
       fillColor: undefined,
-      lineWidth: 1,
+      lineWidth: !isMulti ? 1 : [1],
       spotColor: '#f80',
       minSpotColor: '#f44',
       maxSpotColor: '#4f4',
-      spotRadius: 1.5,
+      spotRadius: !isMulti ? 1.5 : [1.5],
       valueSpots: {},
       chartRangeClip: false,
       chartRangeMinX: undefined,
@@ -376,7 +360,7 @@ export class LineChart extends BaseChart {
     // For multi-series, check if user provided custom values via getSeriesOption (which handles arrays)
     // If getSeriesOption returns the default, use our multi-series defaults
     const lineColors = this.getSeriesOption('lineColor', LineChart.DEFAULT_SERIES_COLORS);
-    const fillColors = this.getSeriesOption('fillColor', LineChart.DEFAULT_SERIES_FILLS);
+    const fillColors = this.getSeriesOption('fillColor', [undefined]);
     const lineWidths = this.getSeriesOption('lineWidth', [1]);
     const spotRadii = this.getSeriesOption('spotRadius', [1.5]);
 
@@ -459,7 +443,7 @@ export class LineChart extends BaseChart {
     } else if (optionValue !== undefined && optionValue !== null) {
       // Check if this is actually the single-series default value
       // If so, use multi-series defaults instead
-      const singleSeriesDefaults = this.getDefaults();
+      const singleSeriesDefaults = LineChart.getDefaults();
       if (singleSeriesDefaults[optionName] === optionValue) {
         // This is the default value, use multi-series defaults
         return defaultValues;

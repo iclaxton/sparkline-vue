@@ -24,7 +24,7 @@ export class BoxChart extends BaseChart {
    * Get default options for box plot chart
    * @returns {Object} Default options object
    */
-  getDefaults() {
+  static getDefaults() {
     return {
       ...super.getDefaults(),
       type: 'box',

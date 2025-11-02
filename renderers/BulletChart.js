@@ -13,7 +13,7 @@ export class BulletChart extends BaseChart {
    * Get default options for bullet chart
    * @returns {Object} Default options object
    */
-  getDefaults() {
+  static getDefaults() {
     return {
       ...super.getDefaults(),
       type: 'bullet',

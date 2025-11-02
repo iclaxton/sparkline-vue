@@ -30,12 +30,23 @@ export class BaseChart {
    * @param {Object} props.options - Chart options
    */
   constructor(ctx, props) {
+    if (!ctx) throw new Error('Canvas 2D context is required');
+
+    // The actual class being instantiated (e.g., LineChart, BarChart, etc.)
+    const Ctor = this.constructor;
+
+    if (typeof Ctor.getDefaults !== 'function') {
+      throw new Error(`${Ctor.name} must implement static getDefaults()`);
+    }
+
+    const defaults = Ctor.getDefaults();
+
     this.ctx = ctx;
     this.canvas = ctx.canvas;
     this.data = props.data;
     this.width = props.width;
     this.height = props.height;
-    this.options = { ...this.getDefaults(), ...props.options };
+    this.options = { ...defaults, ...props.options };
     this.normalizeColors(); // Normalize 3-char hex colors to 6-char format
     this.values = this.processValues(this.data);
     this.currentRegion = null;
@@ -65,7 +76,7 @@ export class BaseChart {
    * Get default options for all chart types
    * @returns {Object} Default options object
    */
-  getDefaults() {
+  static getDefaults() {
     return {
       // Universal properties - applicable to all chart types
       chartRangeMin: undefined,
@@ -222,7 +233,7 @@ export class BaseChart {
    * @param {Object} newOptions - New options object
    */
   updateOptions(newOptions) {
-    this.options = { ...this.getDefaults(), ...newOptions };
+    this.options = { ...this.constructor.getDefaults(), ...newOptions };
   }
 
   /**
@@ -1447,7 +1458,7 @@ export class BaseChart {
     this.data = props.data;
     this.width = props.width;
     this.height = props.height;
-    this.options = { ...this.getDefaults(), ...props.options };
+    this.options = { ...this.constructor.getDefaults(), ...props.options };
     this.values = this.processValues(this.data);
 
     // Reset state

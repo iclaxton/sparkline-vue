@@ -43,3 +43,20 @@ export function createChart(type, ctx, props) {
   
   return new ChartClass(ctx, props);
 }
+
+/**
+ * Retrieves the default options for a specified chart type.
+ * 
+ * @param {string} type - The chart type identifier
+ * @returns {Object|null} The default options object for the chart type, or null if the type is not supported
+ * @throws {void} Logs a warning to console if chart type is not found
+ */
+export function getDefaultOptions(type) {
+  const ChartClass = chartTypes[type];
+  if (!ChartClass) {
+    console.warn(`Chart type "${type}" not supported`);
+    return null;
+  }
+  
+  return ChartClass.getDefaults();
+}

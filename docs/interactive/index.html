@@ -389,15 +389,16 @@
 
         /* Responsive adjustments - Tablet and below (768px) */
         @media (max-width: 768px) {
+
             .examples-grid,
             .interactive-demo {
                 grid-template-columns: 1fr;
             }
-            
+
             .examples-grid {
                 gap: var(--demo-spacing-lg);
             }
-            
+
             .interactive-demo {
                 gap: var(--demo-spacing-xl);
                 padding: 10px;
@@ -478,15 +479,16 @@
 
         /* Mobile phone styles (480px and below) - consolidated */
         @media (max-width: 480px) {
+
             .examples-grid,
             .interactive-demo {
                 grid-template-columns: 1fr;
             }
-            
+
             .examples-grid {
                 gap: 10px;
             }
-            
+
             .interactive-demo {
                 gap: 5px;
                 padding: 5px;
@@ -518,7 +520,8 @@
             .property-field input,
             .property-field select {
                 height: 40px;
-                font-size: var(--demo-font-lg); /* Prevents zoom on iOS */
+                font-size: var(--demo-font-lg);
+                /* Prevents zoom on iOS */
                 padding: var(--demo-spacing-sm);
                 margin: 0;
             }
@@ -658,7 +661,8 @@
     </div>
 
     <script type="module">
-        import { createChart } from '../../renderers/chartFactory.js';
+        import { createChart, getDefaultOptions } from '../../renderers/chartFactory.js';
+        import { LineChart } from '../../renderers/LineChart.js'
 
         // Property Definitions Configuration
         // Each property includes a 'group' field that defines its category
@@ -677,22 +681,22 @@
             { id: 'highlight-spot-color', propertyName: 'highlightSpotColor', label: 'Highlight Spot Color', type: 'color', checked: false, disabled: true, hasNullOverlay: true, visibleFor: ['line', 'line-multi'], group: 'Hover Effects' },
             { id: 'highlight-line-color', propertyName: 'highlightLineColor', label: 'Highlight Line Color', type: 'color', checked: true, hasNull: true, visibleFor: ['line', 'line-multi'], group: 'Hover Effects' },
             { id: 'highlight-lighten', propertyName: 'highlightLighten', label: 'Highlight Lighten', type: 'number', min: 1, max: 3, step: 0.1, visibleFor: ['bar', 'pie', 'discrete', 'tristate', 'bullet'], group: 'Hover Effects' },
-            
+
             // Line chart dimensions
             { id: 'line-width', propertyName: 'lineWidth', label: 'Line Width', type: 'number', min: 0.5, max: 5, step: 0.5, visibleFor: ['line'], group: 'Dimensions' },
             { id: 'spot-radius', propertyName: 'spotRadius', label: 'Spot Radius', type: 'number', min: 0, max: 10, step: 0.5, visibleFor: ['line'], group: 'Dimensions' },
-            
+
             // Range settings
             { id: 'chart-range-min', propertyName: 'chartRangeMin', label: 'Chart Range Min', type: 'number', step: 'any', placeholder: 'Auto', visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'bullet'], group: 'Range' },
             { id: 'chart-range-max', propertyName: 'chartRangeMax', label: 'Chart Range Max', type: 'number', step: 'any', placeholder: 'Auto', visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'bullet'], group: 'Range' },
             { id: 'normal-range-min', propertyName: 'normalRangeMin', label: 'Normal Range Min', type: 'number', step: 'any', placeholder: 'Optional', visibleFor: ['line', 'line-multi'], group: 'Normal Range' },
             { id: 'normal-range-max', propertyName: 'normalRangeMax', label: 'Normal Range Max', type: 'number', step: 'any', placeholder: 'Optional', visibleFor: ['line', 'line-multi'], group: 'Normal Range' },
             { id: 'normal-range-color', propertyName: 'normalRangeColor', label: 'Normal Range Color', type: 'color', checked: false, disabled: true, visibleFor: ['line', 'line-multi'], group: 'Normal Range' },
-            
+
             // Layout
             { id: 'top-padding', propertyName: 'topPadding', label: 'Top Padding', type: 'number', min: 0, max: 20, visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'tristate', 'bullet', 'box'], group: 'Layout' },
             { id: 'bottom-padding', propertyName: 'bottomPadding', label: 'Bottom Padding', type: 'number', min: 0, max: 20, visibleFor: ['line', 'line-multi', 'bar', 'discrete', 'tristate', 'bullet', 'box'], group: 'Layout' },
-            
+
             // Tooltips
             { id: 'disable-tooltips', propertyName: 'disableTooltips', label: 'Disable Tooltips', type: 'checkbox', visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'], group: 'Tooltips' },
             { id: 'show-tooltip-title', propertyName: 'showTooltipTitle', label: 'Show Tooltip Title', type: 'checkbox', defaultChecked: true, visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'], group: 'Tooltips' },
@@ -700,7 +704,7 @@
             { id: 'tooltip-suffix', propertyName: 'tooltipSuffix', label: 'Tooltip Suffix', type: 'text', placeholder: "e.g., ' units'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'], group: 'Tooltips' },
             { id: 'tooltip-format', propertyName: 'tooltipFormat', label: 'Tooltip Format', type: 'text', placeholder: "e.g., '{{value}}' or '{{value.2}}'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'], group: 'Tooltips' },
             { id: 'data-labels', propertyName: 'dataLabels', label: 'Data Labels', type: 'text', placeholder: "Comma-separated labels (e.g., 'Jan,Feb,Mar')", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate'], group: 'Tooltips', defaultValue: { 'line-multi': '2015,2016,2017,2018,2019,2020,2021,2022,2023,2024', 'pie': 'Category A,Category B,Category C,Category D' } },
-            
+
             // Bar chart
             { id: 'bar-color', propertyName: 'barColor', label: 'Bar Color', type: 'color', checked: false, disabled: true, visibleFor: ['bar'], group: 'Colors' },
             { id: 'neg-bar-color', propertyName: 'negBarColor', label: 'Negative Bar Color', type: 'color', checked: false, disabled: true, visibleFor: ['bar'], group: 'Colors' },
@@ -710,13 +714,13 @@
             { id: 'chart-range-clip', propertyName: 'chartRangeClip', label: 'Chart Range Clip', type: 'checkbox', visibleFor: ['bar'], group: 'Behavior' },
             { id: 'bar-width', propertyName: 'barWidth', label: 'Bar Width', type: 'text', placeholder: 'auto, fill, or px value', visibleFor: ['bar'], group: 'Dimensions' },
             { id: 'bar-spacing', propertyName: 'barSpacing', label: 'Bar Spacing', type: 'number', min: 0, max: 10, visibleFor: ['bar'], group: 'Dimensions' },
-            
+
             // Pie chart
             { id: 'offset', propertyName: 'offset', label: 'Offset', type: 'number', min: 0, max: 360, visibleFor: ['pie'], group: 'Layout' },
             { id: 'glow-intensity', propertyName: 'glowIntensity', label: 'Glow Intensity', type: 'number', min: 0, max: 20, defaultValue: 5, visibleFor: ['pie'], group: 'Highlight' },
             { id: 'border-width', propertyName: 'borderWidth', label: 'Border Width', type: 'number', min: 0, max: 10, visibleFor: ['pie'], group: 'Border' },
             { id: 'border-color', propertyName: 'borderColor', label: 'Border Color', type: 'color', checked: false, disabled: true, visibleFor: ['pie'], group: 'Border' },
-            
+
             // Tristate chart
             { id: 'tristate-pos-bar-color', propertyName: 'posBarColor', label: 'Positive Color', type: 'color', checked: false, disabled: true, visibleFor: ['tristate'], group: 'Colors' },
             { id: 'tristate-neg-bar-color', propertyName: 'negBarColor', label: 'Negative Color', type: 'color', checked: false, disabled: true, visibleFor: ['tristate'], group: 'Colors' },
@@ -726,26 +730,26 @@
             { id: 'tristate-negative-label', propertyName: 'stateLabels.negative', label: 'Negative Label', type: 'text', placeholder: 'Loss', visibleFor: ['tristate'], group: 'State Labels' },
             { id: 'tristate-bar-width', propertyName: 'barWidth', label: 'Bar Width', type: 'text', placeholder: 'auto, fill, or px value', visibleFor: ['tristate'], group: 'Dimensions' },
             { id: 'tristate-bar-spacing', propertyName: 'barSpacing', label: 'Bar Spacing', type: 'number', min: 0, max: 10, visibleFor: ['tristate'], group: 'Dimensions' },
-            
+
             // Discrete chart
             { id: 'discrete-line-height', propertyName: 'lineHeight', label: 'Line Height', type: 'number', min: 1, max: 100, placeholder: 'Auto (30% of height)', visibleFor: ['discrete'], group: 'Dimensions' },
             { id: 'discrete-threshold-value', propertyName: 'thresholdValue', label: 'Threshold Value', type: 'number', step: 'any', placeholder: 'Optional', visibleFor: ['discrete'], group: 'Threshold' },
             { id: 'discrete-threshold-color', propertyName: 'thresholdColor', label: 'Threshold Color', type: 'color', checked: false, disabled: true, hasNullOverlay: true, visibleFor: ['discrete'], group: 'Threshold' },
             { id: 'discrete-line-width', propertyName: 'lineWidth', label: 'Line Width', type: 'text', placeholder: 'auto, fill, or px value', visibleFor: ['discrete'], group: 'Dimensions' },
             { id: 'discrete-line-spacing', propertyName: 'lineSpacing', label: 'Line Spacing', type: 'number', min: 0, max: 10, visibleFor: ['discrete'], group: 'Dimensions' },
-            
+
             // Bullet chart
             { id: 'bullet-target-color', propertyName: 'targetColor', label: 'Target Color', type: 'color', checked: false, disabled: true, visibleFor: ['bullet'], group: 'Target' },
             { id: 'bullet-target-width', propertyName: 'targetWidth', label: 'Target Width', type: 'number', min: 1, max: 10, visibleFor: ['bullet'], group: 'Target' },
             { id: 'bullet-performance-color', propertyName: 'performanceColor', label: 'Performance Color', type: 'color', checked: false, disabled: true, visibleFor: ['bullet'], group: 'Colors' },
-            
+
             // Multi-series line chart
             { id: 'series-names', propertyName: 'seriesNames', label: 'Series Names', type: 'text', placeholder: 'Optional (auto-generated)', visibleFor: ['line-multi'], group: 'Series', defaultValue: 'GBP/USD,EUR/USD,GBP/EUR' },
             { id: 'series-colors', propertyName: 'lineColor', label: 'Series Colors', type: 'text', placeholder: 'Optional (uses chart defaults)', visibleFor: ['line-multi'], group: 'Series' },
             { id: 'series-fill-colors', propertyName: 'fillColor', label: 'Series Fill Colors', type: 'text', placeholder: 'Optional (transparent)', visibleFor: ['line-multi'], group: 'Series' },
             { id: 'series-line-widths', propertyName: 'lineWidth', label: 'Series Line Widths', type: 'text', placeholder: 'Optional (1)', visibleFor: ['line-multi'], group: 'Series' },
             { id: 'series-spot-radii', propertyName: 'spotRadius', label: 'Series Spot Radii', type: 'text', placeholder: 'Optional (1.5)', visibleFor: ['line-multi'], group: 'Series' },
-            
+
             // Box chart
             { id: 'box-line-color', propertyName: 'boxLineColor', label: 'Box Line Color', type: 'color', checked: false, disabled: true, visibleFor: ['box'], group: 'Colors' },
             { id: 'box-fill-color', propertyName: 'boxFillColor', label: 'Box Fill Color', type: 'color', checked: false, disabled: true, visibleFor: ['box'], group: 'Colors' },
@@ -765,42 +769,79 @@
             { id: 'box-border-radius', propertyName: 'borderRadius', label: 'Border Radius (px)', type: 'number', min: 0, max: 10, step: 1, defaultValue: 2, visibleFor: ['box'], group: 'Dimensions' }
         ];
 
+        // Normalize hex colors to 6-digit format for comparison
+        // Converts #abc to #aabbcc, leaves #aabbcc unchanged
+        function normalizeHexColor(color) {
+            if (!color || typeof color !== 'string') return color;
+
+            // Remove # if present
+            let hex = color.startsWith('#') ? color.slice(1) : color;
+
+            // If 3 characters, expand to 6
+            if (hex.length === 3) {
+                hex = hex.split('').map(char => char + char).join('');
+            }
+
+            // Return with # prefix, lowercase for consistent comparison
+            return hex.length === 6 ? '#' + hex.toLowerCase() : color;
+        }
+
+        // Helpers
+        const isPlainObject = v =>
+            Object.prototype.toString.call(v) === "[object Object]";
+
+        function flattenObject(obj, prefix = "", out = {}) {
+            if (!obj) return out;
+
+            for (const [k, v] of Object.entries(obj)) {
+                const key = prefix ? `${prefix}.${k}` : k;
+
+                if (isPlainObject(v)) {
+                    flattenObject(v, key, out);
+                } else {
+                    out[key] = v; // primitives, functions, arrays, dates, nulls, etc.
+                }
+            }
+
+            return out;
+        }
+
         // Function to get chart defaults from the actual chart class
         function getChartDefaults(chartType) {
-            const tempCanvas = document.createElement('canvas');
-            const ctx = tempCanvas.getContext('2d');
-
-            // Map line-multi to line since they use the same chart class
-            const actualChartType = chartType === 'line-multi' ? 'line' : chartType;
-
-            const props = {
-                data: [1, 2, 3],
-                type: actualChartType,
-                width: 100,
-                height: 50,
-                options: {} // No options, so we get pure defaults
-            };
-
-            const chart = createChart(actualChartType, ctx, props);
-            if (!chart || !chart.options) {
-                return {};
+            if (chartType === 'line-multi') {
+                return LineChart.getDefaults(true);
             }
 
-            const defaults = { ...chart.options };
-            
-            // Clean up temp chart
-            if (chart.destroy) {
-                chart.destroy();
+            return getDefaultOptions(chartType);
+        }
+
+        const chartTypes = ["bar", "pie", "tristate", "bullet", "box", "line", "line-multi", "discrete"];
+        let chartDefaultsValues = {};
+
+        function loadChartDefaultValues() {
+            chartDefaultsValues = {};
+
+            for (const chart of chartTypes) {
+                const defaultOptions = getChartDefaults(chart);
+
+                // flatten and store per chart
+                chartDefaultsValues[chart] = flattenObject(defaultOptions);
             }
-            
-            return defaults;
+
+            console.log(chartDefaultsValues);
+        }
+
+        loadChartDefaultValues();
+
+        function getChartDefaultValue(chartType, propertyName) {
+            if (chartDefaultsValues[chartType].hasOwnProperty(propertyName))
+                return chartDefaultsValues[chartType][propertyName];
+
+            return undefined;
         }
 
         // Function to reset controls to their default values based on chart type
         function resetControlsToDefaults(chartType) {
-            // Get actual defaults from the chart class
-            const chartDefaults = getChartDefaults(chartType);
-
             // Reset each property to its default (property definition overrides chart defaults)
             propertyDefinitions.forEach(prop => {
                 const element = document.getElementById(prop.id);
@@ -808,21 +849,21 @@
 
                 // Priority: property definition defaultValue > chart-specific default > chart class default
                 let actualDefault;
-                
+
                 // Check for chart-specific default first (e.g., defaultValue: { line: '#ff0000', discrete: '#00ff00' })
                 if (prop.defaultValue && typeof prop.defaultValue === 'object' && !Array.isArray(prop.defaultValue)) {
                     actualDefault = prop.defaultValue[chartType];
                     // Keep actualDefault as undefined if the chart type doesn't have a specific default
                 }
-                
+
                 // If no chart-specific default, use the simple defaultValue if present (not an object)
                 if (actualDefault === undefined && prop.defaultValue !== undefined && typeof prop.defaultValue !== 'object') {
                     actualDefault = prop.defaultValue;
                 }
-                
+
                 // Finally, fall back to chart class default
-                if (actualDefault === undefined && prop.propertyName && chartDefaults.hasOwnProperty(prop.propertyName)) {
-                    actualDefault = chartDefaults[prop.propertyName];
+                if (actualDefault === undefined && prop.propertyName && chartDefaultsValues[chartType].hasOwnProperty(prop.propertyName)) {
+                    actualDefault = chartDefaultsValues[chartType][prop.propertyName];
                 }
 
                 if (prop.type === 'checkbox') {
@@ -836,10 +877,11 @@
                         enableCheckbox.checked = false;
                         element.disabled = true;
                         
-                        // Set the color value to the default
-                        const colorValue = (actualDefault && actualDefault !== 'undefined') ? actualDefault : '#000000';
-                        element.value = colorValue;
-                        
+                        //TODO: Handled multi line values 
+                        // Set the color value to show the default (even though disabled, user should see what the default is)
+                        const colorValue = (actualDefault && actualDefault !== 'undefined' && !Array.isArray(actualDefault)) ? actualDefault : '#000000';
+                        element.value = normalizeHexColor(colorValue);
+
                         // Handle null checkboxes
                         const nullCheckbox = document.getElementById(prop.id + '-null');
                         if (nullCheckbox) {
@@ -853,17 +895,17 @@
                 } else if (prop.type === 'number' || prop.type === 'text') {
                     // Some text inputs need actual values set (chart data), others use placeholders (optional settings)
                     const needsValue = ['data-labels', 'series-names'].includes(prop.id);
-                    
+
                     if (needsValue && actualDefault !== undefined && actualDefault !== null && typeof actualDefault !== 'object') {
                         // Set the actual value for data inputs (only if it's not an object)
                         element.value = actualDefault;
                     } else {
                         // For numbers and other text inputs, leave value empty and use placeholder to show the default/behavior
                         element.value = '';
-                        
+
                         // Determine what placeholder to show
                         let placeholderText = '';
-                        
+
                         if (prop.placeholder) {
                             // If there's an explicit placeholder defined, use it
                             placeholderText = prop.placeholder;
@@ -873,21 +915,21 @@
                         } else if (prop.propertyName) {
                             // For properties without defaults, try to determine if Auto or Optional
                             const autoProperties = ['barWidth', 'lineWidth', 'lineHeight', 'chartRangeMin', 'chartRangeMax'];
-                            const optionalProperties = ['normalRangeMin', 'normalRangeMax', 'thresholdValue', 'target', 
-                                                       'tooltipPrefix', 'tooltipSuffix', 'tooltipFormat', 'seriesNames', 'dataLabels'];
-                            
+                            const optionalProperties = ['normalRangeMin', 'normalRangeMax', 'thresholdValue', 'target',
+                                'tooltipPrefix', 'tooltipSuffix', 'tooltipFormat', 'seriesNames', 'dataLabels'];
+
                             if (autoProperties.includes(prop.propertyName)) {
                                 placeholderText = 'Auto';
                             } else if (optionalProperties.includes(prop.propertyName)) {
                                 placeholderText = 'Optional';
                             }
                         }
-                        
+
                         element.placeholder = placeholderText;
                     }
                 }
             });
-            
+
             // Special handling for chart-values (not in propertyDefinitions but needs chart-specific defaults)
             const chartValuesElement = document.getElementById('chart-values');
             if (chartValuesElement) {
@@ -938,10 +980,10 @@
                 const hasCheckbox = isColor && propDef.checked !== undefined;
                 const fieldClass = chartClass ? `property-field ${chartClass}` : 'property-field';
                 const displayStyle = chartClass ? ' style="display: none;"' : '';
-                
+
                 let html = `<div class="${fieldClass}"${displayStyle}>`;
                 html += `<label for="${propDef.id}${hasCheckbox ? '-enable' : ''}">${propDef.label}:</label>`;
-                
+
                 if (propDef.type === 'checkbox') {
                     // Only check by default if defaultValue is explicitly true
                     html += `<input type="checkbox" id="${propDef.id}" ${propDef.defaultValue === true ? 'checked' : ''}>`;
@@ -950,17 +992,17 @@
                     html += `<input type="checkbox" id="${propDef.id}-enable" class="color-enable-checkbox"`;
                     if (propDef.checked) html += ' checked';
                     html += ` title="Override default">`;
-                    
+
                     // Use a fallback color for color inputs when default is null/undefined or string "undefined"
                     const colorValue = (propDef.defaultValue && propDef.defaultValue !== 'undefined') ? propDef.defaultValue : '#000000';
-                    
+
                     // Disable the color input if the checkbox is not checked
                     const shouldDisable = !propDef.checked;
-                    
+
                     html += `<input type="color" id="${propDef.id}" value="${colorValue}"`;
                     if (shouldDisable) html += ' disabled';
                     html += `>`;
-                    
+
                     if (propDef.hasNull) {
                         html += `<label style="display: flex; align-items: center; gap: 4px; font-size: 0.9em; margin-left: 4px;">`;
                         html += `<input type="checkbox" id="${propDef.id}-null" class="color-null-checkbox"`;
@@ -990,7 +1032,7 @@
                     if (propDef.placeholder) html += ` placeholder="${propDef.placeholder}"`;
                     html += `>`;
                 }
-                
+
                 html += `</div>`;
                 return html;
             }
@@ -1000,11 +1042,11 @@
                 // Find the controls container (parent of property groups)
                 const container = document.getElementById('controls-container');
                 if (!container) return;
-                
+
                 // Remove dynamically generated groups (keep Standard group)
                 const existingDynamicGroups = container.querySelectorAll('.property-group.dynamic-group');
                 existingDynamicGroups.forEach(group => group.remove());
-                
+
                 // Group properties by their 'group' field
                 const groupedProperties = {};
                 propertyDefinitions.forEach(prop => {
@@ -1014,14 +1056,14 @@
                     }
                     groupedProperties[prop.group].push(prop);
                 });
-                
+
                 // Get the Standard group (first property-group) to insert after it
                 const standardGroup = container.querySelector('.property-group');
-                
+
                 // Create a property group for each category
                 Object.keys(groupedProperties).sort().forEach(groupName => {
                     const properties = groupedProperties[groupName];
-                    
+
                     // Create group HTML
                     const groupDiv = document.createElement('div');
                     groupDiv.className = 'property-group dynamic-group';
@@ -1032,7 +1074,7 @@
                             ${properties.map(prop => generatePropertyHTML(prop, `group-${groupName.toLowerCase().replace(/\s+/g, '-')}`)).join('')}
                         </div>
                     `;
-                    
+
                     // Insert after the last group
                     container.appendChild(groupDiv);
                 });
@@ -1041,8 +1083,6 @@
             // Populate all property groups on load
             populatePropertyGroups();
 
-            // Build defaultColors and controls dynamically from propertyDefinitions
-            const defaultColors = {};
             const controls = {
                 // Standard controls (not in propertyDefinitions)
                 type: document.getElementById('chart-type'),
@@ -1050,87 +1090,45 @@
                 width: document.getElementById('chart-width'),
                 height: document.getElementById('chart-height')
             };
-            
+
             // Helper to process properties and build controls/defaults
             function processProperties(properties) {
                 properties.forEach(prop => {
-                    // Add to defaultColors if it's a color
-                    if (prop.type === 'color') {
-                        defaultColors[prop.id] = prop.defaultValue;
-                    }
-                    
                     // Add to controls object
                     const isColorWithCheckbox = prop.type === 'color' && prop.checked !== undefined;
-                    
+
+                    // Convert kebab-case id to camelCase for control names
+                    const camelId = prop.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+
                     if (isColorWithCheckbox) {
-                        // Convert kebab-case id to camelCase for control names
-                        const camelId = prop.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
                         const enableKey = camelId + 'Enable';
                         controls[enableKey] = document.getElementById(prop.id + '-enable');
                         controls[camelId] = document.getElementById(prop.id);
-                        
+
                         if (prop.hasNull) {
                             controls[camelId + 'Null'] = document.getElementById(prop.id + '-null');
                         }
                     } else {
-                        // Convert kebab-case id to camelCase
-                        const camelId = prop.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
                         controls[camelId] = document.getElementById(prop.id);
                     }
                 });
             }
-            
+
             // Process all properties from the flat array
             processProperties(propertyDefinitions);
-
-            // Normalize hex colors to 6-digit format for comparison
-            // Converts #abc to #aabbcc, leaves #aabbcc unchanged
-            function normalizeHexColor(color) {
-                if (!color || typeof color !== 'string') return color;
-
-                // Remove # if present
-                let hex = color.startsWith('#') ? color.slice(1) : color;
-
-                // If 3 characters, expand to 6
-                if (hex.length === 3) {
-                    hex = hex.split('').map(char => char + char).join('');
-                }
-
-                // Return with # prefix, lowercase for consistent comparison
-                return hex.length === 6 ? '#' + hex.toLowerCase() : color;
-            }
 
             // Get the actual default color value for the current chart type
             function getActualDefaultColor(colorInputId) {
                 const type = controls.type?.value || 'line';
 
-                // Map line-multi to line since they use the same chart class
-                const actualChartType = type === 'line-multi' ? 'line' : type;
-
-                // Create a temporary canvas to instantiate a chart and read its defaults
-                const tempCanvas = document.createElement('canvas');
-                const ctx = tempCanvas.getContext('2d');
-
-                const props = {
-                    data: [1, 2, 3],
-                    type: actualChartType,
-                    width: 100,
-                    height: 50,
-                    options: {} // No options, so we get pure defaults
-                };
-
-                const chart = createChart(actualChartType, ctx, props);
-                if (!chart) return null;
-
                 // Find the property definition and use its propertyName (flat array now)
                 const propDef = propertyDefinitions.find(p => p.id === colorInputId);
-                if (propDef && propDef.propertyName && chart.options && chart.options[propDef.propertyName] !== undefined) {
-                    return chart.options[propDef.propertyName];
+                if (propDef && propDef.propertyName && chartDefaultsValues && chartDefaultsValues[type].hasOwnProperty(propDef.propertyName)) {
+                    return normalizeHexColor(chartDefaultsValues[type][propDef.propertyName]);
                 }
 
-                // Return the default color, but ensure it's never undefined
-                const defaultColor = defaultColors[colorInputId];
-                return (defaultColor !== undefined && defaultColor !== null) ? defaultColor : null;
+                // If no chart default found, return null (they may not apply to this chart type)
+                return undefined;
             }
 
             // Function to show/hide options based on chart type
@@ -1144,19 +1142,19 @@
 
                 // Count visible properties per group
                 const groupCounts = {};
-                
+
                 // Show properties visible for this chart type and count by group
                 propertyDefinitions.forEach(prop => {
                     if (prop.visibleFor && prop.visibleFor.includes(chartType)) {
-                        const elementId = prop.type === 'color' && prop.checked !== undefined 
-                            ? prop.id + '-enable' 
+                        const elementId = prop.type === 'color' && prop.checked !== undefined
+                            ? prop.id + '-enable'
                             : prop.id;
                         const element = document.getElementById(elementId);
                         if (element) {
                             const propertyField = element.closest('.property-field');
                             if (propertyField) {
                                 propertyField.style.display = 'grid';
-                                
+
                                 // Count by group
                                 const groupName = prop.group || 'Other';
                                 groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
@@ -1169,18 +1167,18 @@
                 document.querySelectorAll('.property-group.dynamic-group').forEach(groupDiv => {
                     const header = groupDiv.querySelector('.property-header');
                     if (!header) return;
-                    
+
                     // Get group name from the text content (before the property count span)
                     const groupName = header.childNodes[0]?.textContent?.trim();
                     if (!groupName) return;
-                    
+
                     const count = groupCounts[groupName] || 0;
                     const countSpan = groupDiv.querySelector('.option-count');
-                    
+
                     if (countSpan) {
                         countSpan.textContent = `(${count})`;
                     }
-                    
+
                     // Show group only if it has more than 0 properties
                     if (count > 0) {
                         groupDiv.style.display = 'block';
@@ -1197,7 +1195,7 @@
 
                 // Check if this is multi-series (either explicit or detected)
                 const isMultiSeries = type === 'line-multi' || (type === 'line' && valuesStr.trim().startsWith('[['));
-                
+
                 // Start with common options available to all chart types
                 const options = {
                     disableTooltips: controls.disableTooltips?.checked || false,
@@ -1254,7 +1252,7 @@
                         options.spotRadius = parseFloat(controls.spotRadius.value);
                     }
                 }
-                
+
                 // Add discrete-specific lineColor option
                 if (type === 'discrete' && controls.lineColorEnable?.checked) {
                     options.lineColor = controls.lineColorNull?.checked ? null : controls.lineColor?.value;
@@ -1461,14 +1459,14 @@
                 function isDifferentFromDefault(value, defaultValue) {
                     if (value === undefined || value === null) return false;
                     if (defaultValue === undefined || defaultValue === null) return true;
-                    
+
                     // For colors, normalize and compare
                     if (typeof value === 'string' && typeof defaultValue === 'string') {
                         if (value.startsWith('#') || defaultValue.startsWith('#')) {
                             return normalizeHexColor(value) !== normalizeHexColor(defaultValue);
                         }
                     }
-                    
+
                     return value !== defaultValue;
                 }
 
@@ -1483,27 +1481,27 @@
                     { prop: 'highlightSpotColor', defaultValue: null, isColor: true, includeIfNotNull: true },
                     { prop: 'highlightLineColor', defaultKey: 'highlight-line-color', isColor: true },
                     { prop: 'normalRangeColor', defaultKey: 'normal-range-color', isColor: true },
-                    
+
                     // Numeric options (support arrays)
                     { prop: 'lineWidth', defaultValue: 1, supportsArray: true },
                     { prop: 'spotRadius', defaultValue: 1.5, supportsArray: true },
                     { prop: 'highlightLighten', defaultValue: 1.4 },
                     { prop: 'topPadding', defaultValue: 3 },
                     { prop: 'bottomPadding', defaultValue: 3 },
-                    
+
                     // Range options (always include if defined)
                     { prop: 'chartRangeMin', alwaysInclude: true },
                     { prop: 'chartRangeMax', alwaysInclude: true },
                     { prop: 'normalRangeMin', alwaysInclude: true },
                     { prop: 'normalRangeMax', alwaysInclude: true },
-                    
+
                     // Boolean/string options
                     { prop: 'disableTooltips', defaultValue: false },
                     { prop: 'showTooltipTitle', defaultValue: true },
                     { prop: 'tooltipPrefix', defaultValue: '' },
                     { prop: 'tooltipSuffix', defaultValue: '' },
                     { prop: 'tooltipFormat', defaultValue: '{{value}}' },
-                    
+
                     // Array options - always include if defined
                     { prop: 'seriesNames', isArray: true, alwaysInclude: true },
                     { prop: 'dataLabels', isArray: true, alwaysInclude: true }
@@ -1513,11 +1511,11 @@
                 optionConfig.forEach(config => {
                     const value = options[config.prop];
                     if (value === undefined) return;
-                    
+
                     // Handle special cases
                     if (config.excludeValue && value === config.excludeValue) return;
                     if (config.includeIfNotNull && (value === null || value === undefined)) return;
-                    
+
                     // Handle arrays with alwaysInclude flag
                     if (config.alwaysInclude && Array.isArray(value)) {
                         if (config.isArray) {
@@ -1529,16 +1527,16 @@
                         }
                         return;
                     }
-                    
+
                     if (config.alwaysInclude) {
                         // Always include these properties if defined
                         optionParts.push(`${config.prop}: ${value}`);
                         return;
                     }
-                    
+
                     // Get default value
-                    const defaultValue = config.defaultKey ? defaultColors[config.defaultKey] : config.defaultValue;
-                    
+                    const defaultValue =  getChartDefaultValue(type, config.prop) ?? config.defaultValue;
+
                     // Check if value differs from default
                     if (Array.isArray(value)) {
                         // For arrays, always include (they're custom)
@@ -1627,7 +1625,7 @@
                     typeConfig.forEach(config => {
                         const value = options[config.prop];
                         if (value === undefined) return;
-                        
+
                         // Always include if specified
                         if (config.alwaysInclude) {
                             if (config.isObject && typeof value === 'object') {
@@ -1641,10 +1639,10 @@
                             }
                             return;
                         }
-                        
+
                         // Get default value
-                        const defaultValue = config.defaultKey ? defaultColors[config.defaultKey] : config.defaultValue;
-                        
+                        const defaultValue = getChartDefaultValue(type, config.prop) ?? config.defaultValue;
+
                         // Check if value differs from default
                         if (config.isColor && isDifferentFromDefault(value, defaultValue)) {
                             optionParts.push(`${config.prop}: '${value}'`);
@@ -1878,7 +1876,7 @@
                     // Only update if checkbox is unchecked (showing default)
                     if (colorInput && !checkbox.checked) {
                         const actualDefault = getActualDefaultColor(colorInputId);
-                        if (actualDefault !== null && actualDefault !== undefined && actualDefault !== 'undefined') {
+                        if (actualDefault !== null && actualDefault !== undefined && actualDefault !== 'undefined' && !Array.isArray(actualDefault)) {
                             colorInput.value = actualDefault;
                         }
                     }
@@ -1890,12 +1888,12 @@
                 document.querySelectorAll('.color-enable-checkbox').forEach(checkbox => {
                     const colorInputId = checkbox.id.replace('-enable', '');
                     const colorInput = document.getElementById(colorInputId);
-                    
+
                     // Skip chart-type-specific colors that aren't currently visible
-                    const isChartSpecific = ['tristate-pos-bar-color', 'tristate-neg-bar-color', 'tristate-zero-bar-color', 
-                                             'bar-color', 'neg-bar-color', 'zero-color', 'null-color',
-                                             'pie-border-color', 'discrete-threshold-color',
-                                             'bullet-target-color', 'bullet-performance-color'].includes(colorInputId);
+                    const isChartSpecific = ['tristate-pos-bar-color', 'tristate-neg-bar-color', 'tristate-zero-bar-color',
+                        'bar-color', 'neg-bar-color', 'zero-color', 'null-color',
+                        'pie-border-color', 'discrete-threshold-color',
+                        'bullet-target-color', 'bullet-performance-color'].includes(colorInputId);
                     if (isChartSpecific) {
                         const propertyField = colorInput?.closest('.property-field');
                         // Only process if the field is visible (display is not 'none')
@@ -1915,7 +1913,7 @@
                         // If current value matches the default, uncheck the override checkbox
                         // For null/undefined defaults, the checkbox should be unchecked (no override)
                         const valuesMatch = normalizedDefault && normalizedDefault === normalizedCurrent;
-                        
+
                         if (actualDefault === null || actualDefault === undefined || valuesMatch) {
                             checkbox.checked = false;
                             colorInput.disabled = true;
@@ -1951,7 +1949,7 @@
                     const handleUpdate = () => {
                         // Prevent cascading updates
                         if (isUpdating) return;
-                        
+
                         isUpdating = true;
                         try {
                             if (control === controls.type) {
@@ -2020,12 +2018,19 @@
                 if (['fill-color', 'line-color', 'spot-color', 'highlight-line-color'].includes(colorInputId)) return;
 
                 const colorInput = document.getElementById(colorInputId);
-                const isNullDefault = defaultColors[colorInputId] === null;
+                
+                let isNullDefault = false;
+
+                const propDef = propertyDefinitions.find(p => p.id === colorInputId);
+                if (propDef && propDef.propertyName && chartDefaultsValues && chartDefaultsValues[initialChartType].hasOwnProperty(propDef.propertyName)) {
+                    if (chartDefaultsValues[initialChartType][propDef.propertyName] == null)
+                        isNullDefault = true;
+                }
 
                 if (colorInput) {
                     // Get the actual default color for this chart type
                     const actualDefault = getActualDefaultColor(colorInputId);
-                    
+
                     // Store the current custom value only if checkbox is currently checked
                     let customValue = checkbox.checked ? colorInput.value : (actualDefault || '#000000');
 
