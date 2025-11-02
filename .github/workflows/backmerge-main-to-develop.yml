@@ -1,0 +1,36 @@
+name: Back-merge main -> develop
+on:
+  push:
+    branches: [ master ]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  backmerge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure git
+        run: |
+          git config user.name "backmerge-bot"
+          git config user.email "backmerge-bot@users.noreply.github.com"
+      - name: Back-merge main into develop
+        run: |
+          git fetch origin develop
+          git checkout develop
+          # Try a fast-forward or normal merge; fail if conflict
+          git merge --no-ff --no-edit origin/main || exit 1
+          git push origin develop
+      - name: If conflict, open PR for humans
+        if: failure()
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "Back-merge main → develop (conflicts need resolution)"
+          body: "Hotfix or release merged to main. Please resolve conflicts."
+          branch: chore/backmerge-main-into-develop
+          base: develop
+          commit-message: "chore: back-merge main into develop"

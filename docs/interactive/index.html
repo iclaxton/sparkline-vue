@@ -10,24 +10,47 @@
     <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
     <link rel="stylesheet" href="/docs/shared/shared.css">
     <style>
+        /* CSS Custom Properties for Interactive Demo */
+        :root {
+            --demo-primary-color: #007acc;
+            --demo-bg-light: #f0f0f0;
+            --demo-bg-white: #ffffff;
+            --demo-border-light: #c0c0c0;
+            --demo-border-medium: #a0a0a0;
+            --demo-border-dark: #e8e8e8;
+            --demo-text-primary: #333333;
+            --demo-text-secondary: #555555;
+            --demo-text-light: #666666;
+            --demo-spacing-xs: 4px;
+            --demo-spacing-sm: 8px;
+            --demo-spacing-md: 12px;
+            --demo-spacing-lg: 15px;
+            --demo-spacing-xl: 20px;
+            --demo-font-xs: 0.8em;
+            --demo-font-sm: 0.85em;
+            --demo-font-base: 1em;
+            --demo-font-md: 14px;
+            --demo-font-lg: 16px;
+        }
+
         /* Interactive Demo Properties Panel - Visual Studio Style */
         .interactive-demo {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: var(--demo-spacing-xl);
             margin: 30px 0;
-            background: #f0f0f0;
+            background: var(--demo-bg-light);
             border-radius: 6px;
             padding: 30px;
-            border: 1px solid #c0c0c0;
+            border: 1px solid var(--demo-border-light);
         }
 
         .property-panel {
-            background: #ffffff;
-            border: 1px solid #a0a0a0;
+            background: var(--demo-bg-white);
+            border: 1px solid var(--demo-border-medium);
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 1em;
+            font-size: var(--demo-font-base);
         }
 
         .property-group {
@@ -39,13 +62,13 @@
         }
 
         .property-header {
-            background: linear-gradient(to bottom, #f0f0f0 0%, #e8e8e8 100%);
-            padding: 4px 8px;
+            background: linear-gradient(to bottom, var(--demo-bg-light) 0%, var(--demo-border-dark) 100%);
+            padding: var(--demo-spacing-xs) var(--demo-spacing-sm);
             font-weight: normal;
-            font-size: 0.85em;
-            color: #333333;
+            font-size: var(--demo-font-sm);
+            color: var(--demo-text-primary);
             cursor: pointer;
-            border-bottom: 1px solid #c0c0c0;
+            border-bottom: 1px solid var(--demo-border-light);
             border-top: 1px solid #f8f8f8;
             display: flex;
             justify-content: space-between;
@@ -89,12 +112,12 @@
             align-items: center;
             text-align: left;
             padding: 0;
-            border-bottom: 1px solid #e8e8e8;
+            border-bottom: 1px solid var(--demo-border-dark);
             min-height: 18px;
         }
 
         .property-field:last-child {
-            border-bottom: 1px solid #e8e8e8;
+            border-bottom: 1px solid var(--demo-border-dark);
         }
 
         .property-field:hover {
@@ -102,8 +125,8 @@
         }
 
         .property-field label {
-            font-size: 0.8em;
-            color: #333333;
+            font-size: var(--demo-font-xs);
+            color: var(--demo-text-primary);
             font-weight: normal;
             padding: 2px 6px;
             background: #f8f8f8;
@@ -117,13 +140,14 @@
             box-sizing: border-box;
         }
 
+        /* Base input styles - consolidated */
         .property-field input,
         .property-field select {
-            padding: 1px 4px;
+            padding: 1px var(--demo-spacing-xs);
             border: none;
             border-radius: 0;
-            font-size: 0.8em;
-            background: #ffffff;
+            font-size: var(--demo-font-xs);
+            background: var(--demo-bg-white);
             margin: 1px 2px;
             height: 20px;
             box-sizing: border-box;
@@ -134,6 +158,7 @@
             outline: none;
         }
 
+        /* Color input base styles */
         .property-field input[type="color"] {
             width: 40px;
             height: 20px;
@@ -146,6 +171,15 @@
         .property-field input[type="color"]:disabled {
             opacity: 0.4;
             cursor: not-allowed;
+        }
+
+        /* Checkbox base styles */
+        .property-field input[type="checkbox"] {
+            width: 13px;
+            height: 15px;
+            margin: 2px var(--demo-spacing-xs);
+            justify-self: start;
+            cursor: pointer;
         }
 
         .color-input-wrapper {
@@ -169,24 +203,17 @@
             box-sizing: border-box;
         }
 
-        .property-field input[type="checkbox"] {
-            width: 13px;
-            height: 15px;
-            margin: 2px 4px;
-            justify-self: start;
-            cursor: pointer;
-        }
-
+        /* Color checkbox base styles */
         .color-enable-checkbox {
             width: 13px !important;
             height: 15px !important;
-            margin: 2px 4px !important;
+            margin: 2px var(--demo-spacing-xs) !important;
         }
 
         .color-null-checkbox {
             width: 16px !important;
             height: 16px !important;
-            margin: 0 4px !important;
+            margin: 0 var(--demo-spacing-xs) !important;
             cursor: pointer;
         }
 
@@ -360,26 +387,29 @@
             line-height: 1.6;
         }
 
-        /* Responsive adjustments */
+        /* Responsive adjustments - Tablet and below (768px) */
         @media (max-width: 768px) {
-            .examples-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
+            .examples-grid,
             .interactive-demo {
                 grid-template-columns: 1fr;
-                gap: 20px;
+            }
+            
+            .examples-grid {
+                gap: var(--demo-spacing-lg);
+            }
+            
+            .interactive-demo {
+                gap: var(--demo-spacing-xl);
                 padding: 10px;
             }
 
             .chart-display {
-                padding: 15px;
+                padding: var(--demo-spacing-lg);
             }
 
             .code-display pre {
-                font-size: 0.85em;
-                padding: 12px;
+                font-size: var(--demo-font-sm);
+                padding: var(--demo-spacing-md);
                 line-height: 1.5;
             }
 
@@ -388,45 +418,40 @@
                 gap: 0;
                 padding: 0;
                 min-height: 40px;
-                /* Increased for better touch targets */
             }
 
+            /* Tablet input styles - consolidated */
             .property-field label {
-                font-size: 12px;
-                padding: 8px 6px;
+                font-size: var(--demo-spacing-md);
+                padding: var(--demo-spacing-sm) 6px;
             }
 
             .property-field input,
             .property-field select {
-                font-size: 14px;
+                font-size: var(--demo-font-md);
                 height: 32px;
-                /* Larger touch targets */
-                margin: 4px 2px;
-                padding: 4px 8px;
+                margin: var(--demo-spacing-xs) 2px;
+                padding: var(--demo-spacing-xs) var(--demo-spacing-sm);
             }
 
+            /* Tablet color and checkbox sizing */
             .property-field input[type="color"] {
                 width: 50px;
                 height: 32px;
             }
 
-            .property-field input[type="checkbox"] {
-                width: 20px;
-                height: 20px;
-                margin: 6px 8px;
-                cursor: pointer;
-            }
-
+            .property-field input[type="checkbox"],
             .color-enable-checkbox {
                 width: 20px !important;
                 height: 20px !important;
-                margin: 6px 8px !important;
+                margin: 6px var(--demo-spacing-sm) !important;
+                cursor: pointer;
             }
 
             .color-null-checkbox {
                 width: 24px !important;
                 height: 24px !important;
-                margin: 0 8px !important;
+                margin: 0 var(--demo-spacing-sm) !important;
             }
 
             .property-header {
@@ -451,15 +476,18 @@
             }
         }
 
-        /* Improved touch targets for very small screens */
+        /* Mobile phone styles (480px and below) - consolidated */
         @media (max-width: 480px) {
-            .examples-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
+            .examples-grid,
             .interactive-demo {
                 grid-template-columns: 1fr;
+            }
+            
+            .examples-grid {
+                gap: 10px;
+            }
+            
+            .interactive-demo {
                 gap: 5px;
                 padding: 5px;
             }
@@ -467,52 +495,62 @@
             .property-field {
                 grid-template-columns: 1fr;
                 gap: 2px;
-                padding: 4px 4px;
+                padding: 0;
                 min-height: 60px;
             }
 
             .property-field label {
-                font-size: 14px;
-                padding: 4px 0;
-                background: transparent;
+                font-size: 13px;
+                color: var(--demo-text-secondary);
+                padding: var(--demo-spacing-sm) var(--demo-spacing-sm);
+                margin: 0;
+                background: #f8f8f8;
                 border: none;
             }
 
+            .property-header {
+                padding: var(--demo-spacing-sm);
+                font-size: var(--demo-font-md);
+                min-height: 32px;
+            }
+
+            /* Mobile input consolidation */
             .property-field input,
             .property-field select {
                 height: 40px;
-                font-size: 16px;
-                /* Prevents zoom on iOS */
-                padding: 8px 12px;
+                font-size: var(--demo-font-lg); /* Prevents zoom on iOS */
+                padding: var(--demo-spacing-sm);
+                margin: 0;
             }
 
-            .property-field input[type="color"] {
+            /* Mobile color inputs and alignment helpers */
+            .property-field input[type="color"],
+            .color-input-wrapper {
                 width: 60px;
                 height: 40px;
+                margin-left: var(--demo-spacing-sm);
             }
 
-            .property-field input[type="checkbox"] {
-                width: 24px;
-                height: 24px;
-                margin: 8px 0;
-                cursor: pointer;
-            }
-
+            /* Mobile checkbox styles - consolidated */
+            .property-field input[type="checkbox"],
             .color-enable-checkbox {
                 width: 24px !important;
                 height: 24px !important;
-                margin: 8px 0 !important;
+                margin: var(--demo-spacing-sm) 0 !important;
+                margin-left: var(--demo-spacing-sm) !important;
+                cursor: pointer;
             }
 
             .color-null-checkbox {
                 width: 28px !important;
                 height: 28px !important;
                 margin: 0 !important;
+                margin-left: var(--demo-spacing-sm) !important;
             }
 
             .code-display pre {
                 font-size: 0.95em;
-                padding: 15px;
+                padding: var(--demo-spacing-lg);
                 line-height: 1.6;
             }
         }
