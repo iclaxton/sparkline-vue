@@ -630,22 +630,6 @@
         //   - a value: override chart class default for all chart types
         //   - an object: chart-specific overrides (e.g., { line: '#ff0000', discrete: '#00ff00' })
         const propertyDefinitions = [
-            // Chart data - the most fundamental property
-            { id: 'chart-values', propertyName: 'values', label: 'Chart Values', type: 'text', 
-                defaultValue: {
-                    line: '5,6,7,9,9,5,3,2,2,4,6,7',
-                    bar: '5,6,7,9,9,5,3,2,2,4,6,7',
-                    pie: '1,1,1,2',
-                    discrete: '4,6,7,7,4,3,2,1,4,5,7,9',
-                    tristate: '1,1,0,-1,1,-1,0,1,-1',
-                    bullet: '10,12,12,9,7',
-                    box: '4,27,34,52,54,59,61,68,78,82,85,87,91,93,100',
-                    'line-multi': '[[1.53,1.49,1.29,1.34,1.28,1.27,1.38,1.39,1.56,1.27],[1.11,1.11,1.13,1.18,1.12,1.12,1.14,1.18,1.06,1.08],[1.38,1.34,1.14,1.13,1.14,1.13,1.21,1.18,1.47,1.18]]'
-                },
-                visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'],
-                group: 'Data' 
-            },
-
             // Line chart colors
             { id: 'line-color', propertyName: 'lineColor', label: 'Line Color', type: 'color', checked: true, hasNull: true, visibleFor: ['line', 'discrete'], group: 'Colors' },
             { id: 'fill-color', propertyName: 'fillColor', label: 'Fill Color', type: 'color', checked: false, hasNull: true, nullLabel: 'undefined', disabled: true, visibleFor: ['line'], group: 'Colors' },
@@ -830,7 +814,7 @@
                     element.value = actualDefault || '#000000';
                 } else if (prop.type === 'number' || prop.type === 'text') {
                     // Some text inputs need actual values set (chart data), others use placeholders (optional settings)
-                    const needsValue = ['chart-values', 'data-labels', 'series-names'].includes(prop.id);
+                    const needsValue = ['data-labels', 'series-names'].includes(prop.id);
                     
                     if (needsValue && actualDefault !== undefined && actualDefault !== null && typeof actualDefault !== 'object') {
                         // Set the actual value for data inputs (only if it's not an object)
@@ -865,6 +849,22 @@
                     }
                 }
             });
+            
+            // Special handling for chart-values (not in propertyDefinitions but needs chart-specific defaults)
+            const chartValuesElement = document.getElementById('chart-values');
+            if (chartValuesElement) {
+                const chartValueDefaults = {
+                    line: '5,6,7,9,9,5,3,2,2,4,6,7',
+                    bar: '5,6,7,9,9,5,3,2,2,4,6,7',
+                    pie: '1,1,1,2',
+                    discrete: '4,6,7,7,4,3,2,1,4,5,7,9',
+                    tristate: '1,1,0,-1,1,-1,0,1,-1',
+                    bullet: '10,12,12,9,7',
+                    box: '4,27,34,52,54,59,61,68,78,82,85,87,91,93,100',
+                    'line-multi': '[[1.53,1.49,1.29,1.34,1.28,1.27,1.38,1.39,1.56,1.27],[1.11,1.11,1.13,1.18,1.12,1.12,1.14,1.18,1.06,1.08],[1.38,1.34,1.14,1.13,1.14,1.13,1.21,1.18,1.47,1.18]]'
+                };
+                chartValuesElement.value = chartValueDefaults[chartType] || chartValueDefaults.line;
+            }
         }
 
         // Helper function to create a sparkline on canvas
