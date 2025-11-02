@@ -13,7 +13,7 @@ export class PieChart extends BaseChart {
    * Get default options for pie chart
    * @returns {Object} Default options object
    */
-  getDefaults() {
+  static getDefaults() {
     return {
       ...super.getDefaults(),
       type: 'pie',
