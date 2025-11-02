@@ -34,3 +34,4 @@ jobs:
           branch: chore/backmerge-main-into-develop
           base: develop
           commit-message: "chore: back-merge main into develop"
+          token: ${{ secrets.GITHUB_TOKEN }}
