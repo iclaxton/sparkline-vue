@@ -23,6 +23,7 @@ export class TriStateChart extends BaseChart {
       negBarColor: '#f00',
       zeroBarColor: '#999',
       colorMap: {},
+      stateLabels: { positive: 'Win', zero: 'Draw', negative: 'Loss' }, // Labels for the three states
       dataLabels: undefined,   // Optional array of labels OR callback function(index) => label for data points (shown in tooltips)
       getPointDataLabel: undefined  // Alternative: callback function(index) => label for high-performance scenarios
     };
@@ -293,10 +294,12 @@ export class TriStateChart extends BaseChart {
    * @returns {Object|null} Tooltip content with items array
    */
   getTooltipContent(region) {
+    const { stateLabels } = this.options;
+    
     // For tristate charts, we can show a summary of all states when hovering over any bar
-    const wins = this.values.filter(v => v > 0).length;
-    const losses = this.values.filter(v => v < 0).length;
-    const draws = this.values.filter(v => v === 0).length;
+    const positive = this.values.filter(v => v > 0).length;
+    const negative = this.values.filter(v => v < 0).length;
+    const zero = this.values.filter(v => v === 0).length;
     
     if (typeof region === 'number') {
       const currentValue = this.values[region];
@@ -306,17 +309,17 @@ export class TriStateChart extends BaseChart {
       // Add current state info
       if (currentValue > 0) {
         items.push({
-          label: `Win`,
+          label: stateLabels.positive || 'Win',
           color: this.options.posBarColor
         });
       } else if (currentValue < 0) {
         items.push({
-          label: `Loss`,
+          label: stateLabels.negative || 'Loss',
           color: this.options.negBarColor
         });
       } else {
         items.push({
-          label: `Draw`,
+          label: stateLabels.zero || 'Draw',
           color: this.options.zeroBarColor
         });
       }
@@ -327,23 +330,23 @@ export class TriStateChart extends BaseChart {
       });
       
       // Add summary stats
-      if (wins > 0) {
+      if (positive > 0) {
         items.push({
-          label: `Total Wins: ${wins}`,
+          label: `Total ${stateLabels.positive || 'Wins'}: ${positive}`,
           color: this.options.posBarColor
         });
       }
       
-      if (losses > 0) {
+      if (negative > 0) {
         items.push({
-          label: `Total Losses: ${losses}`,
+          label: `Total ${stateLabels.negative || 'Losses'}: ${negative}`,
           color: this.options.negBarColor
         });
       }
       
-      if (draws > 0) {
+      if (zero > 0) {
         items.push({
-          label: `Total Draws: ${draws}`,
+          label: `Total ${stateLabels.zero || 'Draws'}: ${zero}`,
           color: this.options.zeroBarColor
         });
       }
@@ -364,10 +367,12 @@ export class TriStateChart extends BaseChart {
    * @returns {string} Formatted tooltip text
    */
   getDefaultTooltipFormat(value, region) {
-    // Force the custom tooltip format
-    if (value === 1) return 'Win';
-    if (value === 0) return 'Draw';  
-    if (value === -1) return 'Loss';
+    const { stateLabels } = this.options;
+    
+    // Use custom state labels
+    if (value > 0) return stateLabels.positive || 'Win';
+    if (value === 0) return stateLabels.zero || 'Draw';  
+    if (value < 0) return stateLabels.negative || 'Loss';
     return `Tristate: ${value}`; // Fallback that shows it's working
   }
 
