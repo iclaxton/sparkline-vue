@@ -147,7 +147,20 @@ Shows win/lose/draw states.
   :options="{
     posBarColor: '#6f6',
     negBarColor: '#f44',
-    zeroBarColor: '#999'
+    zeroBarColor: '#999',
+    stateLabels: { positive: 'Win', zero: 'Draw', negative: 'Loss' }
+  }"
+/>
+```
+
+**Custom State Labels Example:**
+```vue
+<!-- Use custom labels for different contexts -->
+<Sparkline 
+  :data="[1, -1, 0, 1, 1]" 
+  type="tristate"
+  :options="{
+    stateLabels: { positive: 'Up', zero: 'Flat', negative: 'Down' }
   }"
 />
 ```
@@ -222,6 +235,10 @@ All chart types support these options:
 | `height` | Number | 30 | Chart height in pixels |
 | `lineColor` | String | '#00f' | Primary line/border color |
 | `fillColor` | String | '#cdf' | Fill color |
+| `disableTooltips` | Boolean | false | Disable all tooltips |
+| `showTooltipTitle` | Boolean | true | Show title in multi-value tooltips |
+| `tooltipPrefix` | String | '' | Text to prepend to tooltip values |
+| `tooltipSuffix` | String | '' | Text to append to tooltip values |
 
 ### Line Chart Options
 
@@ -260,6 +277,7 @@ All chart types support these options:
 | `posBarColor` | String | '#6f6' | Color for positive values |
 | `negBarColor` | String | '#f44' | Color for negative values |
 | `zeroBarColor` | String | '#999' | Color for zero values |
+| `stateLabels` | Object | `{ positive: 'Win', zero: 'Draw', negative: 'Loss' }` | Custom labels for the three states |
 | `barWidth` | Number | 4 | Width of each bar |
 | `barSpacing` | Number | 1 | Space between bars |
 | `dataLabels` | Array<string> | undefined | Labels for each data point (e.g., ['Game 1', 'Game 2']) |
@@ -498,6 +516,43 @@ const getChartDetails = () => {
 }
 </script>
 ```
+
+### Tooltip Customization
+
+Control tooltip appearance and content:
+
+```vue
+<template>
+  <!-- Disable title in tooltips -->
+  <Sparkline 
+    :data="multiSeriesData"
+    type="line"
+    :options="{
+      showTooltipTitle: false,  // Hide title
+      tooltipPrefix: '$',
+      tooltipSuffix: ' USD'
+    }"
+  />
+  
+  <!-- Custom tooltip formatting -->
+  <Sparkline 
+    :data="[1, 2, 3, 4, 5]"
+    type="bar"
+    :options="{
+      tooltipPrefix: 'Value: ',
+      tooltipSuffix: ' units',
+      tooltipFormat: '{{value.2}}'  // 2 decimal places
+    }"
+  />
+</template>
+```
+
+**Tooltip Options:**
+- `showTooltipTitle`: Show/hide title in multi-value tooltips (default: true)
+- `disableTooltips`: Completely disable tooltips (default: false)
+- `tooltipPrefix`: Text to prepend to values
+- `tooltipSuffix`: Text to append to values
+- `tooltipFormat`: Template string for formatting (e.g., `'{{value.2}}'` for 2 decimals)
 
 ### Event Handling
 

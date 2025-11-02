@@ -78,6 +78,7 @@ export class BaseChart {
       tooltipSuffix: '',
       tooltipFormat: '{{value}}',
       tooltipFormatter: null,
+      showTooltipTitle: true,        // Show title and separators in multi-value tooltips
       highlightLighten: 1.4,
       highlightSpotColor: null,
       highlightLineColor: '#555555',
@@ -934,8 +935,8 @@ export class BaseChart {
     if (tooltipContent && typeof tooltipContent === 'object' && tooltipContent.items) {
       // Multi-value tooltip with color spots - use DOM manipulation
       
-      // Add title if present (e.g., date/month label for multi-series or stacked charts)
-      if (tooltipContent.title) {
+      // Add title if present and enabled (e.g., date/month label for multi-series or stacked charts)
+      if (tooltipContent.title && this.options.showTooltipTitle) {
         const titleDiv = document.createElement('div');
         titleDiv.style.cssText = 'font-weight: bold; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.3);';
         titleDiv.textContent = tooltipContent.title;
@@ -945,10 +946,15 @@ export class BaseChart {
       tooltipContent.items.forEach(item => {
         const itemDiv = document.createElement('div');
         
-        // Handle separator items specially
-        if (item.isSeparator) {
+        // Handle separator items specially (only if showTooltipTitle is enabled)
+        if (item.isSeparator && this.options.showTooltipTitle) {
           itemDiv.style.cssText = 'font-weight: bold; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.3);';
           tooltip.appendChild(itemDiv);
+          return;
+        }
+        
+        // Skip separator items if showTooltipTitle is disabled
+        if (item.isSeparator) {
           return;
         }
         
