@@ -790,9 +790,10 @@
                 // Check for chart-specific default first (e.g., defaultValue: { line: '#ff0000', discrete: '#00ff00' })
                 if (prop.defaultValue && typeof prop.defaultValue === 'object' && !Array.isArray(prop.defaultValue)) {
                     actualDefault = prop.defaultValue[chartType];
+                    // Keep actualDefault as undefined if the chart type doesn't have a specific default
                 }
                 
-                // If no chart-specific default, use the simple defaultValue if present
+                // If no chart-specific default, use the simple defaultValue if present (not an object)
                 if (actualDefault === undefined && prop.defaultValue !== undefined && typeof prop.defaultValue !== 'object') {
                     actualDefault = prop.defaultValue;
                 }
@@ -831,8 +832,8 @@
                     // Some text inputs need actual values set (chart data), others use placeholders (optional settings)
                     const needsValue = ['chart-values', 'data-labels', 'series-names'].includes(prop.id);
                     
-                    if (needsValue && actualDefault !== undefined && actualDefault !== null) {
-                        // Set the actual value for data inputs
+                    if (needsValue && actualDefault !== undefined && actualDefault !== null && typeof actualDefault !== 'object') {
+                        // Set the actual value for data inputs (only if it's not an object)
                         element.value = actualDefault;
                     } else {
                         // For numbers and other text inputs, leave value empty and use placeholder to show the default/behavior
@@ -844,8 +845,8 @@
                         if (prop.placeholder) {
                             // If there's an explicit placeholder defined, use it
                             placeholderText = prop.placeholder;
-                        } else if (actualDefault !== undefined && actualDefault !== null) {
-                            // Show the actual default value
+                        } else if (actualDefault !== undefined && actualDefault !== null && typeof actualDefault !== 'object') {
+                            // Show the actual default value (only if it's not an object)
                             placeholderText = `Default: ${actualDefault}`;
                         } else if (prop.propertyName) {
                             // For properties without defaults, try to determine if Auto or Optional
@@ -945,8 +946,8 @@
                     if (propDef.placeholder) html += ` placeholder="${propDef.placeholder}"`;
                     html += `>`;
                 } else if (propDef.type === 'text') {
-                    // Use defaultValue if present, otherwise empty (will be populated from chart defaults)
-                    const value = propDef.defaultValue !== undefined ? propDef.defaultValue : '';
+                    // Use defaultValue if present and it's not an object (chart-specific defaults are applied later)
+                    const value = (propDef.defaultValue !== undefined && typeof propDef.defaultValue !== 'object') ? propDef.defaultValue : '';
                     html += `<input type="text" id="${propDef.id}" value="${value}"`;
                     if (propDef.placeholder) html += ` placeholder="${propDef.placeholder}"`;
                     html += `>`;

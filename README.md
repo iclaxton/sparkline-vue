@@ -147,7 +147,20 @@ Shows win/lose/draw states.
   :options="{
     posBarColor: '#6f6',
     negBarColor: '#f44',
-    zeroBarColor: '#999'
+    zeroBarColor: '#999',
+    stateLabels: { positive: 'Win', zero: 'Draw', negative: 'Loss' }
+  }"
+/>
+```
+
+**Custom State Labels Example:**
+```vue
+<!-- Use custom labels for different contexts -->
+<Sparkline 
+  :data="[1, -1, 0, 1, 1]" 
+  type="tristate"
+  :options="{
+    stateLabels: { positive: 'Up', zero: 'Flat', negative: 'Down' }
   }"
 />
 ```
@@ -264,6 +277,7 @@ All chart types support these options:
 | `posBarColor` | String | '#6f6' | Color for positive values |
 | `negBarColor` | String | '#f44' | Color for negative values |
 | `zeroBarColor` | String | '#999' | Color for zero values |
+| `stateLabels` | Object | `{ positive: 'Win', zero: 'Draw', negative: 'Loss' }` | Custom labels for the three states |
 | `barWidth` | Number | 4 | Width of each bar |
 | `barSpacing` | Number | 1 | Space between bars |
 | `dataLabels` | Array<string> | undefined | Labels for each data point (e.g., ['Game 1', 'Game 2']) |

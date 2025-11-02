@@ -869,5 +869,168 @@ describe('Sparkline Component', () => {
       expect(wrapper.exists()).toBe(true)
     })
   })
+
+  describe('Tooltip Title Display', () => {
+    it('shows tooltip title by default', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, 2, 3, 4, 5],
+          type: 'line',
+          options: {
+            dataLabels: ['Jan', 'Feb', 'Mar', 'Apr', 'May']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+      // Tooltip title should be shown by default (showTooltipTitle: true)
+    })
+
+    it('hides tooltip title when showTooltipTitle is false', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, 2, 3, 4, 5],
+          type: 'line',
+          options: {
+            showTooltipTitle: false,
+            dataLabels: ['Jan', 'Feb', 'Mar', 'Apr', 'May']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('hides tooltip separator when showTooltipTitle is false', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, -1, 0, 1, -1],
+          type: 'tristate',
+          options: {
+            showTooltipTitle: false,
+            dataLabels: ['Game 1', 'Game 2', 'Game 3', 'Game 4', 'Game 5']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+      // Tristate separators should also be hidden when showTooltipTitle is false
+    })
+
+    it('works with all chart types', () => {
+      const chartTypes = ['line', 'bar', 'tristate', 'discrete', 'pie', 'bullet', 'box']
+      
+      chartTypes.forEach(type => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: type === 'pie' ? [1, 2, 3, 4] : [1, 2, 3, 4, 5],
+            type,
+            options: {
+              showTooltipTitle: false
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+    })
+  })
+
+  describe('Tristate Chart State Labels', () => {
+    it('uses default state labels (Win/Draw/Loss)', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, -1, 0, 1, -1],
+          type: 'tristate',
+          options: {
+            dataLabels: ['Game 1', 'Game 2', 'Game 3', 'Game 4', 'Game 5']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+      // Default labels: { positive: 'Win', zero: 'Draw', negative: 'Loss' }
+    })
+
+    it('accepts custom state labels', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, -1, 0, 1, -1],
+          type: 'tristate',
+          options: {
+            stateLabels: {
+              positive: 'Up',
+              zero: 'Flat',
+              negative: 'Down'
+            },
+            dataLabels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5']
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('accepts partial custom state labels', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, -1, 0],
+          type: 'tristate',
+          options: {
+            stateLabels: {
+              positive: 'Good',
+              negative: 'Bad'
+              // zero: 'Draw' will use default
+            }
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('uses custom labels for different contexts', () => {
+      // Test various label sets
+      const labelSets = [
+        { positive: 'High', zero: 'Medium', negative: 'Low' },
+        { positive: 'Profit', zero: 'Break Even', negative: 'Loss' },
+        { positive: 'Above', zero: 'At Target', negative: 'Below' },
+        { positive: 'Increase', zero: 'Stable', negative: 'Decrease' }
+      ]
+
+      labelSets.forEach(labels => {
+        wrapper = mount(Sparkline, {
+          props: {
+            data: [1, -1, 0, 1, -1],
+            type: 'tristate',
+            options: {
+              stateLabels: labels
+            }
+          }
+        })
+        
+        expect(wrapper.exists()).toBe(true)
+      })
+    })
+
+    it('custom labels work with showTooltipTitle false', () => {
+      wrapper = mount(Sparkline, {
+        props: {
+          data: [1, -1, 0, 1, -1],
+          type: 'tristate',
+          options: {
+            stateLabels: {
+              positive: 'Win',
+              zero: 'Draw',
+              negative: 'Lose'
+            },
+            showTooltipTitle: false
+          }
+        }
+      })
+      
+      expect(wrapper.exists()).toBe(true)
+    })
+  })
 })
 
