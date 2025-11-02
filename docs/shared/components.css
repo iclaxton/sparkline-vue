@@ -1,15 +1,15 @@
 /* Interactive components and controls */
 .controls {
-    background: #f8f9fa;
+    background: var(--bg-light);
     margin: 0;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--border-light);
     overflow-x: auto;
 }
 
 .controls h4 {
-    margin: 0 0 15px 0;
-    color: #2c3e50;
-    font-size: 1.1em;
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--primary-color);
+    font-size: var(--font-lg);
 }
 
 /* Button styles */
@@ -17,10 +17,10 @@
     background: #28a745;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: var(--spacing-xs) 16px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: var(--font-base);
     transition: background-color 0.2s;
     min-width: 0;
 }
@@ -34,10 +34,10 @@
     background: #dc3545;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: var(--spacing-xs) 16px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: var(--font-base);
     transition: background-color 0.2s;
     min-width: 0;
 }
@@ -51,10 +51,10 @@
     background: #ffc107;
     color: #212529;
     border: none;
-    padding: 8px 16px;
+    padding: var(--spacing-xs) 16px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: var(--font-base);
     transition: background-color 0.2s;
     min-width: 0;
 }
@@ -75,10 +75,10 @@
     background: #007bff;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: var(--spacing-xs) 16px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: var(--font-base);
     transition: background-color 0.2s;
 }
 
@@ -89,7 +89,7 @@
 /* Control group for button layouts */
 .control-group {
     display: flex;
-    gap: 10px;
+    gap: var(--spacing-sm);
     flex-wrap: wrap;
     align-items: center;
 }
@@ -101,40 +101,40 @@
 
 /* Information displays */
 .info-display {
-    background: #d4edda;
+    background: var(--bg-success);
     color: #155724;
     border: 1px solid #c3e6cb;
-    padding: 15px;
-    border-radius: 6px;
-    margin: 15px 0;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    margin: var(--spacing-md) 0;
     font-family: monospace;
-    font-size: 0.9em;
+    font-size: var(--font-base);
     border-left: 4px solid #28a745;
 }
 
 .click-info {
-    background: #d4edda;
+    background: var(--bg-success);
     color: #155724;
     border: 1px solid #c3e6cb;
-    padding: 10px;
+    padding: var(--spacing-sm);
     border-radius: 4px;
-    margin-top: 10px;
-    font-size: 0.9em;
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-base);
 }
 
 /* Legacy click info for compatibility */
 .interactive-demo {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 15px 0;
+    background: var(--bg-light);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    margin: var(--spacing-md) 0;
     overflow-x: auto;
 }
 
 .click-info {
-    margin-top: 10px;
-    padding: 8px;
-    background: #e7f3ff;
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-xs);
+    background: var(--bg-info);
     border-radius: 4px;
     font-size: 12px;
     color: #0056b3;
@@ -144,10 +144,10 @@
 /* Status indicators */
 .status-indicator {
     display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: var(--spacing-xs);
+    height: var(--spacing-xs);
     border-radius: 50%;
-    margin-right: 8px;
+    margin-right: var(--spacing-xs);
 }
 
 .status-running {

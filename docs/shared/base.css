@@ -1,4 +1,37 @@
 /* Base styles shared across all demo pages */
+
+/* CSS Custom Properties for consistent theming */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #34495e;
+    --accent-color: #667eea;
+    --accent-purple: #764ba2;
+    --text-primary: #2c3e50;
+    --text-secondary: #666;
+    --text-light: #6c757d;
+    --text-muted: #888;
+    --bg-white: #ffffff;
+    --bg-light: #f8f9fa;
+    --bg-success: #d4edda;
+    --bg-info: #e7f3ff;
+    --border-light: #e9ecef;
+    --border-primary: #667eea;
+    --spacing-xs: 8px;
+    --spacing-sm: 10px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+    --spacing-xl: 30px;
+    --font-xs: 0.8em;
+    --font-sm: 0.85em;
+    --font-base: 0.9em;
+    --font-md: 1em;
+    --font-lg: 1.1em;
+    --font-xl: 1.2em;
+    --border-radius-sm: 6px;
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -6,37 +39,37 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;    
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-purple) 100%);
     min-height: 100vh;
     margin: 0;
     padding: 0;
 }
 
 .outer-container {
-    padding: 20px;
+    padding: var(--spacing-lg);
 }
 
 .container {
     margin: 0;
     margin: auto;
     max-width: 1200px;
-    background: white;
-    border-radius: 12px;
+    background: var(--bg-white);
+    border-radius: var(--border-radius-lg);
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     overflow: hidden;
 }
 
 .header {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
     padding: 0px;
     text-align: center;
     position: relative;
-    padding: 20px 20px;
+    padding: var(--spacing-lg) var(--spacing-lg);
 }
 
 .header h1 {
-    margin: 0 0 15px 0;
+    margin: 0 0 var(--spacing-md) 0;
     font-size: 3em;
     font-weight: 700;
     background: linear-gradient(45deg, #fff, #ecf0f1);
@@ -46,13 +79,13 @@ body {
 }
 
 .header p {
-    margin: 0 0 30px 0;
-    font-size: 1.2em;
+    margin: 0 0 var(--spacing-xl) 0;
+    font-size: var(--font-xl);
     opacity: 0.9;
 }
 
 .content {
-    padding: 20px;
+    padding: var(--spacing-lg);
 }
 
 .intro {
@@ -61,14 +94,14 @@ body {
 }
 
 .intro h2 {
-    color: #2c3e50;
+    color: var(--primary-color);
     font-size: 2.2em;
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-md);
 }
 
 .intro p {
-    font-size: 1.1em;
-    color: #666;
+    font-size: var(--font-lg);
+    color: var(--text-secondary);
     max-width: 600px;
     margin: 0 auto;
 }
@@ -78,11 +111,11 @@ body {
 }
 
 .section h2 {
-    color: #2c3e50;
+    color: var(--primary-color);
     font-size: 2.2em;
-    margin-bottom: 30px;
-    border-bottom: 3px solid #667eea;
-    padding-bottom: 10px;
+    margin-bottom: var(--spacing-xl);
+    border-bottom: 3px solid var(--accent-color);
+    padding-bottom: var(--spacing-sm);
 }
 
 /* Canvas styling - placeholder for future canvas-specific styles */
@@ -93,10 +126,10 @@ body {
 
 /* Utility classes */
 code {
-    background: #f8f9fa;
+    background: var(--bg-light);
     padding: 2px 6px;
     border-radius: 3px;
-    font-size: 0.9em;
+    font-size: var(--font-base);
     color: #e83e8c;
 }
 
@@ -104,25 +137,25 @@ code {
     color: #dc3545;
     background: #f8d7da;
     border: 1px solid #f5c6cb;
-    padding: 12px;
-    border-radius: 6px;
-    margin: 15px 0;
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    margin: var(--spacing-md) 0;
 }
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
 
     .outer-container {
-        padding: 10px;
+        padding: var(--spacing-sm);
     }
 
     .container {
         margin: 0;
-        border-radius: 8px;
+        border-radius: var(--border-radius);
     }
     
     .header {
-        padding: 30px 15px;
+        padding: var(--spacing-xl) var(--spacing-md);
     }
     
     .header h1 {
@@ -130,11 +163,11 @@ code {
     }
     
     .header p {
-        font-size: 1.1em;
+        font-size: var(--font-lg);
     }
     
     .content {
-        padding: 15px;
+        padding: var(--spacing-sm);
     }
     
     .intro h2 {
@@ -153,24 +186,24 @@ code {
 
     .container {
         margin: 0;
-        border-radius: 6px;
+        border-radius: var(--border-radius-sm);
     }
     
     .header {
-        padding: 20px 10px;
+        padding: var(--spacing-lg) var(--spacing-sm);
     }
     
     .header h1 {
-        margin: 30px 0 15px 0;
+        margin: var(--spacing-xl) 0 var(--spacing-md) 0;
         font-size: 1.8em;
     }
     
     .header p {
-        font-size: 1em;
+        font-size: var(--font-md);
         margin: 0px;
     }
     
     .content {
-        padding: 10px;
+        padding: 5px;
     }
 }

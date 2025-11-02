@@ -1,7 +1,7 @@
 /* Multi-series chart layouts and specialized charts */
 .multi-chart {
     display: flex;
-    gap: 20px;
+    gap: var(--spacing-lg);
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
@@ -13,28 +13,28 @@
 
 .chart-with-label .chart-type-label {
     font-weight: 600;
-    color: #6c757d;
-    margin-bottom: 8px;
-    font-size: 0.9em;
+    color: var(--text-light);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-base);
 }
 
 /* Theme selector components */
 .theme-selector {
     display: flex;
-    gap: 10px;
-    margin: 15px 0;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-md) 0;
     justify-content: center;
     flex-wrap: wrap;
 }
 
 .theme-btn {
-    padding: 8px 16px;
+    padding: var(--spacing-xs) 16px;
     border: 2px solid #dee2e6;
-    background: white;
-    border-radius: 6px;
+    background: var(--bg-white);
+    border-radius: var(--border-radius-sm);
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 0.9em;
+    font-size: var(--font-base);
 }
 
 .theme-btn.active {
@@ -46,30 +46,30 @@
 /* Live data controls */
 .live-data-controls {
     display: flex;
-    gap: 10px;
+    gap: var(--spacing-sm);
     justify-content: center;
-    margin: 15px 0;
+    margin: var(--spacing-md) 0;
     flex-wrap: wrap;
 }
 
 /* Demo sections for older examples compatibility */
 .demo-section {
-    margin: 30px 0;
+    margin: var(--spacing-xl) 0;
     padding: 25px;
 }
 
 .demo-section h2 {
-    margin: 0 0 20px 0;
+    margin: 0 0 var(--spacing-lg) 0;
     font-size: 1.5em;
-    color: #2c3e50;
+    color: var(--primary-color);
     border-bottom: 2px solid #3498db;
-    padding-bottom: 10px;
+    padding-bottom: var(--spacing-sm);
 }
 
 /* Comprehensive demo specific grids */
 .comprehensive-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 30px;
-    margin: 30px 0;
+    gap: var(--spacing-xl);
+    margin: var(--spacing-xl) 0;
 }
