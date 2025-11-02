@@ -630,6 +630,22 @@
         //   - a value: override chart class default for all chart types
         //   - an object: chart-specific overrides (e.g., { line: '#ff0000', discrete: '#00ff00' })
         const propertyDefinitions = [
+            // Chart data - the most fundamental property
+            { id: 'chart-values', propertyName: 'values', label: 'Chart Values', type: 'text', 
+                defaultValue: {
+                    line: '5,6,7,9,9,5,3,2,2,4,6,7',
+                    bar: '5,6,7,9,9,5,3,2,2,4,6,7',
+                    pie: '1,1,1,2',
+                    discrete: '4,6,7,7,4,3,2,1,4,5,7,9',
+                    tristate: '1,1,0,-1,1,-1,0,1,-1',
+                    bullet: '10,12,12,9,7',
+                    box: '4,27,34,52,54,59,61,68,78,82,85,87,91,93,100',
+                    'line-multi': '[[1.53,1.49,1.29,1.34,1.28,1.27,1.38,1.39,1.56,1.27],[1.11,1.11,1.13,1.18,1.12,1.12,1.14,1.18,1.06,1.08],[1.38,1.34,1.14,1.13,1.14,1.13,1.21,1.18,1.47,1.18]]'
+                },
+                visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'],
+                group: 'Data' 
+            },
+
             // Line chart colors
             { id: 'line-color', propertyName: 'lineColor', label: 'Line Color', type: 'color', checked: true, hasNull: true, visibleFor: ['line', 'discrete'], group: 'Colors' },
             { id: 'fill-color', propertyName: 'fillColor', label: 'Fill Color', type: 'color', checked: false, hasNull: true, nullLabel: 'undefined', disabled: true, visibleFor: ['line'], group: 'Colors' },
@@ -657,10 +673,11 @@
             
             // Tooltips
             { id: 'disable-tooltips', propertyName: 'disableTooltips', label: 'Disable Tooltips', type: 'checkbox', visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'], group: 'Tooltips' },
+            { id: 'show-tooltip-title', propertyName: 'showTooltipTitle', label: 'Show Tooltip Title', type: 'checkbox', defaultChecked: true, visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'], group: 'Tooltips' },
             { id: 'tooltip-prefix', propertyName: 'tooltipPrefix', label: 'Tooltip Prefix', type: 'text', placeholder: "e.g., 'Value: '", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'], group: 'Tooltips' },
             { id: 'tooltip-suffix', propertyName: 'tooltipSuffix', label: 'Tooltip Suffix', type: 'text', placeholder: "e.g., ' units'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'], group: 'Tooltips' },
             { id: 'tooltip-format', propertyName: 'tooltipFormat', label: 'Tooltip Format', type: 'text', placeholder: "e.g., '{{value}}' or '{{value.2}}'", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate', 'bullet', 'box'], group: 'Tooltips' },
-            { id: 'data-labels', propertyName: 'dataLabels', label: 'Data Labels', type: 'text', placeholder: "Comma-separated labels (e.g., 'Jan,Feb,Mar')", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate'], group: 'Tooltips' },
+            { id: 'data-labels', propertyName: 'dataLabels', label: 'Data Labels', type: 'text', placeholder: "Comma-separated labels (e.g., 'Jan,Feb,Mar')", visibleFor: ['line', 'line-multi', 'bar', 'pie', 'discrete', 'tristate'], group: 'Tooltips', defaultValue: { 'line-multi': '2015,2016,2017,2018,2019,2020,2021,2022,2023,2024', 'pie': 'Category A,Category B,Category C,Category D' } },
             
             // Bar chart
             { id: 'bar-color', propertyName: 'barColor', label: 'Bar Color', type: 'color', checked: false, disabled: true, visibleFor: ['bar'], group: 'Colors' },
@@ -682,6 +699,9 @@
             { id: 'tristate-pos-bar-color', propertyName: 'posBarColor', label: 'Positive Color', type: 'color', checked: false, disabled: true, visibleFor: ['tristate'], group: 'Colors' },
             { id: 'tristate-neg-bar-color', propertyName: 'negBarColor', label: 'Negative Color', type: 'color', checked: false, disabled: true, visibleFor: ['tristate'], group: 'Colors' },
             { id: 'tristate-zero-bar-color', propertyName: 'zeroBarColor', label: 'Zero Color', type: 'color', checked: false, disabled: true, visibleFor: ['tristate'], group: 'Colors' },
+            { id: 'tristate-positive-label', propertyName: 'stateLabels.positive', label: 'Positive Label', type: 'text', placeholder: 'Win', visibleFor: ['tristate'], group: 'State Labels' },
+            { id: 'tristate-zero-label', propertyName: 'stateLabels.zero', label: 'Zero Label', type: 'text', placeholder: 'Draw', visibleFor: ['tristate'], group: 'State Labels' },
+            { id: 'tristate-negative-label', propertyName: 'stateLabels.negative', label: 'Negative Label', type: 'text', placeholder: 'Loss', visibleFor: ['tristate'], group: 'State Labels' },
             { id: 'tristate-bar-width', propertyName: 'barWidth', label: 'Bar Width', type: 'text', placeholder: 'auto, fill, or px value', visibleFor: ['tristate'], group: 'Dimensions' },
             { id: 'tristate-bar-spacing', propertyName: 'barSpacing', label: 'Bar Spacing', type: 'number', min: 0, max: 10, visibleFor: ['tristate'], group: 'Dimensions' },
             
@@ -698,7 +718,7 @@
             { id: 'bullet-performance-color', propertyName: 'performanceColor', label: 'Performance Color', type: 'color', checked: false, disabled: true, visibleFor: ['bullet'], group: 'Colors' },
             
             // Multi-series line chart
-            { id: 'series-names', propertyName: 'seriesNames', label: 'Series Names', type: 'text', placeholder: 'Optional (auto-generated)', visibleFor: ['line-multi'], group: 'Series' },
+            { id: 'series-names', propertyName: 'seriesNames', label: 'Series Names', type: 'text', placeholder: 'Optional (auto-generated)', visibleFor: ['line-multi'], group: 'Series', defaultValue: 'GBP/USD,EUR/USD,GBP/EUR' },
             { id: 'series-colors', propertyName: 'lineColor', label: 'Series Colors', type: 'text', placeholder: 'Optional (uses chart defaults)', visibleFor: ['line-multi'], group: 'Series' },
             { id: 'series-fill-colors', propertyName: 'fillColor', label: 'Series Fill Colors', type: 'text', placeholder: 'Optional (transparent)', visibleFor: ['line-multi'], group: 'Series' },
             { id: 'series-line-widths', propertyName: 'lineWidth', label: 'Series Line Widths', type: 'text', placeholder: 'Optional (1)', visibleFor: ['line-multi'], group: 'Series' },
@@ -722,76 +742,6 @@
             { id: 'box-width', propertyName: 'boxWidth', label: 'Box Width (0.1-1.0)', type: 'number', min: 0.1, max: 1.0, step: 0.05, defaultValue: 0.5, visibleFor: ['box'], group: 'Dimensions' },
             { id: 'box-border-radius', propertyName: 'borderRadius', label: 'Border Radius (px)', type: 'number', min: 0, max: 10, step: 1, defaultValue: 2, visibleFor: ['box'], group: 'Dimensions' }
         ];
-
-        // Sample data sets for different chart types (stored as strings for direct use in text input)
-        const sampleData = {
-            line: '5,6,7,9,9,5,3,2,2,4,6,7',
-            bar: '5,6,7,9,9,5,3,2,2,4,6,7',
-            pie: '1,1,1,2',
-            discrete: '4,6,7,7,4,3,2,1,4,5,7,9',
-            tristate: '1,1,0,-1,1,-1,0,1,-1',
-            bullet: '10,12,12,9,7',
-            box: '4,27,34,52,54,59,61,68,78,82,85,87,91,93,100',
-            // GBP/USD, EUR/USD, GBP/EUR yearly averages (2015-2024)
-            'line-multi': '[[1.53,1.49,1.29,1.34,1.28,1.27,1.38,1.39,1.56,1.27],[1.11,1.11,1.13,1.18,1.12,1.12,1.14,1.18,1.06,1.08],[1.38,1.34,1.14,1.13,1.14,1.13,1.21,1.18,1.47,1.18]]'
-        };
-
-        // Generate year labels for the 10-year FX data (2015-2024)
-        function generateYearLabels() {
-            const labels = [];
-            const startYear = 2015;
-            const endYear = 2024;
-            
-            for (let year = startYear; year <= endYear; year++) {
-                labels.push(year.toString());
-            }
-            
-            return labels;
-        }
-
-        const fxYearLabels = generateYearLabels();
-        const fxSeriesNames = ['GBP/USD', 'EUR/USD', 'GBP/EUR'];
-        const pieSliceLabels = ['Category A', 'Category B', 'Category C', 'Category D'];
-
-        // Helper function to load sample data for a chart type
-        function loadSampleDataForChartType(chartType) {
-            if (sampleData[chartType]) {
-                const valuesControl = document.getElementById('chart-values');
-                if (valuesControl) {
-                    valuesControl.value = sampleData[chartType];
-                }
-            }
-            
-            // Auto-populate data labels for line-multi with year labels and pie with slice labels
-            const dataLabelsControl = document.getElementById('data-labels');
-            if (dataLabelsControl) {
-                if (chartType === 'line-multi') {
-                    // Set the actual values for multi-series
-                    dataLabelsControl.value = fxYearLabels.join(',');
-                    dataLabelsControl.placeholder = "Comma-separated labels (e.g., 'Jan,Feb,Mar')";
-                } else if (chartType === 'pie') {
-                    // Set the actual values for pie slices
-                    dataLabelsControl.value = pieSliceLabels.join(',');
-                    dataLabelsControl.placeholder = "Comma-separated labels (e.g., 'Category A,Category B')";
-                } else {
-                    dataLabelsControl.placeholder = "Comma-separated labels (e.g., 'Jan,Feb,Mar')";
-                    dataLabelsControl.value = '';
-                }
-            }
-            
-            // Auto-populate series names for line-multi
-            const seriesNamesControl = document.getElementById('series-names');
-            if (seriesNamesControl) {
-                if (chartType === 'line-multi') {
-                    // Set the actual values for multi-series
-                    seriesNamesControl.value = fxSeriesNames.join(',');
-                    seriesNamesControl.placeholder = 'Optional (auto-generated)';
-                } else {
-                    seriesNamesControl.placeholder = 'Optional (auto-generated)';
-                    seriesNamesControl.value = '';
-                }
-            }
-        }
 
         // Function to get chart defaults from the actual chart class
         function getChartDefaults(chartType) {
@@ -828,14 +778,6 @@
         function resetControlsToDefaults(chartType) {
             // Get actual defaults from the chart class
             const chartDefaults = getChartDefaults(chartType);
-            
-            // Reset chart values to sample data for this chart type
-            if (sampleData[chartType]) {
-                const valuesControl = document.getElementById('chart-values');
-                if (valuesControl) {
-                    valuesControl.value = sampleData[chartType];
-                }
-            }
 
             // Reset each property to its default (property definition overrides chart defaults)
             propertyDefinitions.forEach(prop => {
@@ -886,32 +828,40 @@
                     // Plain color input without checkbox
                     element.value = actualDefault || '#000000';
                 } else if (prop.type === 'number' || prop.type === 'text') {
-                    // For numbers and text, leave value empty and use placeholder to show the default/behavior
-                    element.value = '';
+                    // Some text inputs need actual values set (chart data), others use placeholders (optional settings)
+                    const needsValue = ['chart-values', 'data-labels', 'series-names'].includes(prop.id);
                     
-                    // Determine what placeholder to show
-                    let placeholderText = '';
-                    
-                    if (prop.placeholder) {
-                        // If there's an explicit placeholder defined, use it
-                        placeholderText = prop.placeholder;
-                    } else if (actualDefault !== undefined && actualDefault !== null) {
-                        // Show the actual default value
-                        placeholderText = `Default: ${actualDefault}`;
-                    } else if (prop.propertyName) {
-                        // For properties without defaults, try to determine if Auto or Optional
-                        const autoProperties = ['barWidth', 'lineWidth', 'lineHeight', 'chartRangeMin', 'chartRangeMax'];
-                        const optionalProperties = ['normalRangeMin', 'normalRangeMax', 'thresholdValue', 'target', 
-                                                   'tooltipPrefix', 'tooltipSuffix', 'tooltipFormat', 'seriesNames', 'dataLabels'];
+                    if (needsValue && actualDefault !== undefined && actualDefault !== null) {
+                        // Set the actual value for data inputs
+                        element.value = actualDefault;
+                    } else {
+                        // For numbers and other text inputs, leave value empty and use placeholder to show the default/behavior
+                        element.value = '';
                         
-                        if (autoProperties.includes(prop.propertyName)) {
-                            placeholderText = 'Auto';
-                        } else if (optionalProperties.includes(prop.propertyName)) {
-                            placeholderText = 'Optional';
+                        // Determine what placeholder to show
+                        let placeholderText = '';
+                        
+                        if (prop.placeholder) {
+                            // If there's an explicit placeholder defined, use it
+                            placeholderText = prop.placeholder;
+                        } else if (actualDefault !== undefined && actualDefault !== null) {
+                            // Show the actual default value
+                            placeholderText = `Default: ${actualDefault}`;
+                        } else if (prop.propertyName) {
+                            // For properties without defaults, try to determine if Auto or Optional
+                            const autoProperties = ['barWidth', 'lineWidth', 'lineHeight', 'chartRangeMin', 'chartRangeMax'];
+                            const optionalProperties = ['normalRangeMin', 'normalRangeMax', 'thresholdValue', 'target', 
+                                                       'tooltipPrefix', 'tooltipSuffix', 'tooltipFormat', 'seriesNames', 'dataLabels'];
+                            
+                            if (autoProperties.includes(prop.propertyName)) {
+                                placeholderText = 'Auto';
+                            } else if (optionalProperties.includes(prop.propertyName)) {
+                                placeholderText = 'Optional';
+                            }
                         }
+                        
+                        element.placeholder = placeholderText;
                     }
-                    
-                    element.placeholder = placeholderText;
                 }
             });
         }
@@ -1212,6 +1162,7 @@
                 // Start with common options available to all chart types
                 const options = {
                     disableTooltips: controls.disableTooltips?.checked || false,
+                    showTooltipTitle: controls.showTooltipTitle?.checked !== false,
                     tooltipPrefix: controls.tooltipPrefix?.value || '',
                     tooltipSuffix: controls.tooltipSuffix?.value || '',
                     tooltipFormat: controls.tooltipFormat?.value || '{{value}}'
@@ -1382,6 +1333,18 @@
                             options.zeroBarColor = controls.tristateZeroBarColor?.value;
                         }
 
+                        // Handle state labels
+                        const positiveLabel = controls.tristatePositiveLabel?.value?.trim();
+                        const zeroLabel = controls.tristateZeroLabel?.value?.trim();
+                        const negativeLabel = controls.tristateNegativeLabel?.value?.trim();
+                        if (positiveLabel || zeroLabel || negativeLabel) {
+                            options.stateLabels = {
+                                positive: positiveLabel || 'Win',
+                                zero: zeroLabel || 'Draw',
+                                negative: negativeLabel || 'Loss'
+                            };
+                        }
+
                         const tristateBarWidthValue = controls.tristateBarWidth?.value || 'auto';
                         if (tristateBarWidthValue === 'auto' || tristateBarWidthValue === 'fill') {
                             options.barWidth = tristateBarWidthValue;
@@ -1497,6 +1460,7 @@
                     
                     // Boolean/string options
                     { prop: 'disableTooltips', defaultValue: false },
+                    { prop: 'showTooltipTitle', defaultValue: true },
                     { prop: 'tooltipPrefix', defaultValue: '' },
                     { prop: 'tooltipSuffix', defaultValue: '' },
                     { prop: 'tooltipFormat', defaultValue: '{{value}}' },
@@ -1588,6 +1552,7 @@
                         { prop: 'posBarColor', defaultKey: 'tristate-pos-bar-color', isColor: true },
                         { prop: 'negBarColor', defaultKey: 'tristate-neg-bar-color', isColor: true },
                         { prop: 'zeroBarColor', defaultKey: 'tristate-zero-bar-color', isColor: true },
+                        { prop: 'stateLabels', isObject: true, alwaysInclude: true },
                         { prop: 'barWidth', defaultValue: 'auto', canBeString: true },
                         { prop: 'barSpacing', defaultValue: 1 }
                     ],
@@ -1626,7 +1591,15 @@
                         
                         // Always include if specified
                         if (config.alwaysInclude) {
-                            optionParts.push(`${config.prop}: ${value}`);
+                            if (config.isObject && typeof value === 'object') {
+                                // Format object properties
+                                const objParts = Object.entries(value)
+                                    .map(([key, val]) => `${key}: '${val}'`)
+                                    .join(', ');
+                                optionParts.push(`${config.prop}: { ${objParts} }`);
+                            } else {
+                                optionParts.push(`${config.prop}: ${value}`);
+                            }
                             return;
                         }
                         
@@ -1943,8 +1916,7 @@
                         isUpdating = true;
                         try {
                             if (control === controls.type) {
-                                // Load sample data for the new chart type BEFORE updating UI
-                                loadSampleDataForChartType(control.value);
+                                resetControlsToDefaults(control.value); // Load chart-specific defaults FIRST
                                 updateOptionVisibility(control.value);
                                 updateDisplayedDefaults(); // Update default colors when type changes
                                 updateOverrideCheckboxes(); // Update override checkboxes based on whether values match defaults

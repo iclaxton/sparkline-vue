@@ -222,6 +222,10 @@ All chart types support these options:
 | `height` | Number | 30 | Chart height in pixels |
 | `lineColor` | String | '#00f' | Primary line/border color |
 | `fillColor` | String | '#cdf' | Fill color |
+| `disableTooltips` | Boolean | false | Disable all tooltips |
+| `showTooltipTitle` | Boolean | true | Show title in multi-value tooltips |
+| `tooltipPrefix` | String | '' | Text to prepend to tooltip values |
+| `tooltipSuffix` | String | '' | Text to append to tooltip values |
 
 ### Line Chart Options
 
@@ -498,6 +502,43 @@ const getChartDetails = () => {
 }
 </script>
 ```
+
+### Tooltip Customization
+
+Control tooltip appearance and content:
+
+```vue
+<template>
+  <!-- Disable title in tooltips -->
+  <Sparkline 
+    :data="multiSeriesData"
+    type="line"
+    :options="{
+      showTooltipTitle: false,  // Hide title
+      tooltipPrefix: '$',
+      tooltipSuffix: ' USD'
+    }"
+  />
+  
+  <!-- Custom tooltip formatting -->
+  <Sparkline 
+    :data="[1, 2, 3, 4, 5]"
+    type="bar"
+    :options="{
+      tooltipPrefix: 'Value: ',
+      tooltipSuffix: ' units',
+      tooltipFormat: '{{value.2}}'  // 2 decimal places
+    }"
+  />
+</template>
+```
+
+**Tooltip Options:**
+- `showTooltipTitle`: Show/hide title in multi-value tooltips (default: true)
+- `disableTooltips`: Completely disable tooltips (default: false)
+- `tooltipPrefix`: Text to prepend to values
+- `tooltipSuffix`: Text to append to values
+- `tooltipFormat`: Template string for formatting (e.g., `'{{value.2}}'` for 2 decimals)
 
 ### Event Handling
 
