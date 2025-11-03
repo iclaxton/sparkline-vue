@@ -664,22 +664,25 @@
         import { createChart, getDefaultOptions } from '../../renderers/chartFactory.js';
         import { LineChart } from '../../renderers/LineChart.js'
 
-        // Property Definitions Configuration
-        // Each property includes a 'group' field that defines its category
-        // Groups are dynamically created and only shown if they have 2+ properties for the current chart type
-        // defaultValue can be:
+        // ============================================================================
+        // PROPERTY DEFINITIONS
+        // ============================================================================
+        // Configuration for all chart properties displayed in the property panel
+        // - Each property includes a 'group' field that defines its category
+        // - Groups are dynamically created and shown only if they have 2+ properties
+        // - defaultValue can be:
         //   - undefined: use chart class default
         //   - a value: override chart class default for all chart types
         //   - an object: chart-specific overrides (e.g., { line: '#ff0000', discrete: '#00ff00' })
         const propertyDefinitions = [
-            // Line chart colors
-            { id: 'line-color', propertyName: 'lineColor', label: 'Line Color', type: 'color', checked: true, hasNull: true, visibleFor: ['line', 'discrete'], group: 'Colors' },
-            { id: 'fill-color', propertyName: 'fillColor', label: 'Fill Color', type: 'color', checked: false, hasNull: true, nullLabel: 'undefined', disabled: true, visibleFor: ['line'], group: 'Colors' },
-            { id: 'spot-color', propertyName: 'spotColor', label: 'Spot Color', type: 'color', checked: true, hasNull: true, visibleFor: ['line'], group: 'Colors' },
-            { id: 'min-spot-color', propertyName: 'minSpotColor', label: 'Min Spot Color', type: 'color', checked: true, visibleFor: ['line'], group: 'Colors' },
-            { id: 'max-spot-color', propertyName: 'maxSpotColor', label: 'Max Spot Color', type: 'color', checked: true, visibleFor: ['line'], group: 'Colors' },
+            // Line chart colors - default to using chart defaults (checked: false) unless showcasing a feature
+            { id: 'line-color', propertyName: 'lineColor', label: 'Line Color', type: 'color', checked: false, hasNull: true, visibleFor: ['line', 'discrete'], group: 'Colors' },
+            { id: 'fill-color', propertyName: 'fillColor', label: 'Fill Color', type: 'color', checked: false, hasNull: true, nullLabel: 'unset', disabled: true, visibleFor: ['line'], group: 'Colors' },
+            { id: 'spot-color', propertyName: 'spotColor', label: 'Spot Color', type: 'color', checked: false, hasNull: true, visibleFor: ['line'], group: 'Colors' },
+            { id: 'min-spot-color', propertyName: 'minSpotColor', label: 'Min Spot Color', type: 'color', checked: false, visibleFor: ['line'], group: 'Colors' },
+            { id: 'max-spot-color', propertyName: 'maxSpotColor', label: 'Max Spot Color', type: 'color', checked: false, visibleFor: ['line'], group: 'Colors' },
             { id: 'highlight-spot-color', propertyName: 'highlightSpotColor', label: 'Highlight Spot Color', type: 'color', checked: false, disabled: true, hasNullOverlay: true, visibleFor: ['line', 'line-multi'], group: 'Hover Effects' },
-            { id: 'highlight-line-color', propertyName: 'highlightLineColor', label: 'Highlight Line Color', type: 'color', checked: true, hasNull: true, visibleFor: ['line', 'line-multi'], group: 'Hover Effects' },
+            { id: 'highlight-line-color', propertyName: 'highlightLineColor', label: 'Highlight Line Color', type: 'color', checked: false, hasNull: true, visibleFor: ['line', 'line-multi'], group: 'Hover Effects' },
             { id: 'highlight-lighten', propertyName: 'highlightLighten', label: 'Highlight Lighten', type: 'number', min: 1, max: 3, step: 0.1, visibleFor: ['bar', 'pie', 'discrete', 'tristate', 'bullet'], group: 'Hover Effects' },
 
             // Line chart dimensions
@@ -769,6 +772,10 @@
             { id: 'box-border-radius', propertyName: 'borderRadius', label: 'Border Radius (px)', type: 'number', min: 0, max: 10, step: 1, defaultValue: 2, visibleFor: ['box'], group: 'Dimensions' }
         ];
 
+        // ============================================================================
+        // UTILITY FUNCTIONS
+        // ============================================================================
+
         // Normalize hex colors to 6-digit format for comparison
         // Converts #abc to #aabbcc, leaves #aabbcc unchanged
         function normalizeHexColor(color) {
@@ -815,6 +822,12 @@
             return getDefaultOptions(chartType);
         }
 
+        // ============================================================================
+        // CHART DEFAULTS MANAGEMENT
+        // ============================================================================
+        // Pre-compute and cache default values from all chart classes
+        // This allows the UI to display defaults and detect when values differ
+
         const chartTypes = ["bar", "pie", "tristate", "bullet", "box", "line", "line-multi", "discrete"];
         let chartDefaultsValues = {};
 
@@ -827,10 +840,9 @@
                 // flatten and store per chart
                 chartDefaultsValues[chart] = flattenObject(defaultOptions);
             }
-
-            console.log(chartDefaultsValues);
         }
 
+        // Initialize defaults on page load
         loadChartDefaultValues();
 
         function getChartDefaultValue(chartType, propertyName) {
@@ -840,7 +852,11 @@
             return undefined;
         }
 
-        // Function to reset controls to their default values based on chart type
+        // ============================================================================
+        // CONTROL INITIALIZATION & RESET
+        // ============================================================================
+
+        // Reset all controls to their default values based on the selected chart type
         function resetControlsToDefaults(chartType) {
             // Reset each property to its default (property definition overrides chart defaults)
             propertyDefinitions.forEach(prop => {
@@ -871,23 +887,30 @@
                 } else if (prop.type === 'color' && prop.checked !== undefined) {
                     // Handle color inputs with enable checkboxes
                     const enableCheckbox = document.getElementById(prop.id + '-enable');
+                    
+                    // Reset checkbox to unchecked (use chart default, not overriding)
                     if (enableCheckbox) {
-                        // When resetting to defaults, the override checkbox should be UNCHECKED
-                        // (user is not overriding, they're using the default)
                         enableCheckbox.checked = false;
-                        element.disabled = true;
-                        
-                        //TODO: Handled multi line values 
-                        // Set the color value to show the default (even though disabled, user should see what the default is)
-                        const colorValue = (actualDefault && actualDefault !== 'undefined' && !Array.isArray(actualDefault)) ? actualDefault : '#000000';
-                        element.value = normalizeHexColor(colorValue);
+                    }
+                    
+                    // ALWAYS set the color value to show the default
+                    const hasValidDefault = actualDefault != null && 
+                                           actualDefault !== 'undefined' && 
+                                           actualDefault !== 'null' && 
+                                           !Array.isArray(actualDefault);
+                    const colorValue = hasValidDefault ? actualDefault : '#000000';
+                    const normalizedValue = normalizeHexColor(colorValue);
+                    
+                    // CRITICAL: Set both the property AND the attribute (disabled color inputs read from attribute!)
+                    element.value = normalizedValue;
+                    element.setAttribute('value', normalizedValue);
+                    element.disabled = true;
 
-                        // Handle null checkboxes
-                        const nullCheckbox = document.getElementById(prop.id + '-null');
-                        if (nullCheckbox) {
-                            nullCheckbox.checked = false;
-                            nullCheckbox.disabled = true;
-                        }
+                    // Handle null checkboxes
+                    const nullCheckbox = document.getElementById(prop.id + '-null');
+                    if (nullCheckbox) {
+                        nullCheckbox.checked = false;
+                        nullCheckbox.disabled = true;
                     }
                 } else if (prop.type === 'color') {
                     // Plain color input without checkbox
@@ -971,11 +994,15 @@
         }
 
         // Interactive demo functionality
+        // ============================================================================
+        // UI RENDERING & EVENT HANDLING
+        // ============================================================================
+
         document.addEventListener('DOMContentLoaded', () => {
             let interactiveChart = null;
 
-            // Function to generate property HTML from configuration
-            function generatePropertyHTML(propDef, chartClass = '') {
+            // Generate HTML for a single property control
+            function generatePropertyHTML(propDef, chartClass = '', chartType = 'line') {
                 const isColor = propDef.type === 'color';
                 const hasCheckbox = isColor && propDef.checked !== undefined;
                 const fieldClass = chartClass ? `property-field ${chartClass}` : 'property-field';
@@ -993,8 +1020,19 @@
                     if (propDef.checked) html += ' checked';
                     html += ` title="Override default">`;
 
-                    // Use a fallback color for color inputs when default is null/undefined or string "undefined"
-                    const colorValue = (propDef.defaultValue && propDef.defaultValue !== 'undefined') ? propDef.defaultValue : '#000000';
+                    // Get the actual default color from chart defaults
+                    let colorValue = '#000000';
+                    if (propDef.propertyName && chartDefaultsValues && chartDefaultsValues[chartType]) {
+                        const chartDefault = chartDefaultsValues[chartType][propDef.propertyName];
+                        if (chartDefault && chartDefault !== 'undefined' && chartDefault !== 'null' && typeof chartDefault === 'string') {
+                            // Normalize the color value
+                            colorValue = normalizeHexColor(chartDefault);
+                        }
+                    }
+                    // Fallback to propDef.defaultValue if no chart default
+                    if (colorValue === '#000000' && propDef.defaultValue && propDef.defaultValue !== 'undefined') {
+                        colorValue = normalizeHexColor(propDef.defaultValue);
+                    }
 
                     // Disable the color input if the checkbox is not checked
                     const shouldDisable = !propDef.checked;
@@ -1004,11 +1042,11 @@
                     html += `>`;
 
                     if (propDef.hasNull) {
-                        html += `<label style="display: flex; align-items: center; gap: 4px; font-size: 0.9em; margin-left: 4px;">`;
+                        html += `<label style="display: flex; align-items: center; gap: 5px; font-size: 0.9em; margin-left: 4px;padding:0;background: none;border: 0;">`;
                         html += `<input type="checkbox" id="${propDef.id}-null" class="color-null-checkbox"`;
                         if (shouldDisable) html += ' disabled';
                         html += `>`;
-                        html += `<span style="color: #666;">${propDef.nullLabel || 'undefined'}</span>`;
+                        html += `<span style="color: #666;">${propDef.nullLabel || 'unset'}</span>`;
                         html += `</label>`;
                     }
                     html += `</div>`;
@@ -1038,7 +1076,7 @@
             }
 
             // Function to populate property groups dynamically from flat property definitions
-            function populatePropertyGroups() {
+            function populatePropertyGroups(initialChartType = 'line') {
                 // Find the controls container (parent of property groups)
                 const container = document.getElementById('controls-container');
                 if (!container) return;
@@ -1071,7 +1109,7 @@
                     groupDiv.innerHTML = `
                         <div class="property-header">${groupName} <span class="option-count" id="${groupName.toLowerCase().replace(/\s+/g, '-')}-count">(0)</span></div>
                         <div class="property-content" style="max-height: 1000px;">
-                            ${properties.map(prop => generatePropertyHTML(prop, `group-${groupName.toLowerCase().replace(/\s+/g, '-')}`)).join('')}
+                            ${properties.map(prop => generatePropertyHTML(prop, `group-${groupName.toLowerCase().replace(/\s+/g, '-')}`, initialChartType)).join('')}
                         </div>
                     `;
 
@@ -1080,8 +1118,8 @@
                 });
             }
 
-            // Populate all property groups on load
-            populatePropertyGroups();
+            // Populate all property groups on load with line chart defaults (always starts as line)
+            populatePropertyGroups('line');
 
             const controls = {
                 // Standard controls (not in propertyDefinitions)
@@ -1188,7 +1226,11 @@
                 });
             }
 
-            // Function to get chart options from controls
+            // ============================================================================
+            // CHART OPTIONS MANAGEMENT
+            // ============================================================================
+
+            // Build chart options object from current control values
             function getChartOptions() {
                 const type = controls.type?.value || 'line';
                 const valuesStr = controls.values?.value || '';
@@ -1440,7 +1482,11 @@
                 return options;
             }
 
-            // Function to generate Vue code with syntax highlighting
+            // ============================================================================
+            // CODE GENERATION
+            // ============================================================================
+
+            // Generate Vue component code with syntax highlighting for the current chart configuration
             function generateVueCode(type, values, options, width, height, isMultiSeries) {
                 // Convert values to string representation
                 let dataStr;
@@ -1777,7 +1823,11 @@
                 return html;
             }
 
-            // Function to update the chart
+            // ============================================================================
+            // CHART RENDERING
+            // ============================================================================
+
+            // Render the chart based on current control values
             function updateChart() {
                 try {
                     // Clean up existing chart
@@ -1877,7 +1927,10 @@
                     if (colorInput && !checkbox.checked) {
                         const actualDefault = getActualDefaultColor(colorInputId);
                         if (actualDefault !== null && actualDefault !== undefined && actualDefault !== 'undefined' && !Array.isArray(actualDefault)) {
+                            // Set both property and attribute
                             colorInput.value = actualDefault;
+                            colorInput.setAttribute('value', actualDefault);
+                            colorInput.disabled = true;
                         }
                     }
                 });
@@ -1940,10 +1993,32 @@
                 });
             }
 
+            // ============================================================================
+            // EVENT HANDLERS
+            // ============================================================================
+
+            // Single initialization function - clean and simple
+            function initializeChart(chartType) {
+                // 1. Reset all controls to chart-specific defaults
+                resetControlsToDefaults(chartType);
+                
+                // 2. Show/hide properties based on chart type
+                updateOptionVisibility(chartType);
+                
+                // 3. Update color inputs with actual defaults (handles disabled inputs correctly)
+                updateDisplayedDefaults();
+                
+                // 4. Update override checkboxes to match current state
+                updateOverrideCheckboxes();
+                
+                // 5. Render the chart
+                updateChart();
+            }
+
             // Track if we're currently updating to prevent cascading updates
             let isUpdating = false;
 
-            // Set up auto-update listeners
+            // Set up auto-update listeners for all control changes
             Object.values(controls).forEach(control => {
                 if (control) {
                     const handleUpdate = () => {
@@ -1953,12 +2028,12 @@
                         isUpdating = true;
                         try {
                             if (control === controls.type) {
-                                resetControlsToDefaults(control.value); // Load chart-specific defaults FIRST
-                                updateOptionVisibility(control.value);
-                                updateDisplayedDefaults(); // Update default colors when type changes
-                                updateOverrideCheckboxes(); // Update override checkboxes based on whether values match defaults
+                                // When chart type changes, reinitialize everything
+                                initializeChart(control.value);
+                            } else {
+                                // For other controls, just update the chart
+                                updateChart();
                             }
-                            updateChart();
                         } finally {
                             isUpdating = false;
                         }
@@ -2003,12 +2078,11 @@
                 }
             });
 
-            // Initialize the demo
+            // ============================================================================
+            // INITIALIZATION
+            // ============================================================================
+
             const initialChartType = controls.type.value || 'line';
-            updateOptionVisibility(initialChartType);
-            resetControlsToDefaults(initialChartType); // Load defaults and sample data for initial chart type
-            updateOverrideCheckboxes(); // Check if initial values match defaults
-            updateChart();
 
             // Handle all color enable checkboxes
             document.querySelectorAll('.color-enable-checkbox').forEach(checkbox => {
@@ -2042,7 +2116,9 @@
                         // For non-null defaults, disable and show default color when unchecked
                         colorInput.disabled = !checkbox.checked;
                         if (!checkbox.checked && actualDefault && actualDefault !== 'undefined') {
+                            // Set both property and attribute
                             colorInput.value = actualDefault;
+                            colorInput.setAttribute('value', actualDefault);
                         }
                     }
 
@@ -2070,7 +2146,9 @@
                                 // This will be determined by creating a chart instance and reading its default
                                 const actualDefault = getActualDefaultColor(colorInputId);
                                 if (actualDefault !== null && actualDefault !== undefined && actualDefault !== 'undefined') {
+                                    // Set both property and attribute
                                     colorInput.value = actualDefault;
+                                    colorInput.setAttribute('value', actualDefault);
                                 }
                                 colorInput.disabled = true;
                             }
@@ -2126,9 +2204,11 @@
                         if (controls.fillColor.value !== chartDefault) {
                             fillColorOverride = controls.fillColor.value;
                         }
-                        // - Show chart default in disabled picker
+                        // - Show chart default in disabled picker (set both property and attribute)
                         controls.fillColor.value = chartDefault;
+                        controls.fillColor.setAttribute('value', chartDefault);
                         controls.fillColor.disabled = true;
+                        controls.fillColor.style.opacity = ''; // Remove inline style to use CSS opacity
                         // - Disable and uncheck null checkbox
                         controls.fillColorNull.checked = false;
                         controls.fillColorNull.disabled = true;
@@ -2149,6 +2229,17 @@
                 });
             }
 
+            // ============================================================================
+            // INITIALIZATION - Must run BEFORE event listener setup to ensure correct initial values
+            // ============================================================================
+            
+            // Initialize with the default chart type FIRST
+            initializeChart(initialChartType);
+
+            // ============================================================================
+            // EVENT LISTENERS FOR SPECIAL COLOR CHECKBOXES (must run after initialization)
+            // ============================================================================
+
             // Handle other color null checkboxes (line-color, spot-color, highlight-line-color)
             const colorNullCheckboxes = [
                 { enableControl: controls.lineColorEnable, colorControl: controls.lineColor, nullControl: controls.lineColorNull, colorId: 'line-color' },
@@ -2159,6 +2250,7 @@
             colorNullCheckboxes.forEach(({ enableControl, colorControl, nullControl, colorId }) => {
                 if (!nullControl || !colorControl || !enableControl) return;
 
+                // Capture the correct value (after initialization)
                 let colorOverride = colorControl.value;
 
                 // Set initial state based on whether override checkbox is checked
@@ -2191,8 +2283,11 @@
                         if (colorControl.value !== chartDefault) {
                             colorOverride = colorControl.value;
                         }
+                        // Set both property and attribute for disabled color inputs
                         colorControl.value = chartDefault;
+                        colorControl.setAttribute('value', chartDefault);
                         colorControl.disabled = true;
+                        colorControl.style.opacity = ''; // Remove inline style to use CSS opacity
                         nullControl.checked = false;
                         nullControl.disabled = true;
                     } else {
@@ -2237,7 +2332,7 @@
                             copyCodeBtn.textContent = 'Copy Code';
                         }, 2000);
                     }
-                });
+                });                
             }
 
             // Mobile polling fallback - check for select value changes every 500ms
@@ -2272,6 +2367,7 @@
                     });
                 }
             });
+            
         });
     </script>
 
