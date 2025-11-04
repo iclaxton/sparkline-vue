@@ -312,7 +312,7 @@
             padding: 15px;
             overflow-x: auto;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 1em;
+            font-size: 13px;
             line-height: 1.6;
             background: #1e1e1e;
         }
@@ -409,7 +409,6 @@
             }
 
             .code-display pre {
-                font-size: var(--demo-font-sm);
                 padding: var(--demo-spacing-md);
                 line-height: 1.5;
             }
@@ -887,20 +886,20 @@
                 } else if (prop.type === 'color' && prop.checked !== undefined) {
                     // Handle color inputs with enable checkboxes
                     const enableCheckbox = document.getElementById(prop.id + '-enable');
-                    
+
                     // Reset checkbox to unchecked (use chart default, not overriding)
                     if (enableCheckbox) {
                         enableCheckbox.checked = false;
                     }
-                    
+
                     // ALWAYS set the color value to show the default
-                    const hasValidDefault = actualDefault != null && 
-                                           actualDefault !== 'undefined' && 
-                                           actualDefault !== 'null' && 
-                                           !Array.isArray(actualDefault);
+                    const hasValidDefault = actualDefault != null &&
+                        actualDefault !== 'undefined' &&
+                        actualDefault !== 'null' &&
+                        !Array.isArray(actualDefault);
                     const colorValue = hasValidDefault ? actualDefault : '#000000';
                     const normalizedValue = normalizeHexColor(colorValue);
-                    
+
                     // CRITICAL: Set both the property AND the attribute (disabled color inputs read from attribute!)
                     element.value = normalizedValue;
                     element.setAttribute('value', normalizedValue);
@@ -1581,7 +1580,7 @@
                     }
 
                     // Get default value
-                    const defaultValue =  getChartDefaultValue(type, config.prop) ?? config.defaultValue;
+                    const defaultValue = getChartDefaultValue(type, config.prop) ?? config.defaultValue;
 
                     // Check if value differs from default
                     if (Array.isArray(value)) {
@@ -2001,16 +2000,16 @@
             function initializeChart(chartType) {
                 // 1. Reset all controls to chart-specific defaults
                 resetControlsToDefaults(chartType);
-                
+
                 // 2. Show/hide properties based on chart type
                 updateOptionVisibility(chartType);
-                
+
                 // 3. Update color inputs with actual defaults (handles disabled inputs correctly)
                 updateDisplayedDefaults();
-                
+
                 // 4. Update override checkboxes to match current state
                 updateOverrideCheckboxes();
-                
+
                 // 5. Render the chart
                 updateChart();
             }
@@ -2092,7 +2091,7 @@
                 if (['fill-color', 'line-color', 'spot-color', 'highlight-line-color'].includes(colorInputId)) return;
 
                 const colorInput = document.getElementById(colorInputId);
-                
+
                 let isNullDefault = false;
 
                 const propDef = propertyDefinitions.find(p => p.id === colorInputId);
@@ -2232,7 +2231,7 @@
             // ============================================================================
             // INITIALIZATION - Must run BEFORE event listener setup to ensure correct initial values
             // ============================================================================
-            
+
             // Initialize with the default chart type FIRST
             initializeChart(initialChartType);
 
@@ -2332,7 +2331,7 @@
                             copyCodeBtn.textContent = 'Copy Code';
                         }, 2000);
                     }
-                });                
+                });
             }
 
             // Mobile polling fallback - check for select value changes every 500ms
@@ -2367,7 +2366,7 @@
                     });
                 }
             });
-            
+
         });
     </script>
 

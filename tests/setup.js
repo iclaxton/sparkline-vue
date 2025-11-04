@@ -21,6 +21,7 @@ HTMLCanvasElement.prototype.getContext = function(contextType) {
       stroke: vi.fn(),
       fill: vi.fn(),
       arc: vi.fn(),
+      arcTo: vi.fn(),
       save: vi.fn(),
       restore: vi.fn(),
       translate: vi.fn(),

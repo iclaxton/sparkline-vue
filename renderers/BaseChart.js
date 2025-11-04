@@ -1198,22 +1198,6 @@ export class BaseChart {
     return this.getDefaultTooltipFormat(value, region);
   }
 
-  // Format tooltip using template string
-  formatTooltipString(format, value, region) {
-    const data = this.getTooltipData(value, region);
-
-    return format.replace(/\{\{(\w+)(?:\.(\d+))?\}\}/g, (match, key, precision) => {
-      let val = data[key];
-      if (val === undefined) return match;
-
-      if (typeof val === 'number' && precision !== undefined) {
-        val = val.toFixed(parseInt(precision));
-      }
-
-      return val;
-    });
-  }
-
   /**
    * Format tooltip using template string with placeholders
    * @param {string} format - Format string with {{placeholder}} syntax
@@ -1255,11 +1239,16 @@ export class BaseChart {
   /**
    * Default tooltip format (can be overridden by subclasses)
    * @param {*} value - Value to format
-   * @param {number|Object} region - Region identifier
    * @returns {string} Formatted string
    */
-  getDefaultTooltipFormat(value, region) {
-    return typeof value === 'number' ? value.toFixed(2) : value.toString();
+  getDefaultTooltipFormat(value) {
+    if (typeof value !== 'number') return value.toString();
+    
+    // Use intelligent precision: show up to 6 decimal places, but remove trailing zeros
+    // This preserves the actual precision of the data without forcing unnecessary decimals
+    const formatted = value.toFixed(6);
+    // Remove trailing zeros and unnecessary decimal point
+    return formatted.replace(/\.?0+$/, '') || '0';
   }
 
   /**
