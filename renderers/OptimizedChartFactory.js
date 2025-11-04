@@ -41,12 +41,8 @@ const chartTypes = {
 function getCachedDefaults(ChartClass) {
   const className = ChartClass.name;
   if (!DEFAULT_CACHE.has(className)) {
-    // Create instance temporarily to get defaults, then cache them
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    const tempChart = new ChartClass(tempCtx, { data: [], width: 1, height: 1, options: {} });
-    DEFAULT_CACHE.set(className, Object.freeze({ ...tempChart.getDefaults() }));
-    tempChart.destroy();
+    // Call static getDefaults method directly on the class
+    DEFAULT_CACHE.set(className, Object.freeze({ ...ChartClass.getDefaults() }));
   }
   return DEFAULT_CACHE.get(className);
 }
@@ -160,6 +156,23 @@ export function createChart(type, ctx, props) {
  */
 export function destroyChart(chart, type) {
   returnToPool(chart, type);
+}
+
+/**
+ * Retrieves the default options for a specified chart type.
+ * 
+ * @param {string} type - The chart type identifier
+ * @returns {Object|null} The default options object for the chart type, or null if the type is not supported
+ * @throws {void} Logs a warning to console if chart type is not found
+ */
+export function getDefaultOptions(type) {
+  const ChartClass = chartTypes[type];
+  if (!ChartClass) {
+    console.warn(`Chart type "${type}" not supported`);
+    return null;
+  }
+  
+  return ChartClass.getDefaults();
 }
 
 /**
