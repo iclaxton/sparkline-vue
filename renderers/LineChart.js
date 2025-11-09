@@ -811,7 +811,7 @@ export class LineChart extends BaseChart {
     
     // Highlight spot
     // If highlightSpotColor is null, use the spot color; otherwise use highlightSpotColor
-    let spotColor = highlightSpotColor === null ? this.options.spotColor : highlightSpotColor;
+    let spotColor = highlightSpotColor === undefined ? this.options.spotColor : highlightSpotColor;
     
     // Check if this point is a min or max and use appropriate color if highlightSpotColor is null
     if (highlightSpotColor === null && this.minY !== undefined && this.maxY !== undefined) {
