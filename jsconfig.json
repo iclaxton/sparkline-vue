@@ -1,0 +1,15 @@
+{
+  "include": [
+    "./renderers/**/*",
+    "./docs/**/*",
+    "./components/**/*",
+    "./index.js"
+  ],
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "jsx": "preserve"
+  }
+}
