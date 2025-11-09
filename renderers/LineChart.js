@@ -769,7 +769,7 @@ export class LineChart extends BaseChart {
           let spotColor = highlightSpotColor === undefined ? seriesPoints.color : highlightSpotColor;
           
           // Check if this point is a min or max and use appropriate color if highlightSpotColor is null
-          if (highlightSpotColor === null && seriesPoints.minY !== undefined && seriesPoints.maxY !== undefined) {
+          if (highlightSpotColor === undefined && seriesPoints.minY !== undefined && seriesPoints.maxY !== undefined) {
             if (point.value === seriesPoints.minY && minSpotColor) {
               spotColor = minSpotColor;
             } else if (point.value === seriesPoints.maxY && maxSpotColor) {
@@ -814,7 +814,7 @@ export class LineChart extends BaseChart {
     let spotColor = highlightSpotColor === undefined ? this.options.spotColor : highlightSpotColor;
     
     // Check if this point is a min or max and use appropriate color if highlightSpotColor is null
-    if (highlightSpotColor === null && this.minY !== undefined && this.maxY !== undefined) {
+    if (highlightSpotColor === undefined && this.minY !== undefined && this.maxY !== undefined) {
       if (point.value === this.minY && minSpotColor) {
         spotColor = minSpotColor;
       } else if (point.value === this.maxY && maxSpotColor) {
