@@ -312,18 +312,28 @@
             padding: 15px;
             overflow-x: auto;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 13px !important;
             line-height: 1.6;
             background: #1e1e1e;
+            font-size: 13px;
+            -webkit-text-size-adjust: 100% !important;
+            -moz-text-size-adjust: 100% !important;
+            -ms-text-size-adjust: 100% !important;
+            text-size-adjust: 100% !important;
+            height: 100%;
+            box-sizing: border-box;
         }
 
         .code-display code {
-            display: inline-block;
-            min-width: 100%;
+            display: block;
             color: #e0e0e0;
             white-space: pre;
             background: transparent;
-            font-size: 13px !important;
+            font-size: 13px;
+            height: 100%;
+            -webkit-text-size-adjust: 100% !important;
+            -moz-text-size-adjust: 100% !important;
+            -ms-text-size-adjust: 100% !important;
+            text-size-adjust: 100% !important;
         }
 
         /* Syntax Highlighting - VS Code Dark Theme */
@@ -412,7 +422,6 @@
             .code-display pre {
                 font-size: 13px !important;
                 padding: var(--demo-spacing-md);
-                line-height: 1.5;
             }
 
             .property-field {
@@ -553,9 +562,7 @@
             }
 
             .code-display pre {
-                font-size: 13px !important;
                 padding: var(--demo-spacing-lg);
-                line-height: 1.6;
             }
         }
     </style>
