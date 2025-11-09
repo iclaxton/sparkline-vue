@@ -1065,4 +1065,47 @@ export class LineChart extends BaseChart {
     
     return super.getRegionFields(region);
   }
+
+  /**
+   * Get additional padding needed for line charts
+   * Adds padding for spot radius and highlight radius to prevent clipping at edges
+   * Handles both single values and arrays (for multi-series)
+   * @returns {Object} Padding object with top, right, bottom, left properties
+   */
+  getChartPadding() {
+    // Get spot radius - could be a single value or array for multi-series
+    const spotRadiusOption = this.options.spotRadius;
+    let maxSpotRadius = 1.5; // default
+    
+    if (Array.isArray(spotRadiusOption)) {
+      // Multi-series: find the maximum spot radius across all series
+      maxSpotRadius = Math.max(...spotRadiusOption);
+    } else if (typeof spotRadiusOption === 'number') {
+      maxSpotRadius = spotRadiusOption;
+    }
+    
+    // Get highlight spot radius - could also be an array
+    const highlightSpotRadiusOption = this.options.highlightSpotRadius;
+    let maxHighlightSpotRadius = maxSpotRadius + 1; // default is spotRadius + 1
+    
+    if (Array.isArray(highlightSpotRadiusOption)) {
+      // Multi-series: find the maximum highlight spot radius
+      maxHighlightSpotRadius = Math.max(...highlightSpotRadiusOption);
+    } else if (typeof highlightSpotRadiusOption === 'number') {
+      maxHighlightSpotRadius = highlightSpotRadiusOption;
+    }
+    
+    // Use the larger of spot radius or highlight spot radius
+    const maxRadius = Math.max(maxSpotRadius, maxHighlightSpotRadius);
+    
+    // Add the max radius + 1px safety margin on all sides
+    const padding = maxRadius + 1;
+    
+    return {
+      top: padding,
+      right: padding,
+      bottom: padding,
+      left: padding
+    };
+  }
 }

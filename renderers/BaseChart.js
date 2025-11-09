@@ -278,15 +278,34 @@ export class BaseChart {
   }
 
   /**
-   * Get effective drawing dimensions accounting for padding
+   * Get additional padding needed for this chart type
+   * Override in derived classes to add padding for spots, highlights, etc.
+   * @returns {Object} Padding object with top, right, bottom, left properties
+   */
+  getChartPadding() {
+    return {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0
+    };
+  }
+
+  /**
+   * Get the dimensions available for drawing
+   * Accounts for chart-specific padding to prevent clipping
    * @returns {Object} Object with width, height, topOffset, bottomOffset
    */
   getDrawingDimensions() {
+    const padding = this.getChartPadding();
+    
     return {
-      width: this.width,
-      height: Math.max(1, this.height - this.options.topPadding - this.options.bottomPadding),
-      topOffset: this.options.topPadding,
-      bottomOffset: this.options.bottomPadding
+      width: this.width - padding.left - padding.right,
+      height: this.height - padding.top - padding.bottom,
+      topOffset: padding.top,
+      bottomOffset: padding.bottom,
+      leftOffset: padding.left,
+      rightOffset: padding.right
     };
   }
 
