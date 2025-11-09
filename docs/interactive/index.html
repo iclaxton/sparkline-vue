@@ -1292,7 +1292,7 @@
                         options.highlightSpotColor = controls.highlightSpotColor?.value;
                     }
                     if (controls.highlightLineColorEnable?.checked) {
-                        options.highlightLineColor = controls.highlightLineColorNull?.checked ? null : controls.highlightLineColor?.value;
+                        options.highlightLineColor = controls.highlightLineColorNull?.checked ? undefined : controls.highlightLineColor?.value;
                     }
                     // Only set lineWidth/spotRadius if user specified values
                     if (controls.lineWidth?.value) {
@@ -1532,7 +1532,7 @@
                     { prop: 'spotColor', defaultKey: 'spot-color', isColor: true },
                     { prop: 'minSpotColor', defaultKey: 'min-spot-color', isColor: true },
                     { prop: 'maxSpotColor', defaultKey: 'max-spot-color', isColor: true },
-                    { prop: 'highlightSpotColor', defaultValue: null, isColor: true, includeIfNotNull: true },
+                    { prop: 'highlightSpotColor', defaultValue: undefined, isColor: true, includeIfNotNull: true },
                     { prop: 'highlightLineColor', defaultKey: 'highlight-line-color', isColor: true },
                     { prop: 'normalRangeColor', defaultKey: 'normal-range-color', isColor: true },
 
