@@ -47,6 +47,7 @@ export class LineChart extends BaseChart {
       xvalues: undefined,
       seriesNames: undefined,  // Optional array of series names
       dataLabels: undefined,   // Optional array of labels OR callback function(index) => label for data points (shown in tooltips)
+      highlightSpotColor: undefined,    // Option spot highlight colour
       getPointDataLabel: undefined  // Alternative: callback function(index) => label for high-performance scenarios
     };
   }
@@ -744,20 +745,28 @@ export class LineChart extends BaseChart {
    */
   drawHighlight(regionIndex) {
     const ctx = this.ctx;
-    const { highlightSpotColor, highlightLineColor, minSpotColor, maxSpotColor } = this.options;
     
+    //debugger;
+
+    const { highlightLineColor, minSpotColor, maxSpotColor } = this.options;
+
     // Multi-series highlight - show all points at this index
     if (this.isMultiSeries && this.multiSeriesPoints) {
       let xPosition = null;
       
-      this.multiSeriesPoints.forEach(seriesPoints => {
+      const hlSpotColors = this.getSeriesOption('highlightSpotColor', [undefined]);
+      const spotRadii = this.getSeriesOption('spotRadius', [1.5]);
+
+      this.multiSeriesPoints.forEach((seriesPoints, seriesIndex) => {
         const point = seriesPoints.points.find(p => p.index === regionIndex);
         if (point) {
           xPosition = point.x;
+
+          const highlightSpotColor = hlSpotColors[seriesIndex % hlSpotColors.length];
           
           // Highlight spot for each series
           // If highlightSpotColor is null, use the series color; otherwise use highlightSpotColor
-          let spotColor = highlightSpotColor === null ? seriesPoints.color : highlightSpotColor;
+          let spotColor = highlightSpotColor === undefined ? seriesPoints.color : highlightSpotColor;
           
           // Check if this point is a min or max and use appropriate color if highlightSpotColor is null
           if (highlightSpotColor === null && seriesPoints.minY !== undefined && seriesPoints.maxY !== undefined) {
@@ -770,8 +779,8 @@ export class LineChart extends BaseChart {
           
           if (spotColor) {
             ctx.fillStyle = spotColor;
-            ctx.beginPath();
-            ctx.arc(point.x, point.y, (this.options.spotRadius || 1.5) + 1, 0, 2 * Math.PI);
+            ctx.beginPath();                      
+            ctx.arc(point.x, point.y, spotRadii[seriesIndex % spotRadii.length] + 1, 0, 2 * Math.PI);
             ctx.fill();
           }
         }
@@ -797,6 +806,8 @@ export class LineChart extends BaseChart {
     
     const point = this.points.find(p => p.index === regionIndex);
     if (!point) return;
+
+    const { highlightSpotColor } = this.options;
     
     // Highlight spot
     // If highlightSpotColor is null, use the spot color; otherwise use highlightSpotColor

@@ -87,7 +87,7 @@ export default defineConfig(({ command, mode }) => {
     root: '.',
     server: {
       port: 5173,
-      host: 'localhost',
+      host: process.env.VITE_HOST || 'localhost', // Add this environmet
       open: '/'
     },
     resolve: {

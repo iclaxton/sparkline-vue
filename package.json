@@ -22,6 +22,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:net": "VITE_HOST=0.0.0.0 vite",
     "build": "cross-env NODE_ENV=production vite build",
     "build:docs": "cross-env NODE_ENV=production vite build --mode=docs --outDir=dist-docs",
     "preview": "vite preview",
