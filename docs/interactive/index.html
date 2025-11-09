@@ -2025,6 +2025,7 @@
 
             // Track if we're currently updating to prevent cascading updates
             let isUpdating = false;
+            let currentChartType = controls.type.value; // Track the current chart type
 
             // Set up auto-update listeners for all control changes
             Object.values(controls).forEach(control => {
@@ -2036,8 +2037,13 @@
                         isUpdating = true;
                         try {
                             if (control === controls.type) {
-                                // When chart type changes, reinitialize everything
-                                initializeChart(control.value);
+                                // Only reinitialize if chart type actually changed
+                                const newChartType = control.value;
+                                if (newChartType !== currentChartType) {
+                                    currentChartType = newChartType;
+                                    initializeChart(newChartType);
+                                }
+                                // If chart type didn't change, do nothing (no re-render)
                             } else {
                                 // For other controls, just update the chart
                                 updateChart();
@@ -2342,40 +2348,6 @@
                     }
                 });
             }
-
-            // Mobile polling fallback - check for select value changes every 500ms
-            let lastSelectValue = controls.type.value;
-            const mobilePollingInterval = setInterval(() => {
-                if (controls.type.value !== lastSelectValue) {
-                    lastSelectValue = controls.type.value;
-                    resetControlsToDefaults(controls.type.value);
-                    updateOptionVisibility(controls.type.value);
-                    updateChart();
-                }
-            }, 500);
-
-            // Cleanup interval when page is unloaded to prevent memory leaks
-            window.addEventListener('beforeunload', () => {
-                if (mobilePollingInterval) {
-                    clearInterval(mobilePollingInterval);
-                }
-                // Clean up MutationObservers
-                mutationObservers.forEach(observer => {
-                    observer.disconnect();
-                });
-            });
-
-            // Also cleanup if user navigates away from the page
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden && mobilePollingInterval) {
-                    clearInterval(mobilePollingInterval);
-                    // Clean up MutationObservers
-                    mutationObservers.forEach(observer => {
-                        observer.disconnect();
-                    });
-                }
-            });
-
         });
     </script>
 
