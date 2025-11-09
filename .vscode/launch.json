@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug Vite in Brave",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "runtimeExecutable": "/Applications/Brave Browser 3.app/Contents/MacOS/Brave Browser",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "/*": "${webRoot}/*"
+      },
+      "userDataDir": "${workspaceFolder}/.vscode/brave-debug-profile"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug Interactive Demo in Brave",
+      "url": "http://localhost:5173/docs/interactive/",
+      "webRoot": "${workspaceFolder}",
+      "runtimeExecutable": "/Applications/Brave Browser 3.app/Contents/MacOS/Brave Browser",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "/*": "${webRoot}/*"
+      },
+      "userDataDir": "${workspaceFolder}/.vscode/brave-debug-profile"
+    }
+  ]
+}
