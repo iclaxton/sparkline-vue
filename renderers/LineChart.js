@@ -401,6 +401,9 @@ export class LineChart extends BaseChart {
       }
     }
 
+    // Collect all points across all series for min/max spot detection
+    const allPoints = [];
+
     // Draw lines and collect points
     this.seriesData.forEach((series, seriesIndex) => {
       const lineColor = lineColors[seriesIndex % lineColors.length];
@@ -408,6 +411,9 @@ export class LineChart extends BaseChart {
       const spotRadius = spotRadii[seriesIndex % spotRadii.length];
       
       const seriesPoints = this.drawSeriesLine(ctx, series, minX, maxX, minY, maxY, rangeX, rangeY, lineColor, lineWidth, spotRadius, topOffset, height, seriesIndex);
+      
+      // Add to all points for min/max detection
+      allPoints.push(...seriesPoints);
       
       // Calculate min/max for this series
       const seriesYVals = series.yvalues.filter(v => v !== null);
@@ -422,6 +428,11 @@ export class LineChart extends BaseChart {
         maxY: seriesMaxY
       });
     });
+    
+    // Draw min/max spots across all series
+    if (allPoints.length > 0) {
+      this.drawMinMaxSpots(allPoints, minY, maxY);
+    }
     
     // Store the actual line colors used for tooltip rendering
     this.multiSeriesLineColors = lineColors;
@@ -604,9 +615,12 @@ export class LineChart extends BaseChart {
     
     ctx.stroke();
     
-    // Draw spots if specified
-    if (spotRadius > 0) {
-      ctx.fillStyle = lineColor;
+    // Draw spots if specified and spotColor is set
+    const spotColors = this.getSeriesOption('spotColor', [undefined]);
+    const spotColor = spotColors[seriesIndex % spotColors.length];
+    
+    if (spotRadius > 0 && spotColor) {
+      ctx.fillStyle = spotColor;
       points.forEach(point => {
         ctx.beginPath();
         ctx.arc(point.x, point.y, spotRadius, 0, 2 * Math.PI);
@@ -641,9 +655,11 @@ export class LineChart extends BaseChart {
 
   /**
    * Draw special colored spots for minimum and maximum values
+   * For multi-series: shows only the global min and max across all series
+   * For single-series: shows the min and max for that series
    * @param {Array<Object>} points - Array of point objects
-   * @param {number} minY - Minimum y value
-   * @param {number} maxY - Maximum y value
+   * @param {number} minY - Minimum y value across all data
+   * @param {number} maxY - Maximum y value across all data
    * @private
    */
   drawMinMaxSpots(points, minY, maxY) {
@@ -651,21 +667,31 @@ export class LineChart extends BaseChart {
     const ctx = this.ctx;
     
     if (!minSpotColor && !maxSpotColor) return;
+    if (points.length === 0) return;
 
-    points.forEach(point => {
-      if (point.value === minY && minSpotColor) {
-        ctx.fillStyle = minSpotColor;
+    // Find the actual min and max points (there could be multiple points with same value)
+    const minPoints = points.filter(p => p.value === minY);
+    const maxPoints = points.filter(p => p.value === maxY);
+
+    // Draw min spots
+    if (minSpotColor && minY !== maxY) {  // Don't draw if all values are the same
+      ctx.fillStyle = minSpotColor;
+      minPoints.forEach(point => {
         ctx.beginPath();
         ctx.arc(point.x, point.y, spotRadius, 0, 2 * Math.PI);
         ctx.fill();
-      }
-      if (point.value === maxY && maxSpotColor) {
-        ctx.fillStyle = maxSpotColor;
+      });
+    }
+
+    // Draw max spots
+    if (maxSpotColor && minY !== maxY) {  // Don't draw if all values are the same
+      ctx.fillStyle = maxSpotColor;
+      maxPoints.forEach(point => {
         ctx.beginPath();
         ctx.arc(point.x, point.y, spotRadius, 0, 2 * Math.PI);
         ctx.fill();
-      }
-    });
+      });
+    }
   }
 
   /**
@@ -746,8 +772,6 @@ export class LineChart extends BaseChart {
   drawHighlight(regionIndex) {
     const ctx = this.ctx;
     
-    //debugger;
-
     const { highlightLineColor, minSpotColor, maxSpotColor } = this.options;
 
     // Multi-series highlight - show all points at this index
@@ -756,6 +780,18 @@ export class LineChart extends BaseChart {
       
       const hlSpotColors = this.getSeriesOption('highlightSpotColor', [undefined]);
       const spotRadii = this.getSeriesOption('spotRadius', [1.5]);
+
+      // Calculate global min/max across all series for this specific point
+      let globalMin = Infinity;
+      let globalMax = -Infinity;
+      
+      this.multiSeriesPoints.forEach((seriesPoints) => {
+        const point = seriesPoints.points.find(p => p.index === regionIndex);
+        if (point) {
+          globalMin = Math.min(globalMin, point.value);
+          globalMax = Math.max(globalMax, point.value);
+        }
+      });
 
       this.multiSeriesPoints.forEach((seriesPoints, seriesIndex) => {
         const point = seriesPoints.points.find(p => p.index === regionIndex);
@@ -768,11 +804,14 @@ export class LineChart extends BaseChart {
           // If highlightSpotColor is null, use the series color; otherwise use highlightSpotColor
           let spotColor = highlightSpotColor === undefined ? seriesPoints.color : highlightSpotColor;
           
-          // Check if this point is a min or max and use appropriate color if highlightSpotColor is null
-          if (highlightSpotColor === undefined && seriesPoints.minY !== undefined && seriesPoints.maxY !== undefined) {
-            if (point.value === seriesPoints.minY && minSpotColor) {
+          // Check if this point is the global min or max at this x-position
+          if (highlightSpotColor === undefined) {
+            const isGlobalMin = point.value === globalMin && globalMin !== globalMax && minSpotColor;
+            const isGlobalMax = point.value === globalMax && globalMin !== globalMax && maxSpotColor;
+            
+            if (isGlobalMin) {
               spotColor = minSpotColor;
-            } else if (point.value === seriesPoints.maxY && maxSpotColor) {
+            } else if (isGlobalMax) {
               spotColor = maxSpotColor;
             }
           }
@@ -885,14 +924,37 @@ export class LineChart extends BaseChart {
       // Get the point label (date, month, etc.) to use as title
       const pointLabel = this.getPointLabel(region);
       
+      // Calculate GLOBAL min/max across ALL data points in ALL series
+      let globalMin = Infinity;
+      let globalMax = -Infinity;
+      
+      this.multiSeriesPoints.forEach((seriesPoints) => {
+        seriesPoints.points.forEach(point => {
+          globalMin = Math.min(globalMin, point.value);
+          globalMax = Math.max(globalMax, point.value);
+        });
+      });
+      
       this.multiSeriesPoints.forEach((seriesPoints, idx) => {
         const point = seriesPoints.points.find(p => p.index === region);
         if (point) {
           const seriesName = seriesNames[idx] || `Series ${idx + 1}`;
           const value = point.value;
           const formattedValue = this.formatTooltipValue(value, region);
-          // No longer include pointLabel in each series line - it's shown as title
-          const label = `${seriesName}: ${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
+          
+          // Check if this is the GLOBAL min or max across all data
+          const isMin = value === globalMin && globalMin !== globalMax && this.options.minSpotColor;
+          const isMax = value === globalMax && globalMin !== globalMax && this.options.maxSpotColor;
+          
+          let label;
+          if (isMin) {
+            label = `${seriesName}: ${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix} (Min)`;
+          } else if (isMax) {
+            label = `${seriesName}: ${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix} (Max)`;
+          } else {
+            label = `${seriesName}: ${this.options.tooltipPrefix}${formattedValue}${this.options.tooltipSuffix}`;
+          }
+          
           const color = lineColors[idx % lineColors.length];
           
           items.push({ label, color });
@@ -914,7 +976,7 @@ export class LineChart extends BaseChart {
     if (color && typeof region === 'number' && region >= 0 && region < this.yvalues.length) {
       const value = this.yvalues[region];
 
-      // Check if this is a min/max value
+      // Check if this is a GLOBAL min/max value across all data
       const yVals = this.yvalues.filter(v => v !== null);
       const minY = Math.min(...yVals);
       const maxY = Math.max(...yVals);
