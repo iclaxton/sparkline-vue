@@ -760,6 +760,7 @@
             { id: 'series-fill-colors', propertyName: 'fillColor', label: 'Series Fill Colors', type: 'text', placeholder: 'Optional (transparent)', visibleFor: ['line-multi'], group: 'Series' },
             { id: 'series-line-widths', propertyName: 'lineWidth', label: 'Series Line Widths', type: 'text', placeholder: 'Optional (1)', visibleFor: ['line-multi'], group: 'Series' },
             { id: 'series-spot-radii', propertyName: 'spotRadius', label: 'Series Spot Radii', type: 'text', placeholder: 'Optional (1.5)', visibleFor: ['line-multi'], group: 'Series' },
+            { id: 'series-spot-colors', propertyName: 'spotColor', label: 'Series Spot Colors', type: 'text', placeholder: 'Optional (uses line color)', visibleFor: ['line-multi'], group: 'Series' },
 
             // Box chart
             { id: 'box-line-color', propertyName: 'boxLineColor', label: 'Box Line Color', type: 'color', checked: false, disabled: true, visibleFor: ['box'], group: 'Colors' },
@@ -1339,6 +1340,12 @@
                     const seriesSpotRadiiValue = controls.seriesSpotRadii?.value?.trim();
                     if (seriesSpotRadiiValue) {
                         options.spotRadius = seriesSpotRadiiValue.split(',').map(r => parseFloat(r.trim()));
+                    }
+
+                    // Handle series spot colors - only set if user provided custom colors
+                    const seriesSpotColorsValue = controls.seriesSpotColors?.value?.trim();
+                    if (seriesSpotColorsValue) {
+                        options.spotColor = seriesSpotColorsValue.split(',').map(c => c.trim());
                     }
                 }
 

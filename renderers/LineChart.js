@@ -332,10 +332,11 @@ export class LineChart extends BaseChart {
     // Store points for highlighting
     this.points = points;
 
-    // Draw spots - use lineColor if spotColor is undefined
+    // Draw spots - use lineColor if spotColor is undefined, skip if null
     if (spotRadius > 0) {
       const finalSpotColor = spotColor !== undefined ? spotColor : lineColor;
-      if (finalSpotColor) {
+      // spotColor can be: undefined (use lineColor), null (no spots), or a color string
+      if (finalSpotColor !== null && finalSpotColor) {
         ctx.fillStyle = finalSpotColor;
         points.forEach(point => {
           ctx.beginPath();
@@ -618,13 +619,14 @@ export class LineChart extends BaseChart {
     
     ctx.stroke();
     
-    // Draw spots - use lineColor if spotColor is undefined
+    // Draw spots - use lineColor if spotColor is undefined, skip if null
     const spotColors = this.getSeriesOption('spotColor', [undefined]);
     const spotColor = spotColors[seriesIndex % spotColors.length];
     
     if (spotRadius > 0) {
       const finalSpotColor = spotColor !== undefined ? spotColor : lineColor;
-      if (finalSpotColor) {
+      // spotColor can be: undefined (use lineColor), null (no spots), or a color string
+      if (finalSpotColor !== null && finalSpotColor) {
         ctx.fillStyle = finalSpotColor;
         points.forEach(point => {
           ctx.beginPath();
@@ -866,11 +868,11 @@ export class LineChart extends BaseChart {
     
     if (highlightSpotColor !== undefined) {
       spotColor = highlightSpotColor;
-    } else if (highlightSpotColor === undefined && this.minY !== undefined && this.maxY !== undefined) {
-      // Check if this point is a min or max
-      if (point.value === this.minY && minSpotColor) {
+    } else if (this.minY !== undefined && this.maxY !== undefined) {
+      // Check if this point is a min or max (only if they're different)
+      if (point.value === this.minY && this.minY !== this.maxY && minSpotColor) {
         spotColor = minSpotColor;
-      } else if (point.value === this.maxY && maxSpotColor) {
+      } else if (point.value === this.maxY && this.minY !== this.maxY && maxSpotColor) {
         spotColor = maxSpotColor;
       } else {
         // Use spotColor if set, otherwise use lineColor
