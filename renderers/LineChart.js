@@ -36,7 +36,7 @@ export class LineChart extends BaseChart {
       lineColor: !isMulti ? '#0000ff' : LineChart.DEFAULT_SERIES_COLORS,
       fillColor: undefined,
       lineWidth: !isMulti ? 1 : [1],
-      spotColor: '#f80',
+      spotColor: undefined,  // Use series color when spotRadius is set
       minSpotColor: '#f44',
       maxSpotColor: '#4f4',
       spotRadius: !isMulti ? 1.5 : [1.5],
@@ -332,14 +332,17 @@ export class LineChart extends BaseChart {
     // Store points for highlighting
     this.points = points;
 
-    // Draw spots
-    if (spotRadius > 0 && spotColor) {
-      ctx.fillStyle = spotColor;
-      points.forEach(point => {
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, spotRadius, 0, 2 * Math.PI);
-        ctx.fill();
-      });
+    // Draw spots - use lineColor if spotColor is undefined
+    if (spotRadius > 0) {
+      const finalSpotColor = spotColor !== undefined ? spotColor : lineColor;
+      if (finalSpotColor) {
+        ctx.fillStyle = finalSpotColor;
+        points.forEach(point => {
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, spotRadius, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+      }
     }
 
     // Draw min/max spots if specified
@@ -615,17 +618,20 @@ export class LineChart extends BaseChart {
     
     ctx.stroke();
     
-    // Draw spots if specified and spotColor is set
+    // Draw spots - use lineColor if spotColor is undefined
     const spotColors = this.getSeriesOption('spotColor', [undefined]);
     const spotColor = spotColors[seriesIndex % spotColors.length];
     
-    if (spotRadius > 0 && spotColor) {
-      ctx.fillStyle = spotColor;
-      points.forEach(point => {
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, spotRadius, 0, 2 * Math.PI);
-        ctx.fill();
-      });
+    if (spotRadius > 0) {
+      const finalSpotColor = spotColor !== undefined ? spotColor : lineColor;
+      if (finalSpotColor) {
+        ctx.fillStyle = finalSpotColor;
+        points.forEach(point => {
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, spotRadius, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+      }
     }
     
     return points;
@@ -781,16 +787,15 @@ export class LineChart extends BaseChart {
       const hlSpotColors = this.getSeriesOption('highlightSpotColor', [undefined]);
       const spotRadii = this.getSeriesOption('spotRadius', [1.5]);
 
-      // Calculate global min/max across all series for this specific point
+      // Calculate GLOBAL min/max across ALL data points in ALL series
       let globalMin = Infinity;
       let globalMax = -Infinity;
       
       this.multiSeriesPoints.forEach((seriesPoints) => {
-        const point = seriesPoints.points.find(p => p.index === regionIndex);
-        if (point) {
+        seriesPoints.points.forEach(point => {
           globalMin = Math.min(globalMin, point.value);
           globalMax = Math.max(globalMax, point.value);
-        }
+        });
       });
 
       this.multiSeriesPoints.forEach((seriesPoints, seriesIndex) => {
@@ -798,14 +803,19 @@ export class LineChart extends BaseChart {
         if (point) {
           xPosition = point.x;
 
-          const highlightSpotColor = hlSpotColors[seriesIndex % hlSpotColors.length];
+          const seriesHighlightSpotColor = hlSpotColors[seriesIndex % hlSpotColors.length];
           
-          // Highlight spot for each series
-          // If highlightSpotColor is null, use the series color; otherwise use highlightSpotColor
-          let spotColor = highlightSpotColor === undefined ? seriesPoints.color : highlightSpotColor;
+          // Determine spot color priority:
+          // 1. If highlightSpotColor is explicitly set (not undefined), use it
+          // 2. If this is GLOBAL min/max across all data, use min/max color
+          // 3. Otherwise use series color
+          let spotColor;
           
-          // Check if this point is the global min or max at this x-position
-          if (highlightSpotColor === undefined) {
+          if (seriesHighlightSpotColor !== undefined) {
+            // User explicitly set highlightSpotColor
+            spotColor = seriesHighlightSpotColor;
+          } else {
+            // No highlightSpotColor set - check for GLOBAL min/max
             const isGlobalMin = point.value === globalMin && globalMin !== globalMax && minSpotColor;
             const isGlobalMax = point.value === globalMax && globalMin !== globalMax && maxSpotColor;
             
@@ -813,6 +823,8 @@ export class LineChart extends BaseChart {
               spotColor = minSpotColor;
             } else if (isGlobalMax) {
               spotColor = maxSpotColor;
+            } else {
+              spotColor = seriesPoints.color;
             }
           }
           
@@ -849,16 +861,24 @@ export class LineChart extends BaseChart {
     const { highlightSpotColor } = this.options;
     
     // Highlight spot
-    // If highlightSpotColor is null, use the spot color; otherwise use highlightSpotColor
-    let spotColor = highlightSpotColor === undefined ? this.options.spotColor : highlightSpotColor;
+    // Priority: highlightSpotColor > min/max colors > spotColor > lineColor
+    let spotColor;
     
-    // Check if this point is a min or max and use appropriate color if highlightSpotColor is null
-    if (highlightSpotColor === undefined && this.minY !== undefined && this.maxY !== undefined) {
+    if (highlightSpotColor !== undefined) {
+      spotColor = highlightSpotColor;
+    } else if (highlightSpotColor === undefined && this.minY !== undefined && this.maxY !== undefined) {
+      // Check if this point is a min or max
       if (point.value === this.minY && minSpotColor) {
         spotColor = minSpotColor;
       } else if (point.value === this.maxY && maxSpotColor) {
         spotColor = maxSpotColor;
+      } else {
+        // Use spotColor if set, otherwise use lineColor
+        spotColor = this.options.spotColor !== undefined ? this.options.spotColor : this.options.lineColor;
       }
+    } else {
+      // Use spotColor if set, otherwise use lineColor
+      spotColor = this.options.spotColor !== undefined ? this.options.spotColor : this.options.lineColor;
     }
     
     if (spotColor) {
