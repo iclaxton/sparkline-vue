@@ -36,7 +36,6 @@ import { createChart as createOptimizedChart, destroyChart } from '../renderers/
  * @prop {Number} height - Chart height in pixels
  * @prop {Object} options - Chart-specific configuration options
  * @prop {Boolean} optimized - Enable object pooling for better performance with many charts
- * @prop {Boolean} streaming - Enable streaming mode for live data with tooltip preservation
  * 
  * @emits {Object} click - Emitted when a chart region is clicked { region, value, offset }
  * @emits {Object} region-change - Emitted when mouse enters/leaves region { region, previousRegion }
@@ -76,15 +75,6 @@ export default {
             console.error(
               `[Sparkline] Data prop must be an array, got ${typeof value}.\n` +
               `Fix: Ensure you're passing an array like :data="[1,2,3,4,5]"`
-            );
-          }
-          return false;
-        }
-        if (value.length === 0) {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn(
-              `[Sparkline] Data array is empty. Chart will not render.\n` +
-              `Fix: Provide at least one data point.`
             );
           }
           return false;
@@ -141,9 +131,7 @@ export default {
       }
     },
     // Performance optimization mode
-    optimized: { type: Boolean, default: false },
-    // Streaming mode - enables smart tooltip restoration
-    streaming: { type: Boolean, default: false }
+    optimized: { type: Boolean, default: false }
   },
   setup(props, { emit, expose }) {
     const canvas = ref(null);
@@ -156,6 +144,15 @@ export default {
 
     const draw = () => {
       if (!isClient || !canvas.value) return;
+      
+      // Skip drawing if no data
+      if (!props.data || props.data.length === 0) {
+        const ctx = canvas.value.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, props.width, props.height);
+        }
+        return; // Silently skip, no error
+      }
       
       // Performance monitoring in development
       const perfStart = process.env.NODE_ENV === 'development' ? performance.now() : 0;
@@ -342,10 +339,10 @@ export default {
       }
     }, { deep: true, flush: 'post' });
     
-    // Watch optimized and streaming props - if they change, recreate the chart
-    watch(() => [props.optimized, props.streaming], () => {
+    // Watch optimized prop - if it changes, recreate the chart
+    watch(() => props.optimized, () => {
       if (canvas.value && chartInstance) {
-        // These props require chart recreation
+        // Optimized prop requires chart recreation
         if (props.optimized) {
           destroyChart(chartInstance, chartInstance.type);
         } else if (chartInstance.destroy) {

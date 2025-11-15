@@ -30,7 +30,7 @@ Simple, beginner-friendly examples:
 
 ### ⚡ [Advanced Examples](https://iclaxton.github.io/sparkline-vue/docs/advanced/)
 Advanced interactive features:
-- Real-time data streaming
+- Real-time data updates
 - Interactive click events
 - Custom tooltip formatting
 - Dynamic theming

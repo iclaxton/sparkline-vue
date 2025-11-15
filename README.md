@@ -598,25 +598,13 @@ Benefits:
 - **Cached Defaults**: Reduces memory allocations
 - **~50% faster** rendering with large datasets
 
-### Streaming Mode for Live Data
-
-For real-time data updates:
-
-```vue
-<Sparkline 
-  :data="liveData"
-  :streaming="true"
-/>
-```
-
-This preserves tooltip state during updates for smoother UX.
-
 ### Performance Tips
 
 1. **Batch Updates**: Update data in batches rather than individual points
 2. **Debounce Rapid Changes**: Use `debounce` for frequently updating data
 3. **Appropriate Dimensions**: Smaller charts render faster
 4. **Disable Tooltips**: Set `disableTooltips: true` if not needed
+5. **Live Data**: Tooltips are automatically preserved during data updates for smooth UX
 
 ```vue
 <script setup>

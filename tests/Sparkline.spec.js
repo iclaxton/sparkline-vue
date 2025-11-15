@@ -112,17 +112,17 @@ describe('Sparkline Component', () => {
       consoleWarn.mockRestore()
     })
 
-    it('validates data is not empty', () => {
-      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      
+    it('allows empty data array for dynamic loading', () => {
+      // Empty data should be allowed (for async/dynamic loading scenarios)
       wrapper = mount(Sparkline, {
         props: {
           data: []
         }
       })
       
-      expect(consoleWarn).toHaveBeenCalled()
-      consoleWarn.mockRestore()
+      expect(wrapper.exists()).toBe(true)
+      expect(wrapper.find('canvas').exists()).toBe(true)
+      // Chart should render but with cleared canvas
     })
 
     it('validates positive width', () => {
