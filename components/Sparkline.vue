@@ -36,7 +36,6 @@ import { createChart as createOptimizedChart, destroyChart } from '../renderers/
  * @prop {Number} height - Chart height in pixels
  * @prop {Object} options - Chart-specific configuration options
  * @prop {Boolean} optimized - Enable object pooling for better performance with many charts
- * @prop {Boolean} streaming - Enable streaming mode for live data with tooltip preservation
  * 
  * @emits {Object} click - Emitted when a chart region is clicked { region, value, offset }
  * @emits {Object} region-change - Emitted when mouse enters/leaves region { region, previousRegion }
@@ -141,9 +140,7 @@ export default {
       }
     },
     // Performance optimization mode
-    optimized: { type: Boolean, default: false },
-    // Streaming mode - enables smart tooltip restoration
-    streaming: { type: Boolean, default: false }
+    optimized: { type: Boolean, default: false }
   },
   setup(props, { emit, expose }) {
     const canvas = ref(null);
@@ -342,10 +339,10 @@ export default {
       }
     }, { deep: true, flush: 'post' });
     
-    // Watch optimized and streaming props - if they change, recreate the chart
-    watch(() => [props.optimized, props.streaming], () => {
+    // Watch optimized prop - if it changes, recreate the chart
+    watch(() => props.optimized, () => {
       if (canvas.value && chartInstance) {
-        // These props require chart recreation
+        // Optimized prop requires chart recreation
         if (props.optimized) {
           destroyChart(chartInstance, chartInstance.type);
         } else if (chartInstance.destroy) {

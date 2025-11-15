@@ -16,10 +16,5 @@ const SparklinePlugin = {
   }
 };
 
-// Auto-install when used with Vue.use()
-if (typeof window !== 'undefined' && window.Vue) {
-  window.Vue.use(SparklinePlugin);
-}
-
-// Use ONLY named exports (no default)
+// Named exports for modern ES module usage
 export { Sparkline, SparklinePlugin };
