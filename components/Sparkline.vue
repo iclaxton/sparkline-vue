@@ -79,15 +79,6 @@ export default {
           }
           return false;
         }
-        if (value.length === 0) {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn(
-              `[Sparkline] Data array is empty. Chart will not render.\n` +
-              `Fix: Provide at least one data point.`
-            );
-          }
-          return false;
-        }
         return true;
       }
     },
@@ -153,6 +144,15 @@ export default {
 
     const draw = () => {
       if (!isClient || !canvas.value) return;
+      
+      // Skip drawing if no data
+      if (!props.data || props.data.length === 0) {
+        const ctx = canvas.value.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, props.width, props.height);
+        }
+        return; // Silently skip, no error
+      }
       
       // Performance monitoring in development
       const perfStart = process.env.NODE_ENV === 'development' ? performance.now() : 0;
