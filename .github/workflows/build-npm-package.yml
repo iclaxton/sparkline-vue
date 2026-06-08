@@ -70,9 +70,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
-      - name: Configure npm for OIDC trusted publishing
-        run: npm config delete //registry.npmjs.org/:_authToken
-
       - name: Install dependencies
         run: npm ci
 
@@ -113,6 +110,21 @@ jobs:
           npm pack --dry-run
           echo "Version to be published: $FINAL_VERSION"
 
+      - name: Debug npm auth config
+        run: |
+          echo "=== npm version ==="
+          npm --version
+          echo ""
+          echo "=== npm config (auth redacted) ==="
+          npm config list 2>&1 | sed 's/\(_authToken\s*=\s*\).*/\1[REDACTED]/'
+          echo ""
+          echo "=== OIDC env vars ==="
+          [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && echo "ACTIONS_ID_TOKEN_REQUEST_URL: present" || echo "ACTIONS_ID_TOKEN_REQUEST_URL: NOT present"
+          [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ] && echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: present" || echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: NOT present"
+          echo ""
+          echo "=== user npmrc (auth redacted) ==="
+          cat "$NPM_CONFIG_USERCONFIG" 2>/dev/null | sed 's/\(_authToken\s*=\s*\).*/\1[REDACTED]/' || echo "(no user npmrc at $NPM_CONFIG_USERCONFIG)"
+
       - name: Publish to NPM
         id: npm_publish
         run: |
@@ -151,7 +163,7 @@ jobs:
           
           echo "Publishing sparkline-vue@$FINAL_VERSION with tag: $NPM_TAG"
 
-          npm publish --tag "$NPM_TAG" --provenance --access public
+          npm publish --tag "$NPM_TAG" --provenance --access public --loglevel verbose
           echo "✅ Published with provenance attestation"
           
           # Verify that the package was successfully published to the registry (with retry)
