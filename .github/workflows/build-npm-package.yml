@@ -114,14 +114,7 @@ jobs:
         id: npm_publish
         run: |
           echo "Publishing version: $FINAL_VERSION"
-          
-          # Check if NPM_TOKEN is available
-          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "❌ NPM_TOKEN not found - cannot publish to NPM"
-            echo "To publish to NPM, add NPM_TOKEN secret in repository settings"
-            exit 1
-          fi
-          
+
           # Check if version already exists on NPM
           echo "🔍 Checking if version $FINAL_VERSION already exists..."
           if npm view sparkline-vue@$FINAL_VERSION version 2>/dev/null; then
@@ -154,17 +147,9 @@ jobs:
           fi
           
           echo "Publishing sparkline-vue@$FINAL_VERSION with tag: $NPM_TAG"
-          
-          # Attempt to publish with provenance first; if it fails, immediately fallback to publishing without provenance
-          if npm publish --tag "$NPM_TAG" --provenance --access public; then
-            echo "✅ Published with provenance attestation"
-          elif npm publish --tag "$NPM_TAG" --access public; then
-            echo "✅ Published without provenance attestation"
-            echo "Note: Provenance attestation was skipped due to transparency log issues"
-          else
-            echo "❌ Both publish attempts failed"
-            exit 1
-          fi
+
+          npm publish --tag "$NPM_TAG" --provenance --access public
+          echo "✅ Published with provenance attestation"
           
           # Verify that the package was successfully published to the registry (with retry)
           echo "🔍 Verifying published package on NPM registry..."
@@ -194,8 +179,6 @@ jobs:
           
           echo "✅ Successfully published sparkline-vue@$FINAL_VERSION with tag $NPM_TAG"
           echo "npm_publish_success=true" >> $GITHUB_OUTPUT
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create and push version tag
         if: github.event_name != 'release' && steps.npm_publish.outputs.npm_publish_success == 'true'
@@ -300,8 +283,8 @@ jobs:
           echo "🔍 Check the 'Publish to NPM' step above for details."
           echo ""
           echo "Common issues:"
-          echo "  - NPM_TOKEN secret not set or invalid"
-          echo "  - Version $FINAL_VERSION already exists on NPM" 
+          echo "  - Trusted publisher not configured on npmjs.com for this repo"
+          echo "  - Version $FINAL_VERSION already exists on NPM"
           echo "  - Network connectivity problems with NPM registry"
           echo "  - Package configuration issues"
           echo "  - Package verification failed after publish"
