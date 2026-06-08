@@ -57,17 +57,11 @@ export interface SparklineProps {
    */
   options?: SparklineOptions
   
-  /** 
+  /**
    * Enable optimized mode with object pooling for better performance with many charts.
    * Uses OptimizedChartFactory for memory efficiency.
    */
   optimized?: boolean
-  
-  /** 
-   * Enable streaming mode for live data updates. 
-   * Preserves tooltip state during data updates for smoother transitions.
-   */
-  streaming?: boolean
 }
 
 /**

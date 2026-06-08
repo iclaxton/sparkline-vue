@@ -16,5 +16,10 @@ const SparklinePlugin = {
   }
 };
 
+// Auto-install when used as a UMD bundle via <script> tag (window.Vue global)
+if (typeof window !== 'undefined' && window.Vue) {
+  window.Vue.use(SparklinePlugin);
+}
+
 // Named exports for modern ES module usage
 export { Sparkline, SparklinePlugin };

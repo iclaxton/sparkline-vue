@@ -145,13 +145,26 @@ export default {
     const draw = () => {
       if (!isClient || !canvas.value) return;
       
-      // Skip drawing if no data
+      // Skip drawing if no data — destroy instance so stale handlers don't fire
       if (!props.data || props.data.length === 0) {
-        const ctx = canvas.value.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, props.width, props.height);
+        if (chartInstance) {
+          if (props.optimized) {
+            destroyChart(chartInstance, chartInstance.type);
+          } else if (chartInstance.destroy) {
+            chartInstance.destroy();
+          }
+          chartInstance = null;
         }
-        return; // Silently skip, no error
+        if (clickHandler && canvas.value) {
+          canvas.value.removeEventListener('sparklineClick', clickHandler);
+          clickHandler = null;
+        }
+        if (regionChangeHandler && canvas.value) {
+          canvas.value.removeEventListener('sparklineRegionChange', regionChangeHandler);
+          regionChangeHandler = null;
+        }
+        canvas.value.getContext('2d')?.clearRect(0, 0, props.width, props.height);
+        return;
       }
       
       // Performance monitoring in development
